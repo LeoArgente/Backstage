@@ -1,5 +1,5 @@
 # Backstage 🎥
-Um site para registrar, avaliar e acompanhar todos os filmes que você assiste, criando seu próprio diário cinematográfico.
+####Um site para registrar, avaliar e acompanhar todos os filmes que você assiste, criando seu próprio diário cinematográfico.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 ## Entre no **Backstage** e registre cada frame.
 - Log de filmes assistidos: mantenha controle do que já viu.

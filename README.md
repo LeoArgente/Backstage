@@ -5,7 +5,7 @@
 - Log de filmes assistidos: mantenha controle do que já viu.
 - Avaliações por estrelas: destaque seus favoritos.
 - Comentários e notas rápidas: registre impressões e insights.
-- Filtros e organização: explore por gênero, avaliação ou data.
+- Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 ### Integrantes 🚀
 - Leonardo Argente 

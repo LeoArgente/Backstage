@@ -8,10 +8,10 @@
 - Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 ### Integrantes 🚀
+- Henrique Antunes Calado
 - Leonardo Argente 
 - Louise Pessoas Araújo Medeiros de Souza
 - Luis Antônio Godoy Idrissi
 - Marília Liz Alves de Lima
-- Henrique Antunes Calado
 - Rafael Pimenta Borba
 - Victor Martins Tomaz de Melo

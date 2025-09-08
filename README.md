@@ -15,3 +15,5 @@
 - Marília Liz Alves de Lima
 - Rafael Pimenta Borba
 - Victor Martins Tomaz de Melo
+----------------------------------------------------------------------------------------------------------------------------------------------
+Link para as histórias: https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing

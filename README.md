@@ -17,6 +17,7 @@
 - Victor Martins Tomaz de Melo
 ----------------------------------------------------------------------------------------------------------------------------------------------
 Sprint 1:
-![Sprint 1](Backstage/imagens/sprint1.png)
+![Sprint 1]([Backstage/imagens/sprint1.png](https://github.com/marilializ/Backstage/blob/main/imagens/sprint1.PNG?raw=true
+))
 
 Link para as histórias: https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing

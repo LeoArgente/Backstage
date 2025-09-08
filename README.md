@@ -7,7 +7,8 @@
 - Comentários e notas rápidas: registre impressões e insights.
 - Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
-### Integrantes 🚀
+<details>
+<summary>### Integrantes 🚀</summary>
 - Henrique Antunes Calado
 - Leonardo Argente 
 - Louise Pessoas Araújo Medeiros de Souza
@@ -15,6 +16,7 @@
 - Marília Liz Alves de Lima
 - Rafael Pimenta Borba
 - Victor Martins Tomaz de Melo
+  </details>
 ----------------------------------------------------------------------------------------------------------------------------------------------
 ## Sprint 1:
 

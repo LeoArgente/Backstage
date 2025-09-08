@@ -16,7 +16,8 @@
 - Rafael Pimenta Borba
 - Victor Martins Tomaz de Melo
 ----------------------------------------------------------------------------------------------------------------------------------------------
-##Sprint 1:
+## Sprint 1:
+
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)
 
 

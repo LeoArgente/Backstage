@@ -26,7 +26,7 @@
   </details>
 ----------------------------------------------------------------------------------------------------------------------------------------------
 <details>
-<summary> ENTREGA 1</summary>
+<summary> 📥 ENTREGA 1</summary>
   
 - [Screencast](link youtube)
 - [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)

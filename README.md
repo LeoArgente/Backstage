@@ -8,7 +8,7 @@
 - Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 <details>
-<summary> **Integrantes 🚀** </summary>
+<summary> 🚀 INTEGRANTES  </summary>
   
 - Henrique Antunes Calado 
   

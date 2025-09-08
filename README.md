@@ -25,9 +25,12 @@
 - Victor Martins Tomaz de Melo
   </details>
 ----------------------------------------------------------------------------------------------------------------------------------------------
-## Sprint 1:
+<details>
+<summary> ENTREGA 1</summary>
+  
+- [Screencast](link youtube)
+- [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
 
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)
 
-
-Link para as histórias: https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing
+</details>

@@ -8,7 +8,8 @@
 - Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 <details>
-<summary> Integrantes 🚀</summary>
+<summary> **Integrantes 🚀** </summary>
+  
 - Henrique Antunes Calado 
   
 - Leonardo Argente

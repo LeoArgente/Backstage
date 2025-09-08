@@ -8,13 +8,19 @@
 - Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 <details>
-<summary>### Integrantes 🚀</summary>
-- Henrique Antunes Calado
-- Leonardo Argente 
+<summary> Integrantes 🚀</summary>
+- Henrique Antunes Calado 
+  
+- Leonardo Argente
+
 - Louise Pessoas Araújo Medeiros de Souza
+
 - Luis Antônio Godoy Idrissi
+
 - Marília Liz Alves de Lima
+
 - Rafael Pimenta Borba
+
 - Victor Martins Tomaz de Melo
   </details>
 ----------------------------------------------------------------------------------------------------------------------------------------------

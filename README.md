@@ -16,4 +16,5 @@
 - Rafael Pimenta Borba
 - Victor Martins Tomaz de Melo
 ----------------------------------------------------------------------------------------------------------------------------------------------
+![Sprint 1](./imagens/sprint1.png)
 Link para as histórias: https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing

@@ -35,8 +35,8 @@
 
 </details>
 
-<summary> 🔗 LINKS IMPORTANTES </summary>
 <details>
+<summary> 🔗 LINKS IMPORTANTES </summary>
   
 - [Jira](https://cesarschool-20252.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiNjQxZWFjMDE5Yzk3NGY5MGE0MjMzZjZmNzAxZjYxZmUiLCJwIjoiaiJ9)
   

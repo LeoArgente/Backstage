@@ -31,5 +31,6 @@
 - [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
 
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)
+![Quadro 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/quadro1.PNG)
 
 </details>

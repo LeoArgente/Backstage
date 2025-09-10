@@ -28,8 +28,21 @@
 <summary> 📥 ENTREGA 1</summary>
   
 - [Screencast](link youtube)
-- [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
+
 
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)
+![Quadro 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Quadro1.PNG)
+![Figma 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/figma1.PNG)
+
 
 </details>
+
+<details>
+<summary> 🔗 LINKS IMPORTANTES </summary>
+  
+- [Jira](https://cesarschool-20252.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiNjQxZWFjMDE5Yzk3NGY5MGE0MjMzZjZmNzAxZjYxZmUiLCJwIjoiaiJ9)
+  
+- [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
+  
+</details>
+

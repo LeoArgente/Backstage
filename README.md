@@ -32,6 +32,8 @@
 
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)
 ![Quadro 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Quadro1.PNG)
+![Figma 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/figma1.PNG)
+
 
 </details>
 

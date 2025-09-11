@@ -27,7 +27,7 @@
 <details>
 <summary> 📥 ENTREGA 1</summary>
   
-- [Screencast]((https://youtu.be/LRqxvmqukJw))
+- [Screencast](https://youtu.be/LRqxvmqukJw)
 
 
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)

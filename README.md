@@ -27,6 +27,7 @@
 <details>
 <summary> 📥 ENTREGA 1</summary>
 
+
 O objetivo desta sprint foi criar a infraestrutura inicial do sistema, focando em funcionalidades essenciais para gerenciamento de usuários e informações sobre filmes. O sistema permite ao usuário ter uma comunidade com amigos, pesquisar filmes por título, gênero ou autor, criar e compartilhar rankings de filmes favoritos, avaliar filmes com estrelas, adicionar comentários, visualizar avaliações de outros usuários e receber alertas de spoilers.
 
 Também é possível acompanhar detalhes dos filmes, como duração, elenco e plataformas de streaming, gerenciar o histórico pessoal de filmes assistidos, salvar filmes para assistir depois e controlar a privacidade de resenhas e histórico. Usuários podem acessar perfis de outros usuários e visualizar suas resenhas e filmes assistidos de acordo com as configurações de privacidade.

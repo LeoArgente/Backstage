@@ -26,8 +26,7 @@
   </details>
 <details>
 <summary> 📥 ENTREGA 1</summary>
-
-  **Screencast**
+  
 - [Screencast]((https://youtu.be/LRqxvmqukJw))
 
 

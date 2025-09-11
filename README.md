@@ -7,23 +7,14 @@
 - Comentários e notas rápidas: registre impressões e insights.
 - Filtros e organização: explore por gênero, avaliação, cast e mais.
 ----------------------------------------------------------------------------------------------------------------------------------------------
-<details>
-<summary> 🚀 INTEGRANTES  </summary>
+<summary> 🔗 LINKS IMPORTANTES </summary>
   
-- Henrique Antunes Calado 
+- [Jira](https://cesarschool-20252.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiNjQxZWFjMDE5Yzk3NGY5MGE0MjMzZjZmNzAxZjYxZmUiLCJwIjoiaiJ9)
   
-- Leonardo Argente
+- [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
+  
+</details>
 
-- Louise Pessoas Araújo Medeiros de Souza
-
-- Luis Antônio Godoy Idrissi
-
-- Marília Liz Alves de Lima
-
-- Rafael Pimenta Borba
-
-- Victor Martins Tomaz de Melo
-  </details>
 <details>
 <summary> 📥 ENTREGA 1</summary>
 
@@ -45,11 +36,19 @@ Link paras as histórias: [Histórias](https://docs.google.com/document/d/1aqIHF
 </details>
 
 <details>
-<summary> 🔗 LINKS IMPORTANTES </summary>
+<summary> 🚀 INTEGRANTES  </summary>
   
-- [Jira](https://cesarschool-20252.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiNjQxZWFjMDE5Yzk3NGY5MGE0MjMzZjZmNzAxZjYxZmUiLCJwIjoiaiJ9)
+- Henrique Antunes Calado 
   
-- [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
-  
-</details>
+- Leonardo Argente
 
+- Louise Pessoas Araújo Medeiros de Souza
+
+- Luis Antônio Godoy Idrissi
+
+- Marília Liz Alves de Lima
+
+- Rafael Pimenta Borba
+
+- Victor Martins Tomaz de Melo
+  </details>

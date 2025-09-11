@@ -26,8 +26,13 @@
   </details>
 <details>
 <summary> 📥 ENTREGA 1</summary>
-  
-- [Screencast](https://youtu.be/LRqxvmqukJw)
+
+O objetivo desta sprint foi criar a infraestrutura inicial do sistema, focando em funcionalidades essenciais para gerenciamento de usuários e informações sobre filmes. O sistema permite ao usuário ter uma comunidade com amigos, pesquisar filmes por título, gênero ou autor, criar e compartilhar rankings de filmes favoritos, avaliar filmes com estrelas, adicionar comentários, visualizar avaliações de outros usuários e receber alertas de spoilers.
+
+Também é possível acompanhar detalhes dos filmes, como duração, elenco e plataformas de streaming, gerenciar o histórico pessoal de filmes assistidos, salvar filmes para assistir depois e controlar a privacidade de resenhas e histórico. Usuários podem acessar perfis de outros usuários e visualizar suas resenhas e filmes assistidos de acordo com as configurações de privacidade.
+
+O protótipo de baixa fidelidade foi desenvolvido no Figma e apresentado em um [Screencast](https://youtu.be/LRqxvmqukJw), enquanto a gestão do projeto e backlog da Sprint 1 foi organizada no [Jira](https://cesarschool-20252.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiNjQxZWFjMDE5Yzk3NGY5MGE0MjMzZjZmNzAxZjYxZmUiLCJwIjoiaiJ9).
+Link paras as histórias: [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
 
 
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)

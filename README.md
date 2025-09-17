@@ -28,8 +28,8 @@ Link paras as histórias: [Histórias](https://docs.google.com/document/d/1aqIHF
 
 
 ![Figma 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/figma1_correto.PNG)
-![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/sprint1.PNG)
-![Quadro 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Quadro1.PNG)
+![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Backlog1.PNG)
+![Quadro 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Primeiro_Quadro.PNG)
 
 
 </details>

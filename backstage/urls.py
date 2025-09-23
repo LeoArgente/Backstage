@@ -11,4 +11,5 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('sair/', views.sair, name='sair'),
     path('registrar/', views.registrar, name='registrar'),
+    path('filme/<int:filme_id>/criticar/', views.adicionar_critica, name="adicionar_critica"),
 ]

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -70,3 +70,27 @@ def wireframer(request):
     return render(request, "backstage/wireframer.html")
 
 ###########################################################################
+
+# back vitor e henrique
+
+from .models import Filme, Critica
+
+@login_required
+def adicionar_critica(request, filme_id):
+    filme = get_object_or_404(Filme, id=filme_id)
+
+    if request.method == "POST":
+        texto = request.POST.get('texto')
+        nota = request.POST.get('nota')
+
+        if texto and nota:
+            Critica.objects.create(
+                filme=filme,
+                usuario=request.user,
+                texto=texto,
+                nota=float(nota)  # aceita 0.5, 1.0, 1.5 ...
+            )
+            return redirect('detalhes_filme', filme_id=filme.id)
+        else:
+            erro = "Todos os campos são obrigatórios."
+            return render(request, 'adicionar_critica.html', {'filme': filme, 'erro': erro})

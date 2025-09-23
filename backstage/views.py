@@ -6,8 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 def index(request):
     return render(request, "backstage/index.html")
 
-# backend lou e leo
-
+# backend lou e leo #################################################################
 def pagina_login(request):
     if request.method == "POST":
         username = request.POST.get('username', '')
@@ -44,3 +43,30 @@ def registrar(request):
         form = UserCreationForm()
 
     return render(request, 'backstage/register.html', {'form': form})
+
+##################################################################################################
+
+# front nononha e liz
+
+def community(request):
+    return render(request, "backstage/community.html")
+
+def filmes(request):
+    return render(request, "backstage/filmes.html")
+
+def lists(request):
+    return render(request, "backstage/lists.html")
+
+def movies(request):
+    return render(request, "backstage/movies.html")
+
+def noticias(request):
+    return render(request, "backstage/noticias.html")
+
+def series(request):
+    return render(request, "backstage/series.html")
+
+def wireframer(request):
+    return render(request, "backstage/wireframer.html")
+
+###########################################################################

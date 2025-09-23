@@ -22,3 +22,14 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", index, name="index"),
 ]
+
+## backend lou e leo
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('backstage.urls')), 
+]
+

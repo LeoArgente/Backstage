@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'backstage',
+
 ]
 
 MIDDLEWARE = [
@@ -121,3 +122,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Autenticação / redirecionamentos
+LOGIN_URL = 'backstage:login' #se alguém tentar acessar uma view com @login_required, será mandado para essa rota
+LOGIN_REDIRECT_URL = 'backstage:home' #para onde mandar o usuário depois de um login bem-sucedido (quando não houver next)
+LOGOUT_REDIRECT_URL = 'backstage:login' #para onde mandar após o logout()
+

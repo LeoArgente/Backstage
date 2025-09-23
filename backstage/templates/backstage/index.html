@@ -1,10 +1,52 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Backstage</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Backstage — Sua jornada cinematográfica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-    <h1>Olá, Django está rodando com HTML 🎉</h1>
+    <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+        <a class="brand" href="index.html">
+          <span class="logo">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <circle cx="12" cy="12" r="10" fill="url(#brand-gradient)" opacity="0.9"/>
+              <path d="M9 8v8l7-4z" fill="white"/>
+              <defs>
+                <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#667eea"/>
+                  <stop offset="100%" style="stop-color:#764ba2"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span class="brand-text">Backstage</span>
+        </a>
+
+        <div class="nav-menu">
+          <a href="index.html" class="nav-link active">Início</a>
+          <div class="nav-link-wrapper">
+            <a href="html/noticias.html" class="nav-link">Notícias</a>
+            <div class="news-dropdown">
+              <div class="dropdown-header">
+                <h3>Últimas Notícias</h3>
+                <a href="html/noticias.html" class="view-all">Ver todas</a>
+              </div>
+              <div class="news-dropdown-content">
+                <!-- News items will be populated by JS -->
+              </div>
+            </div>
+          </div>
+          <a href="html/movies.html" class="nav-link">Filmes</a>
+          <a href="html/series.html" class="nav-link">Séries</a>
+          <a href="html/lists.html" class="nav-link">Listas</a>
+          <a href="html/community.html" class="nav-link">Comunidade</a>
+        </div>
 </body>
 </html>

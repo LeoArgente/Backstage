@@ -16,9 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from backstage.views import index
+from backstage.views import index, community, filmes, lists, movies, noticias, series, wireframer
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", index, name="index"),
+    path("community/", community, name="community"),
+    path("filmes/", filmes, name="filmes"),
+    path("movies/", movies, name="movies"),
+    path("lists/", lists, name="lists"),
+    path("noticias/", noticias, name="noticias"),
+    path("series/", series, name="series"),
+    path("wireframer/", wireframer, name="wireframer"),
 ]

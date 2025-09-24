@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}}">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
 </head>
 <body>
   <!-- Header -->
@@ -507,7 +508,7 @@
     </div>
   </footer>
 
-  <script src="../js/main.js" defer></script>
-  <script src="../js/movie-details.js" defer></script>
+  <script src="{% static 'js/main.js' %}" defer></script>
+  <script src="{% static 'js/movie-details.js' %}" defer></script>
 </body>
 </html>

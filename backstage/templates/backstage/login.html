@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+  {% load static %}
   <meta charset="utf-8">
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — Backstage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
   <h2>Entrar</h2>
@@ -21,5 +27,7 @@
     
     <p>Não tem conta? <a href="{% url 'backstage:registrar' %}">Cadastre-se</a></p>
   </form>
+
+  <script src="{% static 'js/main.js' %}" defer></script>
 </body>
 </html>

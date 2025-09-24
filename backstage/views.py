@@ -100,4 +100,4 @@ def adicionar_critica(request, filme_id):
                 {'filme': filme, 'erro': erro, 'notas': notas}
             )
 
-    return render(request, 'adicionar_critica.html', {'filme': filme, 'notas':{notas})
+    return render(request, 'adicionar_critica.html', {'filme': filme, 'notas':{notas}})

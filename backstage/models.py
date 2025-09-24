@@ -19,7 +19,7 @@ class Critica(models.Model):
     filme = models.ForeignKey(Filme, on_delete=models.CASCADE, related_name="criticas")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     texto = models.TextField("Sua análise")
-    nota = models.IntegerField("Nota", choices=[(i, i) for i in range(1, 11)])  # nota de 1 a 10
+    nota = models.IntegerField(choices=[(i, f"{i} ⭐") for i in range(1, 6)], default=5)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

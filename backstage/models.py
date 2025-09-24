@@ -24,14 +24,3 @@ class Critica(models.Model):
 
     def __str__(self):
         return f"{self.usuario} - {self.filme} ({self.nota})"
-
-class FilmeCache(models.Model):
-    id_tmdb = models.PositiveIntegerField(unique=True)
-    payload = models.JSONField()                 # resposta agregada pronta p/ servir
-    atualizado_em = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ('-atualizado_em',)
-
-    def __str__(self):
-        return f'{self.id_tmdb} (atualizado_em={self.atualizado_em})'

@@ -31,11 +31,9 @@ urlpatterns = [
 ]
 
 # backend lou e leo #################################################
-from django.contrib import admin
-from django.urls import path, include
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('backstage.urls')),
-    path('api/', include('backstage.api_urls')),
-]
+#urlpatterns = [
+#    path('admin/', admin.site.urls),
+#   path('', include('backstage.urls')),
+#    path('', include('backstage.urls')),
+#]

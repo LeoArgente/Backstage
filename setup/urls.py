@@ -32,11 +32,17 @@ from backstage.views import index, community, filmes, lists, movies, noticias, s
 # ]
 
 # backend lou e leo #################################################
-from django.contrib import admin
-from django.urls import path, include
 
+<<<<<<< HEAD
+#urlpatterns = [
+#    path('admin/', admin.site.urls),
+#   path('', include('backstage.urls')),
+#    path('', include('backstage.urls')),
+#]
+=======
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('backstage.urls')),
     path('api/', include('backstage.api.api_urls')),
 ]
+>>>>>>> c7e51e7aa8713349fa1b7815a2ff0c79dc47af7a

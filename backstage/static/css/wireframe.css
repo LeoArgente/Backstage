@@ -1,0 +1,408 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header Styles */
+.header {
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-btn, .search-btn, .add-btn {
+    background: #ccc;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.filter-btn:hover, .search-btn:hover, .add-btn:hover {
+    background: #bbb;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background: #f0f0f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.search-input {
+    border: none;
+    padding: 8px 12px;
+    background: transparent;
+    outline: none;
+    width: 200px;
+    color: #333;
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.add-btn {
+    font-size: 18px;
+    font-weight: bold;
+    width: 36px;
+    height: 36px;
+    margin-left: 5px;
+}
+
+.user-avatar {
+    background: #ccc;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+/* Main Content Layout */
+.main-content {
+    max-width: 1200px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: 200px 1fr 250px;
+    gap: 30px;
+    padding: 0 20px;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    height: fit-content;
+}
+
+.movie-poster {
+    margin-bottom: 20px;
+}
+
+.poster-placeholder {
+    background: #ccc;
+    height: 280px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+}
+
+.watch-options h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.streaming-option {
+    background: #f8f8f8;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.streaming-label {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Main Info Section */
+.main-info {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+}
+
+.movie-header {
+    margin-bottom: 25px;
+}
+
+.movie-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.movie-meta {
+    color: #666;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.stars {
+    color: #ffd700;
+    font-size: 16px;
+}
+
+.duration, .age-rating {
+    font-size: 14px;
+    color: #999;
+}
+
+.age-rating {
+    background: #eee;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.director {
+    font-size: 14px;
+    color: #666;
+}
+
+.movie-description {
+    margin-bottom: 30px;
+    line-height: 1.7;
+    color: #555;
+}
+
+.review-section {
+    margin-bottom: 30px;
+}
+
+.review-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+    background: #f9f9f9;
+}
+
+.review-input::placeholder {
+    color: #999;
+}
+
+.cast-section {
+    margin-bottom: 30px;
+}
+
+.cast-section h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.cast-grid {
+    background: #888;
+    padding: 20px;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.cast-member {
+    background: #bbb;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    color: #333;
+    font-size: 14px;
+}
+
+.reviews-section h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.review-item {
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.reviewer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    background: #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #666;
+    margin-right: 12px;
+}
+
+.reviewer-info {
+    flex: 1;
+}
+
+.reviewer-name {
+    font-weight: bold;
+    color: #333;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.review-rating {
+    color: #ffd700;
+    font-size: 14px;
+    display: inline;
+    margin-right: 10px;
+}
+
+.review-date {
+    color: #999;
+    font-size: 12px;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.5;
+}
+
+/* Comments Sidebar */
+.comments-sidebar {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    height: fit-content;
+}
+
+.comments-sidebar h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.comment-filters {
+    margin-bottom: 20px;
+}
+
+.filter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #666;
+}
+
+.filter-count {
+    background: #eee;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #999;
+}
+
+.comment-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-user {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.comment-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.comment-rating {
+    color: #ffd700;
+    font-size: 12px;
+}
+
+.comment-label {
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .search-input {
+        width: 150px;
+    }
+    
+    .cast-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}

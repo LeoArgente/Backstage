@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lorem Ipsum - Backstage</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">Lorem Ipsum</h1>
+            <div class="header-actions">
+                <button class="filter-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                    </svg>
+                </button>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar...">
+                    <button class="search-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </button>
+                    <button class="add-btn">+</button>
+                </div>
+                <div class="user-avatar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="movie-poster">
+                <div class="poster-placeholder">
+                    <span>Capa do filmes</span>
+                </div>
+            </div>
+            <div class="watch-options">
+                <h3>Onde assistir</h3>
+                <div class="streaming-option">
+                    <span class="streaming-label">Opção de streaming</span>
+                </div>
+                <div class="streaming-option">
+                    <span class="streaming-label">Opção de streaming</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Content -->
+        <section class="main-info">
+            <div class="movie-header">
+                <h1 class="movie-title">Lorem Ipsum</h1>
+                <div class="movie-meta">
+                    <div class="rating">
+                        <span class="stars">★★★★★</span>
+                        <span class="duration">180 mins</span>
+                        <span class="age-rating">10</span>
+                    </div>
+                    <p class="director">Directed by Christopher Nolan</p>
+                </div>
+            </div>
+
+            <div class="movie-description">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer in mauris et nibh bibendum tempus. Phasellus eu elementum nunc. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus at convallis nisl. Fusce laoreet, erat sit amet interdum bibendum, tortor odio tincidunt magna, ac auctor turpis velit non augue. Donec commodo nisl vel orci maximus, ut congue turpis semper.</p>
+            </div>
+
+            <div class="review-section">
+                <textarea class="review-input" placeholder="Add your review..."></textarea>
+            </div>
+
+            <div class="cast-section">
+                <h2>Elenco</h2>
+                <div class="cast-grid">
+                    <div class="cast-member">Emma Stone</div>
+                    <div class="cast-member">Robert Downey Jr</div>
+                    <div class="cast-member">Jonh Krasinski</div>
+                    <div class="cast-member">Jenna Fischer</div>
+                    <div class="cast-member">Steve Carell</div>
+                    <div class="cast-member">Jessica Alba</div>
+                    <div class="cast-member">Emily Blunt</div>
+                </div>
+            </div>
+
+            <div class="reviews-section">
+                <h2>Reviews</h2>
+                <div class="review-item">
+                    <div class="reviewer">
+                        <div class="reviewer-avatar">VF</div>
+                        <div class="reviewer-info">
+                            <span class="reviewer-name">Vera Fischer</span>
+                            <div class="review-rating">★★★★★</div>
+                            <span class="review-date">3 years ago</span>
+                        </div>
+                    </div>
+                    <p class="review-text">essa protagonista é muito falsa</p>
+                </div>
+
+                <div class="review-item">
+                    <div class="reviewer">
+                        <div class="reviewer-avatar">JP</div>
+                        <div class="reviewer-info">
+                            <span class="reviewer-name">John Petter</span>
+                            <div class="review-rating">★★★★★</div>
+                            <span class="review-date">4 months ago</span>
+                        </div>
+                    </div>
+                    <p class="review-text">It's a very good movie!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Sidebar -->
+        <aside class="comments-sidebar">
+            <h3>Comentários :</h3>
+            <div class="comment-filters">
+                <div class="filter-item">
+                    <span>Comentário - Amigos</span>
+                    <span class="filter-count">3</span>
+                </div>
+                <div class="filter-item">
+                    <span>Que filmar agora</span>
+                </div>
+            </div>
+            <div class="comment-item">
+                <span class="comment-user">Lisa_doe</span>
+                <p class="comment-text">Ola dos melhores da minha vida, pena que o final não foi meio films</p>
+                <div class="comment-rating">★★★★★</div>
+            </div>
+            <div class="comment-item">
+                <span class="comment-user">Sunny_Martor</span>
+                <div class="comment-rating">★★★★★</div>
+                <span class="comment-label">Favorita cinema</span>
+            </div>
+        </aside>
+    </main>
+</body>
+</html>

@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Séries — Backstage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+        <a class="brand" href="../../index.html">
+          <span class="logo">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <circle cx="12" cy="12" r="10" fill="url(#brand-gradient)" opacity="0.9"/>
+              <path d="M9 8v8l7-4z" fill="white"/>
+              <defs>
+                <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#667eea"/>
+                  <stop offset="100%" style="stop-color:#764ba2"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span class="brand-text">Backstage</span>
+        </a>
+
+        <div class="nav-menu">
+          <a href="../../index.html" class="nav-link">Início</a>
+          <div class="nav-link-wrapper">
+            <a href="noticias.html" class="nav-link">Notícias</a>
+            <div class="news-dropdown">
+              <div class="dropdown-header">
+                <h3>Últimas Notícias</h3>
+                <a href="noticias.html" class="view-all">Ver todas</a>
+              </div>
+              <div class="news-dropdown-content">
+                <!-- News items will be populated by JS -->
+              </div>
+            </div>
+          </div>
+          <a href="movies.html" class="nav-link">Filmes</a>
+          <a href="series.html" class="nav-link active">Séries</a>
+          <a href="lists.html" class="nav-link">Listas</a>
+          <a href="community.html" class="nav-link">Comunidade</a>
+        </div>
+
+        <div class="nav-actions">
+          <div class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" class="search-input" placeholder="Buscar séries..." />
+          </div>
+
+          <button class="icon-btn notification-btn" aria-label="Notificações">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
+              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="notification-badge">3</span>
+          </button>
+
+          <div class="user-menu">
+            <button class="user-avatar">
+              <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Avatar" />
+            </button>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <div class="page-header-content">
+        <h1 class="page-title">Séries</h1>
+        <p class="page-description">Explore as melhores séries de TV, desde clássicos consagrados até os lançamentos mais recentes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Filters Section -->
+    <section class="filters-section">
+      <div class="filters-header">
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">Todas</button>
+          <button class="filter-tab" data-filter="drama">Drama</button>
+          <button class="filter-tab" data-filter="comedy">Comédia</button>
+          <button class="filter-tab" data-filter="thriller">Thriller</button>
+          <button class="filter-tab" data-filter="scifi">Ficção Científica</button>
+          <button class="filter-tab" data-filter="crime">Crime</button>
+          <button class="filter-tab" data-filter="mystery">Mistério</button>
+        </div>
+        
+        <div class="filter-controls">
+          <select class="filter-select" id="sort-series">
+            <option value="popular">Mais populares</option>
+            <option value="rating">Melhor avaliadas</option>
+            <option value="recent">Lançamentos</option>
+            <option value="alphabetical">Alfabético</option>
+          </select>
+          
+          <button class="view-toggle" id="view-toggle" aria-label="Alternar visualização">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Series Grid -->
+    <section class="series-grid-section">
+      <div class="series-grid" id="series-grid">
+        <!-- Series will be populated by JavaScript -->
+      </div>
+      
+      <div class="load-more-section">
+        <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
+          Carregar mais séries
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="brand">
+            <span class="logo">
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <circle cx="12" cy="12" r="10" fill="url(#footer-gradient)" opacity="0.9"/>
+                <path d="M9 8v8l7-4z" fill="white"/>
+                <defs>
+                  <linearGradient id="footer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#667eea"/>
+                    <stop offset="100%" style="stop-color:#764ba2"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
+            <span class="brand-text">Backstage</span>
+          </div>
+          <p class="footer-description">
+            Sua jornada cinematográfica começa aqui. Descubra, avalie e compartilhe os melhores filmes e séries.
+          </p>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Explorar</h3>
+          <ul class="footer-links">
+            <li><a href="../../index.html">Início</a></li>
+            <li><a href="movies.html">Filmes</a></li>
+            <li><a href="series.html">Séries</a></li>
+            <li><a href="lists.html">Listas</a></li>
+            <li><a href="community.html">Comunidade</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Suporte</h3>
+          <ul class="footer-links">
+            <li><a href="#">Ajuda</a></li>
+            <li><a href="#">Contato</a></li>
+            <li><a href="#">Política de Privacidade</a></li>
+            <li><a href="#">Termos de Uso</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Conecte-se</h3>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Twitter">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+              </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/main.js" defer></script>
+  <script src="../js/series.js" defer></script>
+</body>
+</html>

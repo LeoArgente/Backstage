@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Criar conta — Backstage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+  <h2>Criar conta</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+      {{ form.username.label_tag }}<br>
+      {{ form.username }}
+      {{ form.username.errors }}
+    </p>
+    <p>
+      {{ form.password1.label_tag }}<br>
+      {{ form.password1 }}
+      {{ form.password1.errors }}
+    </p>
+    <p>
+      {{ form.password2.label_tag }}<br>
+      {{ form.password2 }}
+      {{ form.password2.errors }}
+    </p>
+
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <p>Já tem conta? <a href="{% url 'backstage:login' %}">Entrar</a></p>
+
+  <script src="{% static 'js/main.js' %}" defer></script>
+</body>
+</html>

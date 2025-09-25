@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Comunidade — Backstage</title>
+  <title>Listas — Backstage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -47,8 +47,8 @@
           </div>
           <a href="movies.html" class="nav-link">Filmes</a>
           <a href="series.html" class="nav-link">Séries</a>
-          <a href="lists.html" class="nav-link">Listas</a>
-          <a href="community.html" class="nav-link active">Comunidade</a>
+          <a href="lists.html" class="nav-link active">Listas</a>
+          <a href="community.html" class="nav-link">Comunidade</a>
         </div>
 
         <div class="nav-actions">
@@ -57,7 +57,7 @@
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <input type="search" class="search-input" placeholder="Buscar na comunidade..." />
+            <input type="search" class="search-input" placeholder="Buscar listas..." />
           </div>
 
           <button class="icon-btn notification-btn" aria-label="Notificações">
@@ -82,99 +82,52 @@
   <div class="page-header">
     <div class="container">
       <div class="page-header-content">
-        <h1 class="page-title">Comunidade</h1>
-        <p class="page-description">Conecte-se com outros amantes do cinema e compartilhe suas paixões cinematográficas</p>
+        <h1 class="page-title">Listas</h1>
+        <p class="page-description">Crie e organize suas listas personalizadas de filmes e séries favoritos</p>
+        
+        <button class="btn btn-primary create-list-btn" id="create-list-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Criar Nova Lista
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Main Content -->
   <main class="container">
-    <div class="community-layout">
-      
-      <!-- Sidebar -->
-      <aside class="community-sidebar">
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">Atividade Recente</h3>
-          <div class="activity-feed" id="activity-feed">
-            <!-- Activity items will be populated by JavaScript -->
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">Membros Ativos</h3>
-          <div class="active-members" id="active-members">
-            <!-- Active members will be populated by JavaScript -->
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Feed -->
-      <div class="community-main">
-        <!-- Post Creation -->
-        <div class="create-post-card">
-          <div class="create-post-header">
-            <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Seu avatar" class="user-avatar-img" />
-            <button class="create-post-btn" id="create-post-btn">
-              O que você está assistindo?
-            </button>
-          </div>
-          
-          <div class="create-post-actions">
-            <button class="post-action-btn" data-type="review">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              Avaliar
-            </button>
-            <button class="post-action-btn" data-type="list">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                <rect x="9" y="3" width="6" height="4" rx="2"/>
-              </svg>
-              Lista
-            </button>
-            <button class="post-action-btn" data-type="recommendation">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Recomendar
-            </button>
-          </div>
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="feed-filters">
-          <button class="filter-tab active" data-filter="all">Todos os Posts</button>
-          <button class="filter-tab" data-filter="reviews">Avaliações</button>
-          <button class="filter-tab" data-filter="discussions">Discussões</button>
-          <button class="filter-tab" data-filter="recommendations">Recomendações</button>
-          <button class="filter-tab" data-filter="lists">Listas</button>
-        </div>
-
-        <!-- Posts Feed -->
-        <div class="posts-feed" id="posts-feed">
-          <!-- Posts will be populated by JavaScript -->
-        </div>
-
-        <div class="load-more-section">
-          <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
-            Carregar mais posts
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </button>
-        </div>
+    <!-- Filter Tabs -->
+    <section class="filters-section">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="my-lists">Minhas Listas</button>
+        <button class="filter-tab" data-filter="public">Listas Públicas</button>
+        <button class="filter-tab" data-filter="favorites">Favoritas</button>
       </div>
+    </section>
 
-    </div>
+    <!-- Lists Grid -->
+    <section class="lists-grid-section">
+      <div class="lists-grid" id="lists-grid">
+        <!-- Lists will be populated by JavaScript -->
+      </div>
+      
+      <div class="load-more-section">
+        <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
+          Carregar mais listas
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+      </div>
+    </section>
   </main>
 
-  <!-- Create Post Modal -->
-  <div class="modal-overlay" id="create-post-modal">
-    <div class="modal large-modal">
+  <!-- Create List Modal -->
+  <div class="modal-overlay" id="create-list-modal">
+    <div class="modal">
       <div class="modal-header">
-        <h2>Criar Post</h2>
+        <h2>Criar Nova Lista</h2>
         <button class="modal-close" id="modal-close">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -183,42 +136,28 @@
         </button>
       </div>
       
-      <form class="modal-form" id="create-post-form">
+      <form class="modal-form" id="create-list-form">
         <div class="form-group">
-          <label for="post-type">Tipo de Post</label>
-          <select id="post-type" name="type" required>
-            <option value="discussion">Discussão</option>
-            <option value="review">Avaliação</option>
-            <option value="recommendation">Recomendação</option>
-            <option value="list">Lista</option>
-          </select>
+          <label for="list-name">Nome da Lista</label>
+          <input type="text" id="list-name" name="name" placeholder="Ex: Meus Filmes de Terror Favoritos" required>
         </div>
         
         <div class="form-group">
-          <label for="post-content">Conteúdo</label>
-          <textarea id="post-content" name="content" placeholder="Compartilhe seus pensamentos..." rows="6" required></textarea>
+          <label for="list-description">Descrição</label>
+          <textarea id="list-description" name="description" placeholder="Descreva sua lista..." rows="4"></textarea>
         </div>
         
-        <div class="form-group movie-selector" id="movie-selector" style="display: none;">
-          <label for="selected-movie">Filme/Série</label>
-          <input type="text" id="selected-movie" placeholder="Buscar filme ou série..." />
-          <div class="movie-suggestions" id="movie-suggestions"></div>
-        </div>
-        
-        <div class="form-group rating-selector" id="rating-selector" style="display: none;">
-          <label>Avaliação</label>
-          <div class="star-rating" id="star-rating">
-            <button type="button" class="star" data-rating="1">★</button>
-            <button type="button" class="star" data-rating="2">★</button>
-            <button type="button" class="star" data-rating="3">★</button>
-            <button type="button" class="star" data-rating="4">★</button>
-            <button type="button" class="star" data-rating="5">★</button>
-          </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="list-public" name="public">
+            <span class="checkbox-custom"></span>
+            Lista pública (outros usuários podem ver)
+          </label>
         </div>
         
         <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="cancel-post">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Publicar</button>
+          <button type="button" class="btn btn-secondary" id="cancel-create">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar Lista</button>
         </div>
       </form>
     </div>
@@ -296,6 +235,6 @@
   </footer>
 
   <script src="../js/main.js" defer></script>
-  <script src="../js/community.js" defer></script>
+  <script src="../js/lists.js" defer></script>
 </body>
 </html>

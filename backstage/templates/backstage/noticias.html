@@ -1,0 +1,399 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notícias - Backstage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="site-header">
+      <div class="container">
+        <nav class="nav-primary">
+        <a href="../../index.html" class="brand">
+          <span class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="url(#brand-gradient)" opacity="0.9"/>
+              <path d="M9 8v8l7-4z" fill="white"/>
+              <defs>
+                <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#667eea"/>
+                  <stop offset="100%" style="stop-color:#764ba2"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span class="brand-text">Backstage</span>
+        </a>
+
+        <div class="nav-menu">
+          <a href="../../index.html" class="nav-link">Início</a>
+          <div class="nav-link-wrapper">
+            <a href="noticias.html" class="nav-link active">Notícias</a>
+            <div class="news-dropdown">
+              <div class="dropdown-header">
+                <h3>Últimas Notícias</h3>
+                <a href="noticias.html" class="view-all">Ver todas</a>
+              </div>
+              <div class="news-dropdown-content">
+                <!-- News items will be populated by JS -->
+              </div>
+            </div>
+          </div>
+          <a href="movies.html" class="nav-link">Filmes</a>
+          <a href="series.html" class="nav-link">Séries</a>
+          <a href="lists.html" class="nav-link">Listas</a>
+          <a href="community.html" class="nav-link">Comunidade</a>
+        </div>
+
+        <div class="nav-actions">
+          <div class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" class="search-input" placeholder="Buscar notícias..." />
+          </div>
+        </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+      <div class="container">
+        <div class="page-header-content">
+          <h1 class="page-title">Notícias</h1>
+          <p class="page-description">
+            Fique por dentro das últimas novidades do mundo do cinema e TV
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+      <!-- Breaking News -->
+      <section class="breaking-news">
+        <div class="breaking-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          ÚLTIMAS NOTÍCIAS
+        </div>
+        <div class="breaking-content">
+          <div class="breaking-ticker">
+            <span>Christopher Nolan anuncia novo filme para 2025</span>
+            <span>•</span>
+            <span>Oscar 2024: Lista completa de indicados</span>
+            <span>•</span>
+            <span>Marvel revela novos projetos da Fase 6</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories Filter -->
+      <section class="news-filters">
+        <div class="filters-header">
+          <div class="filter-tabs">
+            <button class="filter-tab active">Todas</button>
+            <button class="filter-tab">Cinema</button>
+            <button class="filter-tab">Streaming</button>
+            <button class="filter-tab">Séries</button>
+            <button class="filter-tab">Marvel</button>
+            <button class="filter-tab">DC</button>
+            <button class="filter-tab">Premiações</button>
+            <button class="filter-tab">Entrevistas</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- News Layout -->
+      <div class="news-layout">
+        <!-- Featured News -->
+        <section class="featured-news">
+          <article class="featured-article">
+            <div class="featured-image">
+              <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&h=450&fit=crop" alt="Featured News">
+              <span class="news-badge">Destaque</span>
+            </div>
+            <div class="featured-content">
+              <div class="article-meta">
+                <span class="article-category">Cinema</span>
+                <span class="article-date">Há 2 horas</span>
+              </div>
+              <h2 class="article-title">Christopher Nolan anuncia novo filme épico de ficção científica para 2025</h2>
+              <p class="article-excerpt">
+                O aclamado diretor de "Oppenheimer" e "Interestelar" revelou detalhes sobre seu próximo projeto, 
+                que promete revolucionar o gênero de ficção científica com uma abordagem nunca vista antes no cinema.
+              </p>
+              <div class="article-author">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Author">
+                <div class="author-info">
+                  <span class="author-name">João Silva</span>
+                  <span class="author-role">Editor de Cinema</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- Regular News Grid -->
+        <section class="news-grid">
+          <!-- News Card 1 -->
+          <article class="news-card">
+            <div class="news-image">
+              <img src="https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=250&fit=crop" alt="News">
+              <span class="news-category-badge">Marvel</span>
+            </div>
+            <div class="news-content">
+              <div class="article-meta">
+                <span class="article-date">Há 4 horas</span>
+              </div>
+              <h3 class="article-title">Marvel revela primeira imagem oficial do novo Quarteto Fantástico</h3>
+              <p class="article-excerpt">
+                Studios divulga foto do elenco completo em seus uniformes, aumentando a expectativa para o filme.
+              </p>
+            </div>
+          </article>
+
+          <!-- News Card 2 -->
+          <article class="news-card">
+            <div class="news-image">
+              <img src="https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=400&h=250&fit=crop" alt="News">
+              <span class="news-category-badge">Premiação</span>
+            </div>
+            <div class="news-content">
+              <div class="article-meta">
+                <span class="article-date">Há 6 horas</span>
+              </div>
+              <h3 class="article-title">Oscar 2024: Confira a lista completa de indicados em todas as categorias</h3>
+              <p class="article-excerpt">
+                Academia divulga os nomeados para a maior premiação do cinema mundial, com surpresas e favoritos.
+              </p>
+            </div>
+          </article>
+
+          <!-- News Card 3 -->
+          <article class="news-card">
+            <div class="news-image">
+              <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=400&h=250&fit=crop" alt="News">
+              <span class="news-category-badge">Streaming</span>
+            </div>
+            <div class="news-content">
+              <div class="article-meta">
+                <span class="article-date">Há 8 horas</span>
+              </div>
+              <h3 class="article-title">Netflix anuncia segunda temporada de série mais vista de 2024</h3>
+              <p class="article-excerpt">
+                Plataforma confirma renovação após sucesso estrondoso da primeira temporada.
+              </p>
+            </div>
+          </article>
+
+          <!-- News Card 4 -->
+          <article class="news-card">
+            <div class="news-image">
+              <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&h=250&fit=crop" alt="News">
+              <span class="news-category-badge">Cinema</span>
+            </div>
+            <div class="news-content">
+              <div class="article-meta">
+                <span class="article-date">Há 12 horas</span>
+              </div>
+              <h3 class="article-title">Duna 3 já está em desenvolvimento, confirma Denis Villeneuve</h3>
+              <p class="article-excerpt">
+                Diretor revela que roteiro já está sendo escrito e filmagens começam em 2025.
+              </p>
+            </div>
+          </article>
+
+          <!-- News Card 5 -->
+          <article class="news-card">
+            <div class="news-image">
+              <img src="https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=400&h=250&fit=crop" alt="News">
+              <span class="news-category-badge">Séries</span>
+            </div>
+            <div class="news-content">
+              <div class="article-meta">
+                <span class="article-date">Há 1 dia</span>
+              </div>
+              <h3 class="article-title">HBO Max revela trailer da nova série do universo Game of Thrones</h3>
+              <p class="article-excerpt">
+                Prévia mostra dragões e batalhas épicas na nova produção que estreia em 2024.
+              </p>
+            </div>
+          </article>
+
+          <!-- News Card 6 -->
+          <article class="news-card">
+            <div class="news-image">
+              <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=250&fit=crop" alt="News">
+              <span class="news-category-badge">Entrevista</span>
+            </div>
+            <div class="news-content">
+              <div class="article-meta">
+                <span class="article-date">Há 1 dia</span>
+              </div>
+              <h3 class="article-title">Margot Robbie fala sobre futuro de Barbie e possível sequência</h3>
+              <p class="article-excerpt">
+                Atriz revela detalhes exclusivos sobre os planos para o universo da boneca mais famosa do mundo.
+              </p>
+            </div>
+          </article>
+        </section>
+
+        <!-- Sidebar -->
+        <aside class="news-sidebar">
+          <!-- Trending -->
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Em Alta</h3>
+            <div class="trending-list">
+              <div class="trending-item">
+                <span class="trending-number">1</span>
+                <div class="trending-content">
+                  <h4>Tom Cruise confirma Missão Impossível 8</h4>
+                  <span class="trending-meta">15.2k leituras</span>
+                </div>
+              </div>
+              <div class="trending-item">
+                <span class="trending-number">2</span>
+                <div class="trending-content">
+                  <h4>Avatar 3 tem data de estreia adiada</h4>
+                  <span class="trending-meta">12.8k leituras</span>
+                </div>
+              </div>
+              <div class="trending-item">
+                <span class="trending-number">3</span>
+                <div class="trending-content">
+                  <h4>Disney+ anuncia novas séries Marvel</h4>
+                  <span class="trending-meta">10.5k leituras</span>
+                </div>
+              </div>
+              <div class="trending-item">
+                <span class="trending-number">4</span>
+                <div class="trending-content">
+                  <h4>Novo filme de Star Wars em produção</h4>
+                  <span class="trending-meta">9.3k leituras</span>
+                </div>
+              </div>
+              <div class="trending-item">
+                <span class="trending-number">5</span>
+                <div class="trending-content">
+                  <h4>Joker 3 pode acontecer, diz diretor</h4>
+                  <span class="trending-meta">8.7k leituras</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Newsletter -->
+          <div class="sidebar-section newsletter-card">
+            <h3 class="sidebar-title">Newsletter</h3>
+            <p class="newsletter-text">Receba as principais notícias do cinema direto no seu email</p>
+            <form class="newsletter-form">
+              <input type="email" placeholder="Seu melhor email" class="newsletter-input">
+              <button type="submit" class="btn btn-primary">Inscrever</button>
+            </form>
+          </div>
+
+          <!-- Tags -->
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">Tags Populares</h3>
+            <div class="tags-cloud">
+              <span class="tag">Marvel</span>
+              <span class="tag">DC Comics</span>
+              <span class="tag">Netflix</span>
+              <span class="tag">Oscar 2024</span>
+              <span class="tag">Disney+</span>
+              <span class="tag">HBO Max</span>
+              <span class="tag">Cinema Nacional</span>
+              <span class="tag">Ficção Científica</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Load More -->
+      <div class="load-more-section">
+        <button class="btn btn-secondary load-more-btn">
+          Carregar Mais Notícias
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <div class="brand">
+              <span class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" fill="var(--blue)" opacity="0.9"/>
+                  <path d="M9 8v8l7-4z" fill="white"/>
+                </svg>
+              </span>
+              <span class="brand-text">Backstage</span>
+            </div>
+            <p class="footer-description">
+              Sua plataforma definitiva para descobrir e avaliar filmes e séries.
+            </p>
+          </div>
+
+          <div class="footer-section">
+            <h4 class="footer-title">Links Rápidos</h4>
+            <ul class="footer-links">
+              <li><a href="#">Sobre</a></li>
+              <li><a href="#">Contato</a></li>
+              <li><a href="#">Termos de Uso</a></li>
+              <li><a href="#">Privacidade</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-section">
+            <h4 class="footer-title">Categorias</h4>
+            <ul class="footer-links">
+              <li><a href="#">Filmes</a></li>
+              <li><a href="#">Séries</a></li>
+              <li><a href="#">Notícias</a></li>
+              <li><a href="#">Críticas</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-section">
+            <h4 class="footer-title">Redes Sociais</h4>
+            <div class="social-links">
+              <a href="#" class="social-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                </svg>
+              </a>
+              <a href="#" class="social-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+                  <path d="M12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4z"/>
+                  <circle cx="18.406" cy="5.594" r="1.44"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/main.js" defer></script>
+  <script src="../js/news.js" defer></script>
+</body>
+</html>

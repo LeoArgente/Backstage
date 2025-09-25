@@ -21,25 +21,51 @@
 
 {% block extra_css %}
 <style>
+/* Container de estrelas */
 .estrelas {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row-reverse; /* maior valor à esquerda */
     justify-content: flex-end;
     gap: 0.1rem;
     font-size: 2rem;
 }
-.estrelas input { display: none; }
+
+/* Esconde os radios */
+.estrelas input {
+    display: none;
+}
+
+/* Estrela base */
 .estrelas label {
     position: relative;
     cursor: pointer;
     color: #ccc;
 }
+
+/* Estrela inteira */
 .estrelas label::before {
     content: '★';
-    position: relative;
     display: block;
 }
+
+/* Estrela preenchida */
 .estrelas input:checked ~ label::before {
+    color: gold;
+}
+
+/* Hover */
+.estrelas label:hover,
+.estrelas label:hover ~ label {
+    color: gold;
+}
+
+/* Meia estrela */
+.estrelas label.half::before {
+    content: '★';
+    position: absolute;
+    left: 0;
+    width: 50%;
+    overflow: hidden;
     color: gold;
 }
 </style>
@@ -62,9 +88,15 @@ document.addEventListener("DOMContentLoaded", function() {
         label.htmlFor = input.id;
         label.title = valor + " estrelas";
 
+        // Se for valor quebrado (.5), aplica meia estrela
+        if (valor % 1 !== 0) {
+            label.classList.add("half");
+        }
+
         container.appendChild(input);
         container.appendChild(label);
     });
 });
 </script>
 {% endblock %}
+

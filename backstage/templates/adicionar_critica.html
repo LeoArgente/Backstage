@@ -5,7 +5,6 @@
 
 <form method="POST">
     {% csrf_token %}
-
     <div class="form-group">
         <label for="texto">Crítica:</label>
         <textarea id="texto" name="texto" class="form-control" rows="5" required></textarea>
@@ -13,66 +12,58 @@
 
     <div class="form-group">
         <label>Nota:</label>
-        <div class="estrelas" id="estrelas">
-            {% for i in notas %}
-                <span class="estrela" data-value="{{ i }}">★</span>
-            {% endfor %}
-        </div>
-        <input type="hidden" name="nota" id="nota" required>
+        <div class="estrelas"></div>
     </div>
 
     <button type="submit" class="btn btn-primary">Enviar crítica</button>
 </form>
+{% endblock %}
 
+{% block extra_css %}
 <style>
 .estrelas {
     display: flex;
     flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0.1rem;
     font-size: 2rem;
-    cursor: pointer;
 }
-
-/* Estrela cinza por padrão */
-.estrela {
-    color: #ccc;
+.estrelas input { display: none; }
+.estrelas label {
     position: relative;
+    cursor: pointer;
+    color: #ccc;
 }
-
-/* Estrela preenchida */
-.estrela.dourada {
+.estrelas label::before {
+    content: '★';
+    position: relative;
+    display: block;
+}
+.estrelas input:checked ~ label::before {
     color: gold;
 }
 </style>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-const estrelas = document.querySelectorAll('.estrela');
-const notaInput = document.getElementById('nota');
+document.addEventListener("DOMContentLoaded", function() {
+    const container = document.querySelector(".estrelas");
+    const notas = [5.0,4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0,0.5];
 
-function pintarEstrelas(valor) {
-    estrelas.forEach(star => {
-        if(parseFloat(star.dataset.value) <= valor) {
-            star.classList.add('dourada');
-        } else {
-            star.classList.remove('dourada');
-        }
-    });
-}
+    notas.forEach(valor => {
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.id = "nota" + valor;
+        input.name = "nota";
+        input.value = valor;
 
-estrelas.forEach(star => {
-    // Hover
-    star.addEventListener('mouseover', () => {
-        pintarEstrelas(parseFloat(star.dataset.value));
-    });
+        const label = document.createElement("label");
+        label.htmlFor = input.id;
+        label.title = valor + " estrelas";
 
-    // Click
-    star.addEventListener('click', () => {
-        notaInput.value = parseFloat(star.dataset.value);
-        pintarEstrelas(parseFloat(star.dataset.value));
-    });
-
-    // Mouseout volta ao valor selecionado
-    star.addEventListener('mouseout', () => {
-        pintarEstrelas(parseFloat(notaInput.value) || 0);
+        container.appendChild(input);
+        container.appendChild(label);
     });
 });
 </script>

@@ -26,7 +26,7 @@ def sair(request):
     logout(request)
     return redirect('backstage:login')
 
-# views login/home/sair
+# login/home/sair
 
 def registrar(request):
     if request.user.is_authenticated:
@@ -35,8 +35,7 @@ def registrar(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            usuario = form.save()  # cria o user
-            # auto-login após cadastro
+            usuario = form.save()
             login(request, usuario)
             return redirect('backstage:home')
     else:
@@ -45,7 +44,6 @@ def registrar(request):
     return render(request, 'backstage/register.html', {'form': form})
 
 ##################################################################################################
-
 # front nononha e liz
 
 def community(request):
@@ -69,13 +67,9 @@ def series(request):
 def wireframer(request):
     return render(request, "backstage/wireframer.html")
 
-###########################################################################
-
-# back vitor e henrique
-
+# back vitor e henrique ###########################################################################
 from .models import Filme, Critica
 
-@login_required
 def adicionar_critica(request, filme_id):
     filme = get_object_or_404(Filme, id=filme_id)
     notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
@@ -89,7 +83,7 @@ def adicionar_critica(request, filme_id):
                 filme=filme,
                 usuario=request.user,
                 texto=texto,
-                nota=float(nota)  # garante que vem como número
+                nota=float(nota)
             )
             return redirect('detalhes_filme', filme_id=filme.id)
         else:
@@ -104,3 +98,29 @@ def adicionar_critica(request, filme_id):
 
 def detalhes_filme(request, filme_id):
     return render(request, "backstage/detalhes_filme.html", {"filme_id": filme_id})
+
+# back lou e leo ###################################################
+# dados da API
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
+
+class FilmeDetalheAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, tmdb_id: int):
+        region = request.query_params.get("region") or getattr(settings, "TMDB_DEFAULT_REGION", "BR")
+        usar_cache = request.query_params.get("cache", "1") != "0"
+
+        try:
+            if usar_cache:
+                payload = obter_detalhes_com_cache(tmdb_id, ttl_minutos=1440, region=region)
+            else:
+                payload = montar_payload_agregado(tmdb_id, region=region)
+            return Response(payload, status=status.HTTP_200_OK)
+        except Exception as e:
+            # você pode logar 'e' com sentry/logging
+            return Response({"detalhe": "Falha ao consultar a TMDb."}, status=status.HTTP_502_BAD_GATEWAY)

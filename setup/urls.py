@@ -14,12 +14,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.urls import path, include
 from django.contrib import admin
-from django.urls import path
-from backstage.views import index, community, filmes, lists, movies, noticias, series, wireframer
+from backstage.views import FilmeDetalheAPIView, index, community, filmes, lists, movies, noticias, series, wireframer
+from rest_framework.routers import DefaultRouter
 
-# Primeira definição de urlpatterns (comentada pois a segunda já inclui backstage.urls)
-# urlpatterns = [
+#Primeira definição de urlpatterns (comentada pois a segunda já inclui backstage.urls)
+#urlpatterns = [
 #     path("admin/", admin.site.urls),
 #     path("", index, name="index"),
 #     path("community/", community, name="community"),
@@ -29,20 +30,8 @@ from backstage.views import index, community, filmes, lists, movies, noticias, s
 #     path("noticias/", noticias, name="noticias"),
 #     path("series/", series, name="series"),
 #     path("wireframer/", wireframer, name="wireframer"),
+#     path('', include('backstage.urls')),
+#     path('filmes/<int:tmdb_id>/detalhes/', FilmeDetalheAPIView.as_view(), name='filme-detalhes'),
 # ]
 
 # backend lou e leo #################################################
-
-<<<<<<< HEAD
-#urlpatterns = [
-#    path('admin/', admin.site.urls),
-#   path('', include('backstage.urls')),
-#    path('', include('backstage.urls')),
-#]
-=======
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('backstage.urls')),
-    path('api/', include('backstage.api.api_urls')),
-]
->>>>>>> c7e51e7aa8713349fa1b7815a2ff0c79dc47af7a

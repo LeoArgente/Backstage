@@ -101,3 +101,6 @@ def adicionar_critica(request, filme_id):
             )
 
     return render(request, 'adicionar_critica.html', {'filme': filme, 'notas':{notas}})
+
+def detalhes_filme(request, filme_id):
+    return render(request, "backstage/detalhes_filme.html", {"filme_id": filme_id})

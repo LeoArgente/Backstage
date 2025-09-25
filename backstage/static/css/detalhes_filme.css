@@ -165,6 +165,8 @@
 }
 
 .cast-card {
+  width: clamp(48px, 6vw, 70px);
+  height: clamp(48px, 6vw, 70px);
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   padding: 16px;

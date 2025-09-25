@@ -78,6 +78,7 @@ from .models import Filme, Critica
 @login_required
 def adicionar_critica(request, filme_id):
     filme = get_object_or_404(Filme, id=filme_id)
+    notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
 
     if request.method == "POST":
         texto = request.POST.get('texto')
@@ -88,9 +89,18 @@ def adicionar_critica(request, filme_id):
                 filme=filme,
                 usuario=request.user,
                 texto=texto,
-                nota=float(nota)  # aceita 0.5, 1.0, 1.5 ...
+                nota=float(nota)  # garante que vem como número
             )
             return redirect('detalhes_filme', filme_id=filme.id)
         else:
             erro = "Todos os campos são obrigatórios."
-            return render(request, 'adicionar_critica.html', {'filme': filme, 'erro': erro})
+            return render(
+                request,
+                'adicionar_critica.html',
+                {'filme': filme, 'erro': erro, 'notas': notas}
+            )
+
+    return render(request, 'adicionar_critica.html', {'filme': filme, 'notas':{notas}})
+
+def detalhes_filme(request, filme_id):
+    return render(request, "backstage/detalhes_filme.html", {"filme_id": filme_id})

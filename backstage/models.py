@@ -25,8 +25,6 @@ class Critica(models.Model):
     def __str__(self):
         return f"{self.usuario} - {self.filme} ({self.nota})"
 
-from django.db import models
-
 class FilmeCache(models.Model):
     id_tmdb = models.PositiveIntegerField(unique=True)
     payload = models.JSONField()                 # resposta agregada pronta p/ servir

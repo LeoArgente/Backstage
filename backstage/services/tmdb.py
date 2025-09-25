@@ -2,7 +2,7 @@ import json
 from urllib import request, parse
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
-from ..models import FilmeCache  # precisa existir no models.py
+from ..models import FilmeCache
 
 def _get(endpoint, params=None):
     params = params or {}

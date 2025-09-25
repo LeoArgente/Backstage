@@ -24,6 +24,24 @@ def buscar_plataformas(id_tmdb: int, region: str):
     data = _get(f"/movie/{id_tmdb}/watch/providers")
     return data.get("results", {}).get(region, {})
 
+def buscar_filmes_populares(page=1):
+    data = _get("/movie/popular", params={"language": "pt-BR","page": page})
+    return data.get("results", [])
+def buscar_filmes_em_cartaz(page=1):
+    data = _get("/movie/now_playing", params={"language": "pt-BR","page": page, "region": "BR"})
+    return data.get("results", [])
+def buscar_filme_por_titulo(query, page=1):
+    data = _get("/search/movie", params={"language": "pt-BR", "query": query, "page": page})
+    return data.get("results", [])
+def buscar_filme_destaque():
+      filmes = buscar_filmes_populares()
+      if filmes:
+          filme_id = filmes[0]['id']
+          return obter_detalhes_com_cache(filme_id)
+      return None
+def buscar_series_populares(page=1):
+    data = _get("/tv/popular", params={"language": "pt-BR", "page": page})
+    return data.get("results", [])
 def montar_payload_agregado(id_tmdb: int, region: str = None):
     region = region or getattr(settings, "TMDB_DEFAULT_REGION", "BR")
 

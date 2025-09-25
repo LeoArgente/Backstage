@@ -270,6 +270,13 @@
   text-align: center;
 }
 
+.movie-director {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  text-align: center;
+}
+
 .movie-synopsis {
   display: none;
 }
@@ -431,6 +438,41 @@
   border-top: 1px solid var(--border);
   color: var(--text-muted);
   font-size: 14px;
+}
+
+.nav-actions {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  background: #f0f0f0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-icon {
+  color: #666;
+  margin-right: 8px;
+}
+
+.search-input {
+  border: none;
+  padding: 8px 12px;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  color: #333;
+  font-size: 14px;
+}
+
+.search-input::placeholder {
+  color: #999;
 }
 
 /* ===== Responsive Design ===== */

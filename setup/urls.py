@@ -18,22 +18,31 @@ from django.contrib import admin
 from django.urls import path
 from backstage.views import index, community, filmes, lists, movies, noticias, series, wireframer
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("", index, name="index"),
-    path("community/", community, name="community"),
-    path("filmes/", filmes, name="filmes"),
-    path("movies/", movies, name="movies"),
-    path("lists/", lists, name="lists"),
-    path("noticias/", noticias, name="noticias"),
-    path("series/", series, name="series"),
-    path("wireframer/", wireframer, name="wireframer"),
-]
+# Primeira definição de urlpatterns (comentada pois a segunda já inclui backstage.urls)
+# urlpatterns = [
+#     path("admin/", admin.site.urls),
+#     path("", index, name="index"),
+#     path("community/", community, name="community"),
+#     path("filmes/", filmes, name="filmes"),
+#     path("movies/", movies, name="movies"),
+#     path("lists/", lists, name="lists"),
+#     path("noticias/", noticias, name="noticias"),
+#     path("series/", series, name="series"),
+#     path("wireframer/", wireframer, name="wireframer"),
+# ]
 
 # backend lou e leo #################################################
 
+<<<<<<< HEAD
 #urlpatterns = [
 #    path('admin/', admin.site.urls),
 #   path('', include('backstage.urls')),
 #    path('', include('backstage.urls')),
 #]
+=======
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('backstage.urls')),
+    path('api/', include('backstage.api.api_urls')),
+]
+>>>>>>> c7e51e7aa8713349fa1b7815a2ff0c79dc47af7a

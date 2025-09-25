@@ -13,71 +13,67 @@
 
     <div class="form-group">
         <label>Nota:</label>
-        <div class="estrelas">
-            {% for i in "5.0,4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0,0.5"|split:"," %}
-                <input type="radio" id="nota{{ i }}" name="nota" value="{{ i }}" required>
-                <label for="nota{{ i }}" title="{{ i }} estrelas"></label>
+        <div class="estrelas" id="estrelas">
+            {% for i in notas %}
+                <span class="estrela" data-value="{{ i }}">★</span>
             {% endfor %}
         </div>
+        <input type="hidden" name="nota" id="nota" required>
     </div>
 
     <button type="submit" class="btn btn-primary">Enviar crítica</button>
 </form>
 
 <style>
-/* Container de estrelas */
 .estrelas {
     display: flex;
     flex-direction: row-reverse;
-    justify-content: flex-end;
-    gap: 0.1rem;
     font-size: 2rem;
-}
-
-/* Esconde os inputs */
-.estrelas input {
-    display: none;
-}
-
-/* Labels como estrelas */
-.estrelas label {
-    position: relative;
     cursor: pointer;
+}
+
+/* Estrela cinza por padrão */
+.estrela {
     color: #ccc;
-}
-
-/* Estrela inteira */
-.estrelas label::before {
-    content: '★';
     position: relative;
-    display: block;
 }
 
-/* Meia estrela usando ::after */
-.estrelas label::after {
-    content: '★';
-    position: absolute;
-    left: 0;
-    width: 50%;
-    overflow: hidden;
-    color: gold;
-}
-
-/* Preenchimento ao selecionar */
-.estrelas input:checked ~ label::before,
-.estrelas input:checked ~ label::after {
-    color: gold;
-}
-
-/* Preenchimento ao hover */
-.estrelas label:hover,
-.estrelas label:hover ~ label {
-    color: gold;
-}
-
-.estrelas label:hover::after,
-.estrelas label:hover ~ label::after {
+/* Estrela preenchida */
+.estrela.dourada {
     color: gold;
 }
 </style>
+
+<script>
+const estrelas = document.querySelectorAll('.estrela');
+const notaInput = document.getElementById('nota');
+
+function pintarEstrelas(valor) {
+    estrelas.forEach(star => {
+        if(parseFloat(star.dataset.value) <= valor) {
+            star.classList.add('dourada');
+        } else {
+            star.classList.remove('dourada');
+        }
+    });
+}
+
+estrelas.forEach(star => {
+    // Hover
+    star.addEventListener('mouseover', () => {
+        pintarEstrelas(parseFloat(star.dataset.value));
+    });
+
+    // Click
+    star.addEventListener('click', () => {
+        notaInput.value = parseFloat(star.dataset.value);
+        pintarEstrelas(parseFloat(star.dataset.value));
+    });
+
+    // Mouseout volta ao valor selecionado
+    star.addEventListener('mouseout', () => {
+        pintarEstrelas(parseFloat(notaInput.value) || 0);
+    });
+});
+</script>
 {% endblock %}

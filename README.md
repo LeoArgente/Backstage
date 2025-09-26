@@ -58,6 +58,9 @@ foto da historia
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
+## Screencast
+Você pode acessar (AQUI) o vídeo explicativo do nosso projeto já desenvolvido em Django, com as três histórias implementadas.
+
 ## Backlog no Jira
 print do backlog
 
@@ -67,6 +70,8 @@ printo do quadro
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Bugtracker
+Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que queremos fazer para o Backstage.
+
 print do bug tracker
 
 Bugs corrigídos:

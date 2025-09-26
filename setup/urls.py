@@ -1,6 +1,4 @@
-"""
-URL configuration for setup project.
-
+""" URL configuration for setup project.
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
 Examples:
@@ -16,14 +14,11 @@ Including another URLconf
 """
 from django.urls import path, include
 from django.contrib import admin
-from backstage.views import FilmeDetalheAPIView, index, community, filmes, lists, movies, noticias, series, wireframer
-from rest_framework.routers import DefaultRouter
+from backstage.views import FilmeDetalheAPIView
+#from rest_framework.routers import DefaultRouter
 
-#Primeira definição de urlpatterns (comentada pois a segunda já inclui backstage.urls)
 urlpatterns = [
      path("admin/", admin.site.urls),
      path('', include('backstage.urls')),
      path('filmes/<int:tmdb_id>/detalhes/', FilmeDetalheAPIView.as_view(), name='filme-detalhes'),
  ]
-
-# backend lou e leo #################################################

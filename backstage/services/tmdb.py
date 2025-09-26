@@ -109,7 +109,6 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
                 "logo_path": p.get("logo_path"),
                 "tipo": tipo
             })
-
     # Retorna com campos padronizados
     return {
         "tmdb_id": id_tmdb,
@@ -131,7 +130,6 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
         "plataformas": plataformas
     }
 
-# Cache
 def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str = None):
     # Tenta usar cache até 'ttl_minutos' (default 24h). Se expirado, refaz na TMDb e atualiza.
     try:

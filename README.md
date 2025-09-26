@@ -10,7 +10,7 @@
 <details>
 <summary> 🔗 LINKS IMPORTANTES </summary>
   
-- [Jira](https://cesarschool-20252.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiNjQxZWFjMDE5Yzk3NGY5MGE0MjMzZjZmNzAxZjYxZmUiLCJwIjoiaiJ9)
+- [Jira](https://backstage2025.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
   
 - [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
   </details>

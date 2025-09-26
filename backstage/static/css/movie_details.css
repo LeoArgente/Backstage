@@ -1,13 +1,53 @@
 /* ===== Movie Details Page Styles ===== */
 
+.review-input-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    position: relative;
+}
+
 .movie-review-text {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
-    padding: 10px 16px 10px 44px;
-    width: 320px;
+    padding: 10px 16px;
+    width: 295px;
+    height: 40px;
     color: var(--text-primary);
     transition: all var(--transition-base);
+    resize: none;
+}
+
+.send-review-btn {
+    background: linear-gradient(135deg, #dc2626, #b91c1c, #991b1b);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.send-review-btn svg {
+    color: white;
+    width: 16px;
+    height: 16px;
+    transform: translate(-1px, -1px);
+    position: relative;
+}
+
+.send-review-btn:hover {
+    background-color: #CC0000;
+    transform: translateY(-2px);
+}
+
+.send-review-btn:active {
+    transform: translateY(0);
+}
     outline: none;
     border-color: var(--blue-light);
     background: var(--surface-hover);

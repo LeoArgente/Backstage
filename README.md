@@ -37,6 +37,8 @@ Link paras as histórias: [Histórias](https://docs.google.com/document/d/1aqIHF
 <details>
 <summary> 📥 ENTREGA 2</summary>
 
+
+
 O objetivo desta segunda sprint é dar início ao desenvolvimento do projeto, colocando em prática a implementação das primeiras histórias de usuário.
 
 ## HISTÓRIA 1:

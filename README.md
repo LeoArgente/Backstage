@@ -41,14 +41,17 @@ O objetivo desta segunda sprint é dar início ao desenvolvimento do projeto, co
 
 ## HISTÓRIA 1:
 Permite que o usuário pesquise o filme por meio de filtros como: título, gênero, elenco e etc.
+
 foto da historia
 
 ## HISTÓRIA 2:
 Permite que o usuário veja os detalhes de um filme (elenco, duração, classificação...) ao clicar nele.
+
 foto da historia
 
 ## HISTÓRIA 3:
 Permite que o usuário deixa uma resenha sobre o filme.
+
 foto da historia
 
 ----------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,25 +1,19 @@
 /* ===== Movie Details Page Styles ===== */
 
-.review-text {
-    height: 25px !important;
-    width: 295px !important;
-    padding: 4px 8px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    resize: none !important;
-    font-family: inherit;
+.movie-review-text {
     background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 10px 16px 10px 44px;
+    width: 320px;
     color: var(--text-primary);
-    margin: 0;
-    overflow: hidden;
-    box-sizing: border-box;
-    max-height: 25px !important;
-    min-height: 25px !important;
-    max-width: 295px !important;
-    min-width: 295px !important;
-    line-height: 1.2;
-    display: block;
-    flex: none;
+    transition: all var(--transition-base);
+    outline: none;
+    border-color: var(--blue-light);
+    background: var(--surface-hover);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: scale(1.02);
+
 }
 
 .review-text:focus {

@@ -12,7 +12,6 @@
   
 </head>
 <body>
-    <script src="{% static 'js/main.js' %}" defer></script>
     <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -33,7 +32,7 @@
         </a>
 
         <div class="nav-menu">
-          <a href="index.html" class="nav-link active">Início</a>
+          <a href="home" class="nav-link active">Início</a>
           <div class="nav-link-wrapper">
             <a href="html/noticias.html" class="nav-link">Notícias</a>
             <div class="news-dropdown">
@@ -46,10 +45,10 @@
               </div>
             </div>
           </div>
-          <a href="html/movies.html" class="nav-link">Filmes</a>
-          <a href="html/series.html" class="nav-link">Séries</a>
-          <a href="html/lists.html" class="nav-link">Listas</a>
-          <a href="html/community.html" class="nav-link">Comunidade</a>
+          <a href="/movies" class="nav-link">Filmes</a>
+          <a href="/series" class="nav-link">Séries</a>
+          <a href="/lists.html" class="nav-link">Listas</a>
+          <a href="/community.html" class="nav-link">Comunidade</a>
         </div>
 
         <div class="nav-actions">
@@ -83,26 +82,27 @@
 
 <!-- Hero Section -->
   <section class="hero">
+    {% if filme_destaque %}
     <div class="hero-backdrop">
-      <img src="" alt="Featured" />
+      <img src="{{ tmdb_image_base }}original{{ filme_destaque.backdrop_path|default:filme_destaque.poster_path }}" alt="{{ filme_destaque.titulo }}" />
       <div class="hero-gradient"></div>
     </div>
     <div class="container hero-content">
       <div class="hero-info">
-        <span class="hero-badge">Carregando...</span>
-        <h1 class="hero-title">Carregando filmes...</h1>
+        <span class="hero-badge">Em Destaque</span>
+        <h1 class="hero-title">{{ filme_destaque.titulo }}</h1>
         <div class="hero-meta">
-          <span class="hero-year">---</span>
-          <span class="hero-duration">---</span>
+          <span class="hero-year">{{ filme_destaque.ano_lancamento|default:"2024" }}</span>
+          <span class="hero-duration">{{ filme_destaque.duracao_min|default:"120" }} min</span>
           <span class="hero-rating">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            ---
+            {{ filme_destaque.nota_tmdb|default:"8.0" }}
           </span>
         </div>
         <p class="hero-synopsis">
-          Carregando informações dos filmes...
+          {{ filme_destaque.sinopse|default:"Sinopse não disponível" }}
         </p>
         <div class="hero-actions">
           <button class="btn btn-primary btn-large">
@@ -125,6 +125,19 @@
         </div>
       </div>
     </div>
+    {% else %}
+    <div class="hero-backdrop">
+      <div class="hero-gradient"></div>
+    </div>
+    <div class="container hero-content">
+      <div class="hero-info">
+        <h1 class="hero-title">Bem-vindo ao Backstage</h1>
+        <p class="hero-synopsis">
+          Descubra os melhores filmes e séries.
+        </p>
+      </div>
+    </div>
+    {% endif %}
   </section>
 
   <main class="container">
@@ -176,6 +189,6 @@
         </div>
       </div>
     </section>
-<script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
 </body>
 </html>    

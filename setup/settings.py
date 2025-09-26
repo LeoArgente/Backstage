@@ -120,7 +120,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 import os
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [BASE_DIR, "backstage/static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -135,6 +135,6 @@ LOGOUT_REDIRECT_URL = 'backstage:login' #para onde mandar após o logout()
 # setup/settings.py
 TMDB_API_KEY = "e2bf84876d17e898ef5fc63655cd5040"
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
-TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
-TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/original"
+TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"
+TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/original/"
 TMDB_DEFAULT_REGION = "BR"

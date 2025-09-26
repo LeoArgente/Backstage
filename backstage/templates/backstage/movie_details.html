@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
 </head>
 <body>
-  <!-- Header -->
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -79,7 +78,6 @@
     </div>
   </header>
 
-  <!-- Movie Hero Banner -->
   <section class="movie-hero">
     <div class="movie-backdrop">
       <img src="https://images.unsplash.com/photo-1535016120720-40c646be5580?q=80&w=1920" alt="Inception backdrop" />
@@ -205,7 +203,6 @@
   </section>
 
   <main class="container movie-details">
-    <!-- Tabs Navigation -->
     <div class="tabs-nav">
       <button class="tab-btn active" data-tab="overview">Visão Geral</button>
       <button class="tab-btn" data-tab="crew">Equipe</button>
@@ -215,11 +212,9 @@
       <button class="tab-btn" data-tab="similar">Similares</button>
     </div>
 
-    <!-- Tab Content -->
     <div class="tab-content active" id="overview">
       <div class="overview-grid">
         <div class="overview-main">
-          <!-- Crew Information -->
           <section class="crew-section">
             <div class="section-header-with-action">
               <h2 class="section-title">Equipe Principal</h2>
@@ -235,7 +230,6 @@
             </div>
           </section>
 
-          <!-- Top Cast -->
           <section class="cast-section">
             <h2 class="section-title">Elenco Principal</h2>
             <div class="cast-grid" id="overview-cast-grid">
@@ -243,7 +237,6 @@
             </div>
           </section>
 
-          <!-- User Reviews -->
           <section class="reviews-section">
             <div class="section-header">
               <h2 class="section-title">Críticas dos Usuários</h2>
@@ -294,9 +287,7 @@
           </section>
         </div>
 
-        <!-- Sidebar -->
         <aside class="overview-sidebar">
-          <!-- Movie Facts -->
           <section class="movie-facts">
             <h3 class="sidebar-title">Informações</h3>
             <dl class="facts-list">
@@ -324,7 +315,6 @@
             </dl>
           </section>
 
-          <!-- Streaming Availability -->
           <section class="streaming-section">
             <h3 class="sidebar-title">Onde Assistir</h3>
             <div class="streaming-list">
@@ -343,7 +333,6 @@
             </div>
           </section>
 
-          <!-- Social Stats -->
           <section class="social-stats">
             <h3 class="sidebar-title">Estatísticas</h3>
             <div class="stats-list">
@@ -381,7 +370,6 @@
       </div>
     </div>
 
-    <!-- Crew Tab -->
     <div class="tab-content" id="crew">
       <div class="crew-full-section">
         <div class="section-header">
@@ -394,7 +382,6 @@
       </div>
     </div>
 
-    <!-- Cast Tab -->
     <div class="tab-content" id="cast">
       <div class="cast-full-section">
         <div class="section-header">
@@ -407,7 +394,6 @@
       </div>
     </div>
 
-    <!-- Reviews Tab -->
     <div class="tab-content" id="reviews">
       <div class="reviews-full-section">
         <div class="section-header">
@@ -445,7 +431,6 @@
       </div>
     </div>
 
-    <!-- Media Tab -->
     <div class="tab-content" id="media">
       <div class="media-section">
         <div class="media-tabs">
@@ -460,7 +445,6 @@
       </div>
     </div>
 
-    <!-- Similar Movies Tab -->
     <div class="tab-content" id="similar">
       <div class="similar-section-full">
         <div class="section-header">
@@ -474,7 +458,6 @@
     </div>
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
     <div class="container">
       <div class="footer-content">
@@ -507,7 +490,6 @@
       </div>
     </div>
   </footer>
-
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie-details.js' %}" defer></script>
 </body>

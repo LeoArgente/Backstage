@@ -106,9 +106,11 @@
           <span class="movie-rating">PG-13</span>
           <span class="movie-duration">{{ filme.duracao_min|default:"120" }} min</span>
           <div class="movie-genres">
-            <span class="genre-tag">Ação</span>
-            <span class="genre-tag">Ficção Científica</span>
-            <span class="genre-tag">Thriller</span>
+            {% for genero in filme.generos %}
+            <span class="genre-tag">{{ genero }}</span>
+            {% empty %}
+            <span class="genre-tag">Gênero não disponível</span>
+            {% endfor %}
           </div>
         </div>
         

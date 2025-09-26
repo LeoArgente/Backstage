@@ -119,6 +119,7 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
         "ano_lancamento": detalhes.get("release_date", "")[:4] if detalhes.get("release_date") else "",
         "nota_tmdb": detalhes.get("vote_average"),
         "duracao_min": detalhes.get("runtime"),
+        "generos": [genero.get("name") for genero in detalhes.get("genres", [])],
         "elenco_principal": [
             {
                 "nome": p.get("name"),

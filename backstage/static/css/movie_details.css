@@ -13,7 +13,9 @@
     background: var(--surface-hover);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     transform: scale(1.02);
-
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 .review-text:focus {

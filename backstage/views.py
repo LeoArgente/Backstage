@@ -33,7 +33,19 @@ def pagina_login(request):
 
 @login_required(login_url='backstage:login')
 def home(request):
-    return render(request, 'backstage/index.html')
+    from backstage.services.tmdb import buscar_filme_destaque
+
+    try:
+        filme_destaque = buscar_filme_destaque()
+    except:
+        filme_destaque = None
+
+    context = {
+        'filme_destaque': filme_destaque,
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+    }
+
+    return render(request, 'backstage/index.html', context)
 
 def sair(request):
     logout(request)

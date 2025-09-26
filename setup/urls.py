@@ -22,13 +22,6 @@ from rest_framework.routers import DefaultRouter
 #Primeira definição de urlpatterns (comentada pois a segunda já inclui backstage.urls)
 urlpatterns = [
      path("admin/", admin.site.urls),
-     path("community/", community, name="community"),
-     path("filmes/", filmes, name="filmes"),
-     path("movies/", movies, name="movies"),
-     path("lists/", lists, name="lists"),
-     path("noticias/", noticias, name="noticias"),
-     path("series/", series, name="series"),
-     path("wireframer/", wireframer, name="wireframer"),
      path('', include('backstage.urls')),
      path('filmes/<int:tmdb_id>/detalhes/', FilmeDetalheAPIView.as_view(), name='filme-detalhes'),
  ]

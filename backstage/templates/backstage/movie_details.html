@@ -15,7 +15,7 @@
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
-        <a class="brand" href="{% url 'backstage:home' %}">
+        <a class="brand" href="{% url 'backstage:index' %}">
           <span class="logo">
             <svg viewBox="0 0 24 24" width="24" height="24">
               <circle cx="12" cy="12" r="10" fill="url(#brand-gradient)" opacity="0.9"/>
@@ -32,7 +32,7 @@
         </a>
 
         <div class="nav-menu">
-          <a href="{% url 'backstage:home' %}" class="nav-link">Início</a>
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
           <div class="nav-link-wrapper">
             <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
             <div class="news-dropdown">
@@ -48,7 +48,7 @@
           <a href="{% url 'backstage:movies' %}" class="nav-link active">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
-          <a href="{% url 'backstage:community' %}" class="nav-link">Comunidade</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
         </div>
 
         <div class="nav-actions">

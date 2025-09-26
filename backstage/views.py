@@ -4,6 +4,18 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 
+# backend lou e leo #################################################################
+def pagina_login(request):
+    if request.method == "POST":
+        username = request.POST.get('username', '')
+        senha = request.POST.get('password', '')
+        user = authenticate(request, username=username, password=senha)
+        if user is not None:
+            login(request, user)
+            return redirect('backstage:index')  # usa namespace do app
+        return render(request, 'backstage/login.html', {'erro': 'Usuário ou senha inválidos'})
+    return render(request, 'backstage/login.html')
+
 def index(request):
     from backstage.services.tmdb import buscar_filme_destaque
 
@@ -16,66 +28,35 @@ def index(request):
         'filme_destaque': filme_destaque,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
-
-    return render(request, "backstage/index.html", context)
-
-# backend lou e leo #################################################################
-def pagina_login(request):
-    if request.method == "POST":
-        username = request.POST.get('username', '')
-        senha = request.POST.get('password', '')
-        user = authenticate(request, username=username, password=senha)
-        if user is not None:
-            login(request, user)
-            return redirect('backstage:home')  # usa namespace do app
-        return render(request, 'backstage/login.html', {'erro': 'Usuário ou senha inválidos'})
-    return render(request, 'backstage/login.html')
-
-@login_required(login_url='backstage:login')
-def home(request):
-    from backstage.services.tmdb import buscar_filme_destaque
-
-    try:
-        filme_destaque = buscar_filme_destaque()
-    except:
-        filme_destaque = None
-
-    context = {
-        'filme_destaque': filme_destaque,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
-    }
-
     return render(request, 'backstage/index.html', context)
 
 def sair(request):
     logout(request)
     return redirect('backstage:login')
 
-# login/home/sair
-
 def registrar(request):
     if request.user.is_authenticated:
-        return redirect('backstage:home')
+        return redirect('backstage:index')
 
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             usuario = form.save()
             login(request, usuario)
-            return redirect('backstage:home')
+            return redirect('backstage:index')
     else:
         form = UserCreationForm()
-
     return render(request, 'backstage/register.html', {'form': form})
 
 # chamadas das urls das páginas #################################################################################################
 # front nononha e liz + back leo e lou
 
-def community(request):
+@login_required(login_url='backstage:login')
+def comunidade(request):
     return render(request, "backstage/community.html")
 
 def filmes(request):
-    return render(request, "backstage/filmes.html")
+    return render(request, "backstage/movie_details.html")
 
 def lists(request):
     return render(request, "backstage/lists.html")
@@ -115,10 +96,9 @@ def wireframer(request):
 # back vitor e henrique ###########################################################################
 from .models import Filme, Critica
 
-@login_required
+@login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
     from backstage.services.tmdb import obter_detalhes_com_cache
-
     notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
 
     #Busca dados do filme da API
@@ -160,7 +140,6 @@ def adicionar_critica(request, tmdb_id):
 
 def detalhes_filme(request, tmdb_id):
     from backstage.services.tmdb import obter_detalhes_com_cache
-
     try:
         dados_filme = obter_detalhes_com_cache(tmdb_id)
     except:

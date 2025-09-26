@@ -17,7 +17,7 @@
     <header class="site-header">
       <div class="container">
         <nav class="nav-primary">
-        <a href="../../index.html" class="brand">
+        <a href="{% url 'backstage:index' %}" class="brand">
           <span class="logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" fill="url(#brand-gradient)" opacity="0.9"/>
@@ -34,23 +34,23 @@
         </a>
 
         <div class="nav-menu">
-          <a href="../../index.html" class="nav-link">Início</a>
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
           <div class="nav-link-wrapper">
-            <a href="noticias.html" class="nav-link active">Notícias</a>
+            <a href="{% url 'backstage:noticias' %}" class="nav-link active">Notícias</a>
             <div class="news-dropdown">
               <div class="dropdown-header">
                 <h3>Últimas Notícias</h3>
-                <a href="noticias.html" class="view-all">Ver todas</a>
+                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
               </div>
               <div class="news-dropdown-content">
                 <!-- News items will be populated by JS -->
               </div>
             </div>
           </div>
-          <a href="movies.html" class="nav-link">Filmes</a>
-          <a href="series.html" class="nav-link">Séries</a>
-          <a href="lists.html" class="nav-link">Listas</a>
-          <a href="community.html" class="nav-link">Comunidade</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
         </div>
 
         <div class="nav-actions">
@@ -66,7 +66,6 @@
       </div>
     </header>
 
-    <!-- Page Header -->
     <section class="page-header">
       <div class="container">
         <div class="page-header-content">
@@ -80,7 +79,6 @@
 
     <!-- Main Content -->
     <main class="container">
-      <!-- Breaking News -->
       <section class="breaking-news">
         <div class="breaking-label">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -99,7 +97,6 @@
         </div>
       </section>
 
-      <!-- Categories Filter -->
       <section class="news-filters">
         <div class="filters-header">
           <div class="filter-tabs">
@@ -115,9 +112,7 @@
         </div>
       </section>
 
-      <!-- News Layout -->
       <div class="news-layout">
-        <!-- Featured News -->
         <section class="featured-news">
           <article class="featured-article">
             <div class="featured-image">
@@ -145,9 +140,7 @@
           </article>
         </section>
 
-        <!-- Regular News Grid -->
         <section class="news-grid">
-          <!-- News Card 1 -->
           <article class="news-card">
             <div class="news-image">
               <img src="https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=250&fit=crop" alt="News">
@@ -164,7 +157,6 @@
             </div>
           </article>
 
-          <!-- News Card 2 -->
           <article class="news-card">
             <div class="news-image">
               <img src="https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=400&h=250&fit=crop" alt="News">
@@ -181,7 +173,6 @@
             </div>
           </article>
 
-          <!-- News Card 3 -->
           <article class="news-card">
             <div class="news-image">
               <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=400&h=250&fit=crop" alt="News">
@@ -198,7 +189,6 @@
             </div>
           </article>
 
-          <!-- News Card 4 -->
           <article class="news-card">
             <div class="news-image">
               <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&h=250&fit=crop" alt="News">
@@ -215,7 +205,6 @@
             </div>
           </article>
 
-          <!-- News Card 5 -->
           <article class="news-card">
             <div class="news-image">
               <img src="https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=400&h=250&fit=crop" alt="News">
@@ -232,7 +221,6 @@
             </div>
           </article>
 
-          <!-- News Card 6 -->
           <article class="news-card">
             <div class="news-image">
               <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=250&fit=crop" alt="News">
@@ -250,9 +238,7 @@
           </article>
         </section>
 
-        <!-- Sidebar -->
         <aside class="news-sidebar">
-          <!-- Trending -->
           <div class="sidebar-section">
             <h3 class="sidebar-title">Em Alta</h3>
             <div class="trending-list">

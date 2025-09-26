@@ -391,6 +391,9 @@ function getFullImageUrl(path) {
 
 function createMovieCard(movie) {
   const posterUrl = getFullImageUrl(movie.poster);
+    const posterUrl = movie.poster
+    ? `${TMDB_IMAGE_BASE_URL}${movie.poster}`
+  'https://via.placeholder.com/300x450/1a1f2e/ffffff?text=Sem+Imagem';
   
   return `
     <div class="movie-card ${currentView}" data-id="${movie.id}" data-genres="${movie.generos.join(',').toLowerCase()}">
@@ -427,6 +430,7 @@ function createMovieCard(movie) {
         <h3 class="movie-title">${movie.titulo}</h3>
         <div class="movie-meta">
           <span class="movie-year">${movie.ano}</span>
+          <span class="movie-genres">${movie.generos.join(', ')}</span>
         </div>
         <div class="movie-synopsis">
           <p>${movie.sinopse}</p>

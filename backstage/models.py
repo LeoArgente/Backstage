@@ -3,6 +3,7 @@ from django.conf import settings
 #from django.contrib.auth.models import User
 
 class Filme(models.Model):
+    tmdb_id = models.IntegerField(unique=True, null=True, blank=True)
     titulo = models.CharField(max_length=255)
     descricao = models.TextField(blank=True, null=True)
     elenco = models.TextField(blank=True, null=True)

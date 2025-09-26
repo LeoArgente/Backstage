@@ -182,7 +182,7 @@ def detalhes_filme(request, tmdb_id):
         'criticas': criticas,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
         }
-    return render(request, "backstage/filmes.html", context)
+    return render(request, "backstage/movie_details.html", context)
 
 def buscar(request):
     from backstage.services.tmdb import buscar_filme_por_titulo

@@ -4,7 +4,7 @@
   {% load static %}
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Inception — Backstage</title>
+  <title>{{ filme.titulo }} — Backstage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
-        <a class="brand" href="../../index.html">
+        <a class="brand" href="{% url 'backstage:home' %}">
           <span class="logo">
             <svg viewBox="0 0 24 24" width="24" height="24">
               <circle cx="12" cy="12" r="10" fill="url(#brand-gradient)" opacity="0.9"/>
@@ -32,23 +32,23 @@
         </a>
 
         <div class="nav-menu">
-          <a href="../../index.html" class="nav-link">Início</a>
+          <a href="{% url 'backstage:home' %}" class="nav-link">Início</a>
           <div class="nav-link-wrapper">
-            <a href="noticias.html" class="nav-link">Notícias</a>
+            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
             <div class="news-dropdown">
               <div class="dropdown-header">
                 <h3>Últimas Notícias</h3>
-                <a href="noticias.html" class="view-all">Ver todas</a>
+                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
               </div>
               <div class="news-dropdown-content">
                 <!-- News items will be populated by JS -->
               </div>
             </div>
           </div>
-          <a href="movies.html" class="nav-link active">Filmes</a>
-          <a href="series.html" class="nav-link">Séries</a>
-          <a href="lists.html" class="nav-link">Listas</a>
-          <a href="community.html" class="nav-link">Comunidade</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link active">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:community' %}" class="nav-link">Comunidade</a>
         </div>
 
         <div class="nav-actions">
@@ -80,13 +80,13 @@
 
   <section class="movie-hero">
     <div class="movie-backdrop">
-      <img src="https://images.unsplash.com/photo-1535016120720-40c646be5580?q=80&w=1920" alt="Inception backdrop" />
+      <img src="{{ tmdb_image_base }}original{{ filme.backdrop_path|default:filme.poster_path }}" alt="{{ filme.titulo }} backdrop" />
       <div class="movie-backdrop-gradient"></div>
     </div>
     
     <div class="container movie-hero-content">
       <div class="movie-poster-section">
-        <img src="https://images.unsplash.com/photo-1535016120720-40c646be5580?q=80&w=400" alt="Inception poster" class="movie-poster" />
+        <img src="{{ tmdb_image_base }}w500{{ filme.poster_path }}" alt="{{ filme.titulo }} poster" class="movie-poster" />
         <button class="trailer-btn">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
             <path d="M8 5v14l11-7z"/>
@@ -97,14 +97,14 @@
       
       <div class="movie-info-section">
         <div class="movie-header">
-          <h1 class="movie-title">Inception</h1>
-          <span class="movie-original-title">A Origem</span>
+          <h1 class="movie-title">{{ filme.titulo }}</h1>
+          <span class="movie-original-title">{{ filme.titulo }}</span>
         </div>
         
         <div class="movie-metadata">
-          <span class="movie-year">2010</span>
+          <span class="movie-year">{{ filme.ano_lancamento|default:"2024" }}</span>
           <span class="movie-rating">PG-13</span>
-          <span class="movie-duration">2h 28min</span>
+          <span class="movie-duration">{{ filme.duracao_min|default:"120" }} min</span>
           <div class="movie-genres">
             <span class="genre-tag">Ação</span>
             <span class="genre-tag">Ficção Científica</span>
@@ -119,7 +119,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#f5c518">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              <strong>8.8</strong>/10
+              <strong>{{ filme.nota_tmdb|floatformat:1|default:"8.0" }}</strong>/10
             </div>
             <span class="rating-count">2.3M votos</span>
           </div>
@@ -154,7 +154,7 @@
         </div>
         
         <div class="movie-synopsis">
-          <p>Dom Cobb é um ladrão especializado em extrair segredos do subconsciente durante o estado de sonho. Sua rara habilidade o tornou um jogador cobiçado no mundo da espionagem corporativa, mas também o transformou em fugitivo internacional. Agora, Cobb tem a chance de se redimir realizando uma última tarefa aparentemente impossível: plantar uma ideia na mente de alguém.</p>
+          <p>{{ filme.sinopse|default:"Sinopse não disponível" }}</p>
         </div>
         
         <div class="movie-actions">
@@ -233,7 +233,21 @@
           <section class="cast-section">
             <h2 class="section-title">Elenco Principal</h2>
             <div class="cast-grid" id="overview-cast-grid">
-              <!-- Cast will be populated by JavaScript based on current movie -->
+              {% for ator in filme.elenco_principal %}
+              <div class="cast-member">
+                {% if ator.foto_path %}
+                <img src="{{ tmdb_image_base }}w185{{ ator.foto_path }}" alt="{{ ator.nome }}" class="cast-photo" />
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ ator.nome }}&background=667eea&color=fff" alt="{{ ator.nome }}" class="cast-photo" />
+                {% endif %}
+                <div class="cast-info">
+                  <span class="cast-name">{{ ator.nome }}</span>
+                  <span class="cast-character">{{ ator.personagem }}</span>
+                </div>
+              </div>
+              {% empty %}
+              <p>Elenco não disponível</p>
+              {% endfor %}
             </div>
           </section>
 
@@ -318,18 +332,20 @@
           <section class="streaming-section">
             <h3 class="sidebar-title">Onde Assistir</h3>
             <div class="streaming-list">
+              {% for plataforma in filme.plataformas %}
               <a href="#" class="streaming-service">
-                <span class="service-name">Netflix</span>
-                <span class="service-type">Streaming</span>
+                <span class="service-name">{{ plataforma.nome }}</span>
+                <span class="service-type">
+                  {% if plataforma.tipo == "flatrate" %}Streaming
+                  {% elif plataforma.tipo == "rent" %}Aluguel
+                  {% elif plataforma.tipo == "buy" %}Compra
+                  {% elif plataforma.tipo == "ads" %}Com anúncios
+                  {% else %}Grátis{% endif %}
+                </span>
               </a>
-              <a href="#" class="streaming-service">
-                <span class="service-name">Prime Video</span>
-                <span class="service-type">Aluguel</span>
-              </a>
-              <a href="#" class="streaming-service">
-                <span class="service-name">Apple TV+</span>
-                <span class="service-type">Compra</span>
-              </a>
+              {% empty %}
+              <p>Não disponível para streaming</p>
+              {% endfor %}
             </div>
           </section>
 

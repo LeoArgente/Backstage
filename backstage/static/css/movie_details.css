@@ -47,7 +47,7 @@
 
 .send-review-btn:active {
     transform: translateY(0);
-}
+
     outline: none;
     border-color: var(--blue-light);
     background: var(--surface-hover);
@@ -731,4 +731,250 @@
     align-items: stretch;
     gap: 16px;
   }
+}
+/* Popup Overlay */
+.list-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.7); /* #0f172a com opacidade */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.list-popup-overlay.show {
+    display: flex;
+}
+
+/* Popup Container */
+.list-popup {
+    background: #1e293b; /* Cor principal do popup */
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    animation: popupFadeIn 0.3s ease;
+    border: 1px solid #334155;
+}
+
+@keyframes popupFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Popup Header */
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #334155;
+    background: #1e293b;
+    border-radius: 12px 12px 0 0;
+}
+
+.popup-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #f8fafc;
+    font-weight: 600;
+}
+
+.close-popup {
+    background: #334155;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #cbd5e1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.close-popup:hover {
+    background: #475569;
+    color: #ffffff;
+}
+
+/* Popup Content */
+.popup-content {
+    padding: 20px;
+}
+
+.popup-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+    color: #e2e8f0;
+}
+
+.popup-option:last-child {
+    margin-bottom: 0;
+}
+
+.popup-option:hover {
+    background: #334155;
+    border-color: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.popup-option .icon {
+    font-size: 24px;
+    font-weight: bold;
+    color: #60a5fa;
+}
+
+.popup-option svg {
+    stroke: #60a5fa;
+}
+
+.popup-option span:last-child {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #f1f5f9;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #f8fafc;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #64748b;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+    color: #e2e8f0;
+}
+
+/* Botão de ação original */
+.action-btn.list {
+    cursor: pointer;
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.action-btn.list:hover {
+    background: #334155;
+    transform: translateY(-1px);
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+    .list-popup {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .popup-option {
+        padding: 12px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100%;
+    }
+}
+/* Garantir que os popups tenham z-index alto */
+.list-popup-overlay {
+    z-index: 10000;
+}
+
+/* Debug - para verificar se os elementos estão visíveis */
+.action-btn.list {
+    cursor: pointer;
+}
+
+/* Estilo para o botão de fechar específico */
+.create-list-close {
+    /* Estilos específicos se necessário */
 }

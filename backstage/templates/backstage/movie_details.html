@@ -172,11 +172,31 @@
               Favoritar
             </button>
             <button class="action-btn list">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor"/>
-              </svg>
-              Adicionar à Lista
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor"/>
+    </svg>
+    Adicionar à Lista
+</button>
+
+<!-- Popup principal da lista -->
+<div class="list-popup-overlay" id="listPopupOverlay">
+    <div class="list-popup">
+        <div class="popup-header">
+            <h3>Adicionar à Lista</h3>
+            <button class="close-popup">&times;</button>
+        </div>
+        <div class="popup-content">
+            <button class="popup-option create-list">
+                <span class="icon">+</span>
+                <span>Criar Nova Lista</span>
+            </button>
+            <button class="popup-option watch-later">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Assistir Mais Tarde</span>
             </button>
           </div>
           
@@ -553,5 +573,86 @@
 
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie-details.js' %}" defer></script>
+  <script>
+// Inicialização simples e direta
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Django template loaded');
+    
+    const addToListBtn = document.querySelector('.action-btn.list');
+    if (addToListBtn) {
+        addToListBtn.addEventListener('click', function() {
+            console.log('Button clicked');
+            const popup = document.getElementById('listPopupOverlay');
+            if (popup) {
+                popup.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+
+    // Fechar popup
+    document.querySelector('.close-popup')?.addEventListener('click', function() {
+        document.getElementById('listPopupOverlay').classList.remove('show');
+        document.body.style.overflow = '';
+    });
+
+    // Fechar clicando fora
+    document.getElementById('listPopupOverlay')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    });
+});
+</script>
+<script>
+// Solução mais simples - ADICIONAR APENAS ESTE CÓDIGO
+function initListPopup() {
+    // Adiciona evento ao botão existente
+    document.querySelector('.action-btn.list').onclick = function() {
+        document.getElementById('listPopupOverlay').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    };
+    
+    // Funções básicas
+    window.hideListPopup = function() {
+        document.getElementById('listPopupOverlay').classList.remove('show');
+        document.body.style.overflow = '';
+    };
+    
+    window.showCreateListForm = function() {
+        document.getElementById('popupOptions').style.display = 'none';
+        document.getElementById('createListForm').style.display = 'block';
+        document.getElementById('popupTitle').textContent = 'Criar Nova Lista';
+        setTimeout(() => document.getElementById('listName').focus(), 100);
+    };
+    
+    window.showListOptions = function() {
+        document.getElementById('popupOptions').style.display = 'block';
+        document.getElementById('createListForm').style.display = 'none';
+        document.getElementById('popupTitle').textContent = 'Adicionar à Lista';
+    };
+    
+    window.createNewList = function(event) {
+        event.preventDefault();
+        const name = document.getElementById('listName').value.trim();
+        if (name) {
+            alert(`Lista "${name}" criada!`);
+            document.getElementById('listName').value = '';
+            showListOptions();
+        } else {
+            alert('Digite um nome para a lista.');
+        }
+    };
+    
+    window.addToWatchLater = function() {
+        alert('Adicionado à Assistir Mais Tarde!');
+        hideListPopup();
+    };
+}
+
+// Inicializa quando o DOM carregar
+document.addEventListener('DOMContentLoaded', initListPopup);
+</script>
 </body>
 </html>

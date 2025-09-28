@@ -12,9 +12,13 @@ db.sqlite3
 db.sqlite3-journal
 media
 
-#ignrar migrações
-*/migrations/
-!*/migrations/__init__.py
+#ignorar migrações
+backstage/migrations
+!backstage/migrations/__init__.py
+# se precisar resetar as migrações, apagar a pasta migrations e criar uma nova com __init__.py
+# git rm -r --cached backstage/migrations/
+# depois:
+# git reset -- backstage/migrations/__init__.py
 
 # If your build process includes running collectstatic, then you probably
 # don't need or want to include staticfiles/

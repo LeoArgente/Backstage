@@ -16,6 +16,15 @@ def salvar_critica(request):
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import json
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
 
 # backend lou e leo #################################################################
 def pagina_login(request):
@@ -71,8 +80,17 @@ def comunidade(request):
 def filmes(request):
     return render(request, "backstage/movie_details.html")
 
+# back leo e lou ########################
+@login_required(login_url='backstage:login')
 def lists(request):
-    return render(request, "backstage/lists.html")
+    minhas_listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
+    listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).order_by('-atualizada_em')
+
+    context = {
+        'minhas_listas': minhas_listas,
+        'listas_publicas': listas_publicas,
+    }
+    return render(request, "backstage/lists.html", context)
 
 def movies(request):
     from backstage.services.tmdb import buscar_filmes_populares
@@ -108,86 +126,6 @@ def wireframer(request):
 
 # back vitor e henrique ###########################################################################
 from .models import Filme, Critica
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-
-#@login_required
-def salvar_critica(request):
-    if request.method == 'POST':
-        texto = request.POST.get('texto')
-        nota = request.POST.get('nota')
-        filme_id = request.POST.get('filme_id')
-        filme = get_object_or_404(Filme, tmdb_id=filme_id)
-
-        if texto and nota:
-            try:
-                # Tenta encontrar uma crítica existente deste usuário para este filme
-                critica = Critica.objects.filter(usuario=request.user, filme=filme).first()
-                
-                if critica:
-                    # Atualiza a crítica existente
-                    critica.texto = texto
-                    critica.nota = int(nota)
-                    critica.save()
-                    messages.success(request, 'Crítica atualizada com sucesso!')
-                else:
-                    # Cria uma nova crítica
-                    Critica.objects.create(
-                        usuario=request.user,
-                        filme=filme,
-                        texto=texto,
-                        nota=int(nota)
-                    )
-                    messages.success(request, 'Crítica adicionada com sucesso!')
-            except Exception as e:
-                messages.error(request, 'Erro ao salvar a crítica.')
-        else:
-            messages.error(request, 'Por favor, preencha a nota e o texto da crítica.')
-
-#def get_criticas(request, filme_id):
-    filme = get_object_or_404(Filme, tmdb_id=filme_id)
-    criticas = Critica.objects.filter(filme=filme).order_by('-data')
-    
-    criticas_list = [{
-        'usuario': critica.usuario.username,
-        'texto': critica.texto,
-        'nota': critica.nota,
-        'data': critica.data.isoformat()
-    } for critica in criticas]
-    
-    return JsonResponse({'criticas': criticas_list})
-
-@login_required
-def salvar_critica(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            filme_id = data.get('filme_id')
-            texto = data.get('texto')
-            nota = data.get('nota')
-
-            if not all([filme_id, texto, nota]):
-                return JsonResponse({'error': 'Dados incompletos'}, status=400)
-
-            filme = get_object_or_404(Filme, tmdb_id=filme_id)
-            
-            # Verifica se já existe uma crítica deste usuário para este filme
-            critica, created = Critica.objects.get_or_create(
-                usuario=request.user,
-                filme=filme,
-                defaults={'texto': texto, 'nota': nota}
-            )
-
-            if not created:
-                critica.texto = texto
-                critica.nota = nota
-                critica.save()
-
-            return JsonResponse({'message': 'Crítica salva com sucesso!'})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    
-    return JsonResponse({'error': 'Método não permitido'}, status=405)
 
 @login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
@@ -294,14 +232,8 @@ def relatorio(request):
     return JsonResponse({"relatorio": data})
 
 
-# back lou e leo ###################################################
+# back lou e leo #########################################
 # dados da API
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from django.conf import settings
-from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
 
 class FilmeDetalheAPIView(APIView):
     permission_classes = [AllowAny]
@@ -319,3 +251,67 @@ class FilmeDetalheAPIView(APIView):
         except Exception as e:
             # você pode logar 'e' com sentry/logging
             return Response({"detalhe": "Falha ao consultar a TMDb."}, status=status.HTTP_502_BAD_GATEWAY)
+
+@login_required(login_url='backstage:login')
+#@require_http_methods(["POST"])
+def criar_lista(request):
+    try:
+        data = json.loads(request.body)
+        lista = Lista.objects.create(
+            nome=data['nome'],
+            descricao=data.get('descricao', ''),
+            usuario=request.user,
+            publica=data.get('publica', False)
+        )
+        return JsonResponse({
+            'success': True,
+            'lista_id': lista.id,
+            'message': 'Lista criada com sucesso!'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+def buscar_listas_usuario(request):
+    try:
+        listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
+        listas_data = [{
+            'id': lista.id,
+            'nome': lista.nome,
+            'descricao': lista.descricao,
+            'publica': lista.publica,
+            'count': lista.itens.count()
+        } for lista in listas]
+
+        return JsonResponse({
+            'success': True,
+            'listas': listas_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def adicionar_filme_lista(request, lista_id, tmdb_id):
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        filme, _ = Filme.objects.get_or_create(
+            tmdb_id=tmdb_id,
+            defaults={'titulo': 'Filme TMDB ' + str(tmdb_id)}
+        )
+
+        item, created = ItemLista.objects.get_or_create(
+            lista=lista,
+            filme=filme,
+            defaults={'posicao': lista.itens.count()}
+        )
+
+        if created:
+            return JsonResponse({'success': True, 'message': 'Filme adicionado à lista!'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Filme já está na lista!'})
+    
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

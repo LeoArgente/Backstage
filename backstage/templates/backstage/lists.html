@@ -90,13 +90,48 @@
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="my-lists">Minhas Listas</button>
         <button class="filter-tab" data-filter="public">Listas Públicas</button>
-        <button class="filter-tab" data-filter="favorites">Favoritas</button>
       </div>
     </section>
 
     <section class="lists-grid-section">
       <div class="lists-grid" id="lists-grid">
-        <!-- Lists will be populated by JavaScript -->
+        <!-- Minhas Listas -->
+        <div class="lists-section" data-section="my-lists">
+          {% for lista in minhas_listas %}
+            <div class="list-card">
+              <div class="list-header">
+                <h3 class="list-title">{{ lista.nome }}</h3>
+                <span class="list-privacy">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+              </div>
+              <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
+              <div class="list-meta">
+                <span class="list-count">{{ lista.itens.count }} filme{{ lista.itens.count|pluralize }}</span>
+                <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
+              </div>
+            </div>
+          {% empty %}
+            <p class="empty-state">Você ainda não criou nenhuma lista.</p>
+          {% endfor %}
+        </div>
+
+        <!-- Listas Públicas -->
+        <div class="lists-section hidden" data-section="public">
+          {% for lista in listas_publicas %}
+            <div class="list-card">
+              <div class="list-header">
+                <h3 class="list-title">{{ lista.nome }}</h3>
+                <span class="list-author">por {{ lista.usuario.username }}</span>
+              </div>
+              <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
+              <div class="list-meta">
+                <span class="list-count">{{ lista.itens.count }} filme{{ lista.itens.count|pluralize }}</span>
+                <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
+              </div>
+            </div>
+          {% empty %}
+            <p class="empty-state">Nenhuma lista pública encontrada.</p>
+          {% endfor %}
+        </div>
       </div>
       
       <div class="load-more-section">

@@ -11,6 +11,152 @@
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
 </head>
+<style>
+  .list-popup-overlay { position: fixed;top: 0;left: 0;width: 100%;height: 100%;
+    background: rgba(0,0,0,0.8);display: flex;align-items: center;
+    justify-content: center;z-index: 1000;opacity: 0;visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .list-popup-overlay.show {opacity: 1;visibility: visible;
+  }
+
+  .list-popup {background: #1a1a1a;border-radius: 12px;padding: 2rem;
+    max-width: 400px;width: 90%;border: 1px solid #333;
+  }
+
+  .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+  }
+
+  .popup-header h3 {
+      color: #fff;
+      margin: 0;
+  }
+
+  .close-popup {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.5rem;
+      cursor: pointer;
+  }
+
+  .popup-option {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      padding: 1rem;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+  }
+
+  .popup-option:hover {
+      background: #333;
+      border-color: #667eea;
+  }
+
+  .form-group {
+      margin-bottom: 1rem;
+  }
+
+  .form-group label {
+      display: block;
+      color: #fff;
+      margin-bottom: 0.5rem;
+  }
+
+  .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+  }
+
+  .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+  }
+
+  .form-actions button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+  }
+
+  .form-actions button[type="submit"] {
+      background: #667eea;
+      color: #fff;
+  }
+
+  .form-actions button[type="button"] {
+      background: #444;
+      color: #fff;
+  }
+
+  /* Estilos para listas existentes */
+  .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  }
+
+  .list-item:hover {
+      background: #333;
+      border-color: #667eea;
+  }
+
+  .list-item-info {
+      flex-grow: 1;
+  }
+
+  .list-item-name {
+      color: #fff;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+  }
+
+  .list-item-meta {
+      color: #888;
+      font-size: 0.8rem;
+  }
+
+  .list-item-add {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s ease;
+  }
+
+  .list-item-add:hover {
+      background: #5a6fd8;
+  }
+  </style>
 <body>
   <header class="site-header">
     <div class="container">
@@ -179,28 +325,57 @@
     Adicionar à Lista
 </button>
 
-<!-- Popup principal da lista -->
 <div class="list-popup-overlay" id="listPopupOverlay">
-    <div class="list-popup">
-        <div class="popup-header">
-            <h3>Adicionar à Lista</h3>
-            <button class="close-popup">&times;</button>
-        </div>
-        <div class="popup-content">
-            <button class="popup-option create-list">
-                <span class="icon">+</span>
-                <span>Criar Nova Lista</span>
-            </button>
-            <button class="popup-option watch-later">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span>Assistir Mais Tarde</span>
-            </button>
+      <div class="list-popup">
+          <div class="popup-header">
+              <h3 id="popupTitle">Adicionar à Lista</h3>
+              <button class="close-popup" onclick="hideListPopup()">&times;</button>
           </div>
-        </div>
+
+          <!-- Opções principais -->
+          <div class="popup-content" id="popupOptions">
+              <!-- Lista de listas existentes -->
+              <div id="existingLists" style="margin-bottom: 1rem;">
+                  <div id="loadingLists" style="color: #888; text-align: center; padding: 1rem;">
+                      Carregando suas listas...
+                  </div>
+                  <div id="listsContainer" style="display: none;">
+                      <!-- As listas serão carregadas aqui via JavaScript -->
+                  </div>
+                  <div id="noLists" style="display: none; color: #888; text-align: center; padding: 1rem;">
+                      Você ainda não criou nenhuma lista
+                  </div>
+              </div>
+
+              <!-- Botões de ação -->
+              <button class="popup-option create-list" onclick="showCreateListForm()">
+                  <span class="icon">+</span>
+                  <span>Criar Nova Lista</span>
+              </button>
+              <button class="popup-option watch-later" onclick="addToWatchLater()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span>Assistir Mais Tarde</span>
+              </button>
+          </div>
+
+          <!-- Formulário de criar lista -->
+          <div class="popup-content" id="createListForm" style="display: none;">
+              <form onsubmit="createNewList(event)">
+                  <div class="form-group">
+                      <label for="listName">Nome da Lista:</label>
+                      <input type="text" id="listName" placeholder="Ex: Meus Filmes Favoritos" required>
+                  </div>
+                  <div class="form-actions">
+                      <button type="button" onclick="showListOptions()">Voltar</button>
+                      <button type="submit">Criar Lista</button>
+                  </div>
+              </form>
+          </div>
       </div>
+  </div>
           
           <div class="user-rating">
             <span class="rating-label">Sua avaliação:</span>
@@ -578,11 +753,15 @@
   </footer>
 
   <script src="{% static 'js/main.js' %}" defer></script>
+<<<<<<< HEAD
   <script src="{% static 'js/movie-details.js' %}" defer></script>
   <script src="{% static 'js/reviews.js' %}" defer></script>
+=======
+  <script src="{% static 'js/movie_details.js' %}" defer></script>
+>>>>>>> 6718ae52ded3bfd37bd2b662da4b7dc3f1b8d2b9
   <script>
-// Inicialização simples e direta
-document.addEventListener('DOMContentLoaded', function() {
+  // Inicialização simples e direta
+  document.addEventListener('DOMContentLoaded', function() {
     console.log('Django template loaded');
     
     const addToListBtn = document.querySelector('.action-btn.list');
@@ -610,53 +789,233 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.overflow = '';
         }
     });
-});
-</script>
-<script>
-// Solução mais simples - ADICIONAR APENAS ESTE CÓDIGO
-function initListPopup() {
-    // Adiciona evento ao botão existente
-    document.querySelector('.action-btn.list').onclick = function() {
-        document.getElementById('listPopupOverlay').classList.add('show');
-        document.body.style.overflow = 'hidden';
-    };
-    
-    // Funções básicas
-    window.hideListPopup = function() {
-        document.getElementById('listPopupOverlay').classList.remove('show');
-        document.body.style.overflow = '';
-    };
-    
-    window.showCreateListForm = function() {
-        document.getElementById('popupOptions').style.display = 'none';
-        document.getElementById('createListForm').style.display = 'block';
-        document.getElementById('popupTitle').textContent = 'Criar Nova Lista';
-        setTimeout(() => document.getElementById('listName').focus(), 100);
-    };
-    
-    window.showListOptions = function() {
-        document.getElementById('popupOptions').style.display = 'block';
-        document.getElementById('createListForm').style.display = 'none';
-        document.getElementById('popupTitle').textContent = 'Adicionar à Lista';
-    };
-    
-    window.createNewList = function(event) {
-        event.preventDefault();
-        const name = document.getElementById('listName').value.trim();
-        if (name) {
-            alert(`Lista "${name}" criada!`);
-            document.getElementById('listName').value = '';
-            showListOptions();
-        } else {
-            alert('Digite um nome para a lista.');
-        }
-    };
-    
-    window.addToWatchLater = function() {
-        alert('Adicionado à Assistir Mais Tarde!');
-        hideListPopup();
-    };
-}
+  });
+  </script>
+  <script>
+  // Solução mais simples - ADICIONAR APENAS ESTE CÓDIGO
+    function initListPopup() {
+      document.querySelector('.action-btn.list').onclick = function() {
+          loadUserLists(); // Carrega listas do usuário
+          document.getElementById('listPopupOverlay').classList.add('show');
+          document.body.style.overflow = 'hidden';
+      };
+
+      window.hideListPopup = function() {
+          document.getElementById('listPopupOverlay').classList.remove('show');
+          document.body.style.overflow = '';
+      };
+
+      window.showCreateListForm = function() {
+          document.getElementById('popupOptions').style.display = 'none';
+          document.getElementById('createListForm').style.display = 'block';
+          document.getElementById('popupTitle').textContent = 'Criar Nova Lista';
+          setTimeout(() => document.getElementById('listName').focus(), 100);
+      };
+
+      window.showListOptions = function() {
+          document.getElementById('popupOptions').style.display = 'block';
+          document.getElementById('createListForm').style.display = 'none';
+          document.getElementById('popupTitle').textContent = 'Adicionar à Lista';
+      };
+
+      window.createNewList = function(event) {
+          event.preventDefault();
+          const name = document.getElementById('listName').value.trim();
+          if (name) {
+              // Criar lista via API
+              fetch('/api/criar-lista/', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': getCookie('csrftoken')
+                  },
+                  body: JSON.stringify({nome: name, publica: false})
+              })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert('Lista "${name}" criada!');
+                      document.getElementById('listName').value = '';
+                      showListOptions();
+                      loadUserLists(); // Recarrega listas
+                  } else {
+                      alert('Erro: ' + data.message);
+                  }
+              });
+          }
+      };
+
+      function loadUserLists() {
+          const loadingEl = document.getElementById('loadingLists');
+          const containerEl = document.getElementById('listsContainer');
+          const noListsEl = document.getElementById('noLists');
+
+          // Mostrar loading
+          loadingEl.style.display = 'block';
+          containerEl.style.display = 'none';
+          noListsEl.style.display = 'none';
+
+          // Buscar listas do usuário
+          fetch('/api/buscar-listas/', {
+              method: 'GET',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              loadingEl.style.display = 'none';
+
+              if (data.success && data.listas.length > 0) {
+                  // Mostrar listas existentes
+                  containerEl.innerHTML = data.listas.map(lista => `
+                      <div class="list-item">
+                          <div class="list-item-info">
+                              <div class="list-item-name">${lista.nome}</div>
+                              <div class="list-item-meta">${lista.count} filme${lista.count !== 1 ? 's' : ''}</div>
+                          </div>
+                          <button class="list-item-add" onclick="addMovieToList(${lista.id}, '${lista.nome}')">
+                              Adicionar
+                          </button>
+                      </div>
+                  `).join('');
+                  containerEl.style.display = 'block';
+              } else {
+                  // Não tem listas
+                  noListsEl.style.display = 'block';
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao carregar listas:', error);
+              loadingEl.style.display = 'none';
+              noListsEl.style.display = 'block';
+              noListsEl.textContent = 'Erro ao carregar listas';
+          });
+      }
+
+      // Função para adicionar filme a uma lista existente
+      function addMovieToList(listaId, listaNome) {
+          const tmdbId = getCurrentMovieTMDbId();
+
+          if (!tmdbId) {
+              alert('Erro: ID do filme não encontrado');
+              return;
+          }
+
+          fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert(`Filme adicionado à lista "${listaNome}"!`);
+                  hideListPopup();
+              } else {
+                  alert(`Erro: ${data.message}`);
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao adicionar filme à lista:', error);
+              alert('Erro ao adicionar filme à lista');
+          });
+      }
+
+      // Função para obter TMDb ID da URL (mesmo que no movie_details.js)
+      function getCurrentMovieTMDbId() {
+          const path = window.location.pathname;
+          const match = path.match(/\/filmes\/(\d+)\//);
+          return match ? parseInt(match[1]) : null;
+      }
+
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+
+      // Função para "Assistir Mais Tarde"
+      window.addToWatchLater = function() {
+          const tmdbId = getCurrentMovieTMDbId();
+
+          if (!tmdbId) {
+              alert('Erro: ID do filme não encontrado');
+              return;
+          }
+
+          // Criar ou usar lista "Assistir Mais Tarde"
+          fetch('/api/criar-lista/', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCookie('csrftoken')
+              },
+              body: JSON.stringify({
+                  nome: 'Assistir Mais Tarde',
+                  descricao: 'Filmes para assistir mais tarde',
+                  publica: false
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              const listaId = data.lista_id || null;
+
+              if (data.success) {
+                  // Lista criada com sucesso
+                  return addMovieToWatchLater(listaId);
+              } else if (data.message && data.message.includes('já existe')) {
+                  // Lista já existe, buscar ID
+                  return fetch('/api/buscar-listas/')
+                      .then(res => res.json())
+                      .then(listasData => {
+                          const watchLaterList = listasData.listas.find(l => l.nome === 'Assistir Mais Tarde');
+                          if (watchLaterList) {
+                              return addMovieToWatchLater(watchLaterList.id);
+                          } else {
+                              throw new Error('Lista não encontrada');
+                          }
+                      });
+              } else {
+                  alert('Erro ao criar lista: ' + data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Erro:', error);
+              alert('Erro ao adicionar à Assistir Mais Tarde');
+          });
+      };
+
+      function addMovieToWatchLater(listaId) {
+          const tmdbId = getCurrentMovieTMDbId();
+
+          return fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert('Filme adicionado à "Assistir Mais Tarde"!');
+                  hideListPopup();
+              } else {
+                  alert(`Erro: ${data.message}`);
+              }
+          });
+      }
+  }
 
 // Inicializa quando o DOM carregar
 document.addEventListener('DOMContentLoaded', initListPopup);

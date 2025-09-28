@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-#from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 
 class Filme(models.Model):
     tmdb_id = models.IntegerField(unique=True, null=True, blank=True)
@@ -28,11 +28,27 @@ class Critica(models.Model):
 
 class FilmeCache(models.Model):
     id_tmdb = models.PositiveIntegerField(unique=True)
-    payload = models.JSONField()                 # resposta agregada pronta p/ servir
+    payload = models.JSONField()
     atualizado_em = models.DateTimeField(auto_now=True)
-
     class Meta:
         ordering = ('-atualizado_em',)
 
     def __str__(self):
         return f'{self.id_tmdb} (atualizado_em={self.atualizado_em})'
+
+
+class Lista(models.Model):
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    publica = models.BooleanField(default=False)
+    criada_em = models.DateTimeField(auto_now_add=True)
+    atualizada_em = models.DateTimeField(auto_now=True)
+
+class ItemLista(models.Model):
+    lista = models.ForeignKey(Lista, on_delete=models.CASCADE, related_name='itens')
+    filme = models.ForeignKey(Filme, on_delete=models.CASCADE)
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    posicao = models.PositiveIntegerField(default=0)
+    class Meta:
+        unique_together = ('lista', 'filme')

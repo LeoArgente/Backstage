@@ -98,10 +98,34 @@
         <!-- Minhas Listas -->
         <div class="lists-section" data-section="my-lists">
           {% for lista in minhas_listas %}
-            <div class="list-card">
+            <div class="list-card" data-list-id="{{ lista.id }}">
               <div class="list-header">
                 <h3 class="list-title">{{ lista.nome }}</h3>
-                <span class="list-privacy">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+                <div class="list-header-actions">
+                  <span class="list-privacy">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+                  <div class="list-actions">
+                    <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn edit-btn" title="Editar lista" onclick="editList({{ lista.id }})">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn delete-btn" title="Deletar lista" onclick="deleteList({{ lista.id }}, '{{ lista.nome|escapejs }}')">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
               <div class="list-meta">
@@ -117,10 +141,20 @@
         <!-- Listas Públicas -->
         <div class="lists-section hidden" data-section="public">
           {% for lista in listas_publicas %}
-            <div class="list-card">
+            <div class="list-card" data-list-id="{{ lista.id }}">
               <div class="list-header">
                 <h3 class="list-title">{{ lista.nome }}</h3>
-                <span class="list-author">por {{ lista.usuario.username }}</span>
+                <div class="list-header-actions">
+                  <span class="list-author">por {{ lista.usuario.username }}</span>
+                  <div class="list-actions">
+                    <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
               <div class="list-meta">
@@ -182,6 +216,80 @@
           <button type="submit" class="btn btn-primary">Criar Lista</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Edit List Modal -->
+  <div class="modal-overlay" id="edit-list-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Editar Lista</h2>
+        <button class="modal-close" id="edit-modal-close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form class="modal-form" id="edit-list-form">
+        <input type="hidden" id="edit-list-id">
+        <div class="form-group">
+          <label for="edit-list-name">Nome da Lista</label>
+          <input type="text" id="edit-list-name" name="name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-list-description">Descrição</label>
+          <textarea id="edit-list-description" name="description" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="edit-list-public" name="public">
+            <span class="checkbox-custom"></span>
+            Lista pública (outros usuários podem ver)
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancel-edit">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View List Modal -->
+  <div class="modal-overlay" id="view-list-modal">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2 id="view-list-title"></h2>
+        <button class="modal-close" id="view-modal-close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-content">
+        <div class="list-info">
+          <div class="list-meta-info">
+            <span id="view-list-privacy"></span>
+            <span id="view-list-author"></span>
+            <span id="view-list-date"></span>
+          </div>
+          <p id="view-list-description"></p>
+        </div>
+
+        <div class="list-movies">
+          <h3>Filmes na Lista (<span id="view-list-count">0</span>)</h3>
+          <div class="movies-grid" id="view-movies-grid">
+            <!-- Movies will be loaded here -->
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -256,6 +364,6 @@
   </footer>
 
   <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/lists.js' %}" defer></script>
+  <script src="{% static 'js/lists.js' %}?v=1.2" defer></script>
 </body>
 </html>

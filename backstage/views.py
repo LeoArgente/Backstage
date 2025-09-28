@@ -221,7 +221,7 @@ class FilmeDetalheAPIView(APIView):
             return Response({"detalhe": "Falha ao consultar a TMDb."}, status=status.HTTP_502_BAD_GATEWAY)
 
 @login_required(login_url='backstage:login')
-@require_http_methods(["POST"])
+#@require_http_methods(["POST"])
 def criar_lista(request):
     try:
         data = json.loads(request.body)

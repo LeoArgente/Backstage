@@ -6,7 +6,7 @@ app_name = 'backstage'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('login/', RedirectView.as_view(pattern_name='backstage:login', permanent=False)),
+    #path('login/', RedirectView.as_view(pattern_name='backstage:login', permanent=False)),
     path('login/', views.pagina_login, name='login'),
     path('comunidade/', views.comunidade, name='comunidade'),
     path('filmes/', views.filmes, name='filmes'),

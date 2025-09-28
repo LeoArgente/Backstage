@@ -605,7 +605,8 @@
 
 .list-privacy,
 .list-author {background: #667eea;color: #fff;padding: 0.25rem 0.5rem;
-  border-radius: 4px;font-size: 0.75rem;font-weight: 500;}
+  border-radius: 4px;font-size: 0.75rem;font-weight: 500;
+}
 
   .list-author {
       background: #28a745;

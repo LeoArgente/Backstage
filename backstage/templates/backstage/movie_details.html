@@ -11,6 +11,103 @@
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
 </head>
+<style>
+  .list-popup-overlay { position: fixed;top: 0;left: 0;width: 100%;height: 100%;
+    background: rgba(0,0,0,0.8);display: flex;align-items: center;
+    justify-content: center;z-index: 1000;opacity: 0;visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .list-popup-overlay.show {opacity: 1;visibility: visible;
+  }
+
+  .list-popup {background: #1a1a1a;border-radius: 12px;padding: 2rem;
+    max-width: 400px;width: 90%;border: 1px solid #333;
+  }
+
+  .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+  }
+
+  .popup-header h3 {
+      color: #fff;
+      margin: 0;
+  }
+
+  .close-popup {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.5rem;
+      cursor: pointer;
+  }
+
+  .popup-option {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      padding: 1rem;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+  }
+
+  .popup-option:hover {
+      background: #333;
+      border-color: #667eea;
+  }
+
+  .form-group {
+      margin-bottom: 1rem;
+  }
+
+  .form-group label {
+      display: block;
+      color: #fff;
+      margin-bottom: 0.5rem;
+  }
+
+  .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+  }
+
+  .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+  }
+
+  .form-actions button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+  }
+
+  .form-actions button[type="submit"] {
+      background: #667eea;
+      color: #fff;
+  }
+
+  .form-actions button[type="button"] {
+      background: #444;
+      color: #fff;
+  }
+  </style>
 <body>
   <header class="site-header">
     <div class="container">
@@ -179,28 +276,43 @@
     Adicionar à Lista
 </button>
 
-<!-- Popup principal da lista -->
 <div class="list-popup-overlay" id="listPopupOverlay">
-    <div class="list-popup">
-        <div class="popup-header">
-            <h3>Adicionar à Lista</h3>
-            <button class="close-popup">&times;</button>
-        </div>
-        <div class="popup-content">
-            <button class="popup-option create-list">
-                <span class="icon">+</span>
-                <span>Criar Nova Lista</span>
-            </button>
-            <button class="popup-option watch-later">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span>Assistir Mais Tarde</span>
-            </button>
+      <div class="list-popup">
+          <div class="popup-header">
+              <h3 id="popupTitle">Adicionar à Lista</h3>
+              <button class="close-popup" onclick="hideListPopup()">&times;</button>
           </div>
-        </div>
+
+          <!-- Opções principais -->
+          <div class="popup-content" id="popupOptions">
+              <button class="popup-option create-list" onclick="showCreateListForm()">
+                  <span class="icon">+</span>
+                  <span>Criar Nova Lista</span>
+              </button>
+              <button class="popup-option watch-later" onclick="addToWatchLater()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span>Assistir Mais Tarde</span>
+              </button>
+          </div>
+
+          <!-- Formulário de criar lista -->
+          <div class="popup-content" id="createListForm" style="display: none;">
+              <form onsubmit="createNewList(event)">
+                  <div class="form-group">
+                      <label for="listName">Nome da Lista:</label>
+                      <input type="text" id="listName" placeholder="Ex: Meus Filmes Favoritos" required>
+                  </div>
+                  <div class="form-actions">
+                      <button type="button" onclick="showListOptions()">Voltar</button>
+                      <button type="submit">Criar Lista</button>
+                  </div>
+              </form>
+          </div>
       </div>
+  </div>
           
           <div class="user-rating">
             <span class="rating-label">Sua avaliação:</span>
@@ -574,7 +686,7 @@
   </footer>
 
   <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/movie-details.js' %}" defer></script>
+  <script src="{% static 'js/movie_details.js' %}" defer></script>
   <script>
   // Inicialização simples e direta
   document.addEventListener('DOMContentLoaded', function() {
@@ -650,7 +762,7 @@
               .then(response => response.json())
               .then(data => {
                   if (data.success) {
-                      alert(Lista "${name}" criada!);
+                      alert('Lista "${name}" criada!');
                       document.getElementById('listName').value = '';
                       showListOptions();
                       loadUserLists(); // Recarrega listas

@@ -12,23 +12,135 @@
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
-  <h2>Entrar</h2>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo">
+        <div class="logo-icon">B</div>
+        <div class="logo-text">Backstage</div>
+      </div>
+      <p class="login-subtitle">Entre na sua conta para continuar</p>
+    </div>
 
-  {% if erro %}<p style="color:red">{{ erro }}</p>{% endif %}
+    {% if erro %}
+    <div class="error-message">
+      {{ erro }}
+    </div>
+    {% endif %}
 
-  <form method="post">
-    {% csrf_token %}
-    <label>Usuário</label><br>
-    <input type="text" name="username" required><br><br>
+    <form method="post" class="login-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="username">Usuário</label>
+        <input
+          type="text"
+          name="username"
+          id="username"
+          class="form-input"
+          placeholder="Digite seu usuário"
+          required
+        >
+      </div>
 
-    <label>Senha</label><br>
-    <input type="password" name="password" required><br><br>
+      <div class="form-group">
+        <label class="form-label" for="password">Senha</label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          class="form-input"
+          placeholder="Digite sua senha"
+          required
+        >
+      </div>
 
-    <button type="submit">Entrar</button>
-    
-    <p>Não tem conta? <a href="{% url 'backstage:registrar' %}">Cadastre-se</a></p>
-  </form>
+      <button type="submit" class="btn btn-primary">
+        Entrar
+      </button>
+    </form>
 
-   <script src="{% static 'js/main.js' %}" defer></script>
+    <div class="login-footer">
+      <p class="signup-prompt">
+        Não tem conta?
+        <span class="signup-link" onclick="openSignupModal()">Cadastre-se</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal de Cadastro -->
+  <div class="modal-overlay" id="signup-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Criar Conta</h2>
+        <button type="button" class="modal-close" onclick="closeSignupModal()">&times;</button>
+      </div>
+
+      <div id="signup-messages"></div>
+
+      <form id="signup-form" class="login-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="signup-username">Usuário</label>
+          <input
+            type="text"
+            name="username"
+            id="signup-username"
+            class="form-input"
+            placeholder="Escolha um nome de usuário"
+            required
+          >
+          <div class="field-error" id="username-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-email">Email</label>
+          <input
+            type="email"
+            name="email"
+            id="signup-email"
+            class="form-input"
+            placeholder="Digite seu email"
+            required
+          >
+          <div class="field-error" id="email-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-password1">Senha</label>
+          <input
+            type="password"
+            name="password1"
+            id="signup-password1"
+            class="form-input"
+            placeholder="Crie uma senha segura"
+            required
+          >
+          <div class="field-error" id="password1-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-password2">Confirmar Senha</label>
+          <input
+            type="password"
+            name="password2"
+            id="signup-password2"
+            class="form-input"
+            placeholder="Confirme sua senha"
+            required
+          >
+          <div class="field-error" id="password2-error"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="signup-submit">
+          Criar Conta
+        </button>
+
+        <button type="button" class="btn btn-secondary" onclick="closeSignupModal()">
+          Cancelar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="{% static 'js/login.js' %}" defer></script>
 </body>
 </html>

@@ -3,6 +3,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import json
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
 
 # backend lou e leo #################################################################
 def pagina_login(request):
@@ -58,8 +67,17 @@ def comunidade(request):
 def filmes(request):
     return render(request, "backstage/movie_details.html")
 
+# back leo e lou ########################
+@login_required(login_url='backstage:login')
 def lists(request):
-    return render(request, "backstage/lists.html")
+    minhas_listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
+    listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).order_by('-atualizada_em')
+
+    context = {
+        'minhas_listas': minhas_listas,
+        'listas_publicas': listas_publicas,
+    }
+    return render(request, "backstage/lists.html", context)
 
 def movies(request):
     from backstage.services.tmdb import buscar_filmes_populares
@@ -93,8 +111,8 @@ def series(request):
 def wireframer(request):
     return render(request, "backstage/wireframer.html")
 
-# back vitor e henrique ###########################################################################
-from .models import Filme, Critica
+# back vitor e henrique #####################################
+from .models import Filme, Critica,  Lista, ItemLista
 
 @login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
@@ -182,14 +200,8 @@ def buscar(request):
     }
     return render(request, "backstage/busca.html", context)
 
-# back lou e leo ###################################################
+# back lou e leo #########################################
 # dados da API
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from django.conf import settings
-from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
 
 class FilmeDetalheAPIView(APIView):
     permission_classes = [AllowAny]
@@ -207,3 +219,48 @@ class FilmeDetalheAPIView(APIView):
         except Exception as e:
             # você pode logar 'e' com sentry/logging
             return Response({"detalhe": "Falha ao consultar a TMDb."}, status=status.HTTP_502_BAD_GATEWAY)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def criar_lista(request):
+    try:
+        data = json.loads(request.body)
+        lista = Lista.objects.create(
+            nome=data['nome'],
+            descricao=data.get('descricao', ''),
+            usuario=request.user,
+            publica=data.get('publica', False)
+        )
+        return JsonResponse({
+            'success': True,
+            'lista_id': lista.id,
+            'message': 'Lista criada com sucesso!'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def adicionar_filme_lista(request, lista_id, tmdb_id):
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        filme, _ = Filme.objects.get_or_create(
+            tmdb_id=tmdb_id,
+            defaults={'titulo': 'Filme TMDB ' + str(tmdb_id)}
+        )
+
+        item, created = ItemLista.objects.get_or_create(
+            lista=lista,
+            filme=filme,
+            defaults={'posicao': lista.itens.count()}
+        )
+
+        if created:
+            return JsonResponse({'success': True, 'message': 'Filme adicionado à lista!'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Filme já está na lista!'})
+    
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

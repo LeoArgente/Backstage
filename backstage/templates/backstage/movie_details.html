@@ -576,8 +576,8 @@
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie-details.js' %}" defer></script>
   <script>
-// Inicialização simples e direta
-document.addEventListener('DOMContentLoaded', function() {
+  // Inicialização simples e direta
+  document.addEventListener('DOMContentLoaded', function() {
     console.log('Django template loaded');
     
     const addToListBtn = document.querySelector('.action-btn.list');
@@ -605,53 +605,82 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.overflow = '';
         }
     });
-});
-</script>
-<script>
-// Solução mais simples - ADICIONAR APENAS ESTE CÓDIGO
-function initListPopup() {
-    // Adiciona evento ao botão existente
-    document.querySelector('.action-btn.list').onclick = function() {
-        document.getElementById('listPopupOverlay').classList.add('show');
-        document.body.style.overflow = 'hidden';
-    };
-    
-    // Funções básicas
-    window.hideListPopup = function() {
-        document.getElementById('listPopupOverlay').classList.remove('show');
-        document.body.style.overflow = '';
-    };
-    
-    window.showCreateListForm = function() {
-        document.getElementById('popupOptions').style.display = 'none';
-        document.getElementById('createListForm').style.display = 'block';
-        document.getElementById('popupTitle').textContent = 'Criar Nova Lista';
-        setTimeout(() => document.getElementById('listName').focus(), 100);
-    };
-    
-    window.showListOptions = function() {
-        document.getElementById('popupOptions').style.display = 'block';
-        document.getElementById('createListForm').style.display = 'none';
-        document.getElementById('popupTitle').textContent = 'Adicionar à Lista';
-    };
-    
-    window.createNewList = function(event) {
-        event.preventDefault();
-        const name = document.getElementById('listName').value.trim();
-        if (name) {
-            alert(`Lista "${name}" criada!`);
-            document.getElementById('listName').value = '';
-            showListOptions();
-        } else {
-            alert('Digite um nome para a lista.');
-        }
-    };
-    
-    window.addToWatchLater = function() {
-        alert('Adicionado à Assistir Mais Tarde!');
-        hideListPopup();
-    };
-}
+  });
+  </script>
+  <script>
+  // Solução mais simples - ADICIONAR APENAS ESTE CÓDIGO
+    function initListPopup() {
+      document.querySelector('.action-btn.list').onclick = function() {
+          loadUserLists(); // Carrega listas do usuário
+          document.getElementById('listPopupOverlay').classList.add('show');
+          document.body.style.overflow = 'hidden';
+      };
+
+      window.hideListPopup = function() {
+          document.getElementById('listPopupOverlay').classList.remove('show');
+          document.body.style.overflow = '';
+      };
+
+      window.showCreateListForm = function() {
+          document.getElementById('popupOptions').style.display = 'none';
+          document.getElementById('createListForm').style.display = 'block';
+          document.getElementById('popupTitle').textContent = 'Criar Nova Lista';
+          setTimeout(() => document.getElementById('listName').focus(), 100);
+      };
+
+      window.showListOptions = function() {
+          document.getElementById('popupOptions').style.display = 'block';
+          document.getElementById('createListForm').style.display = 'none';
+          document.getElementById('popupTitle').textContent = 'Adicionar à Lista';
+      };
+
+      window.createNewList = function(event) {
+          event.preventDefault();
+          const name = document.getElementById('listName').value.trim();
+          if (name) {
+              // Criar lista via API
+              fetch('/api/criar-lista/', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': getCookie('csrftoken')
+                  },
+                  body: JSON.stringify({nome: name, publica: false})
+              })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert(Lista "${name}" criada!);
+                      document.getElementById('listName').value = '';
+                      showListOptions();
+                      loadUserLists(); // Recarrega listas
+                  } else {
+                      alert('Erro: ' + data.message);
+                  }
+              });
+          }
+      };
+
+      function loadUserLists() {
+          // Aqui você pode carregar as listas do usuário via AJAX se quiser
+          // Por enquanto mantemos simples
+      }
+
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+  }
 
 // Inicializa quando o DOM carregar
 document.addEventListener('DOMContentLoaded', initListPopup);

@@ -371,3 +371,120 @@ def adicionar_filme_lista(request, lista_id, tmdb_id):
         return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+def editar_lista(request, lista_id):
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+
+        if request.method == 'GET':
+            return JsonResponse({
+                'success': True,
+                'lista': {
+                    'id': lista.id,
+                    'nome': lista.nome,
+                    'descricao': lista.descricao,
+                    'publica': lista.publica
+                }
+            })
+
+        elif request.method == 'PUT':
+            data = json.loads(request.body)
+            lista.nome = data.get('nome', lista.nome)
+            lista.descricao = data.get('descricao', lista.descricao)
+            lista.publica = data.get('publica', lista.publica)
+            lista.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Lista atualizada com sucesso!'
+            })
+
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+def deletar_lista(request, lista_id):
+    if request.method != 'DELETE':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        nome_lista = lista.nome
+        lista.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Lista "{nome_lista}" deletada com sucesso!'
+        })
+
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+def visualizar_lista(request, lista_id):
+    try:
+        # Buscar lista do usuário ou lista pública
+        try:
+            lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        except Lista.DoesNotExist:
+            lista = Lista.objects.get(id=lista_id, publica=True)
+
+        # Buscar itens da lista com detalhes dos filmes
+        itens = lista.itens.all().order_by('posicao')
+        filmes_data = []
+
+        for item in itens:
+            filmes_data.append({
+                'tmdb_id': item.filme.tmdb_id,
+                'titulo': item.filme.titulo,
+                'descricao': item.filme.descricao,
+                'adicionado_em': item.adicionado_em.strftime('%d/%m/%Y'),
+                'posicao': item.posicao
+            })
+
+        return JsonResponse({
+            'success': True,
+            'lista': {
+                'id': lista.id,
+                'nome': lista.nome,
+                'descricao': lista.descricao,
+                'publica': lista.publica,
+                'usuario': lista.usuario.username,
+                'criada_em': lista.criada_em.strftime('%d/%m/%Y'),
+                'atualizada_em': lista.atualizada_em.strftime('%d/%m/%Y'),
+                'filmes': filmes_data,
+                'total_filmes': len(filmes_data)
+            }
+        })
+
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
+def remover_filme_da_lista(request, lista_id, tmdb_id):
+    if request.method != 'DELETE':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        filme = Filme.objects.get(tmdb_id=tmdb_id)
+        item = ItemLista.objects.get(lista=lista, filme=filme)
+
+        item.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Filme removido da lista com sucesso!'
+        })
+
+    except (Lista.DoesNotExist, Filme.DoesNotExist, ItemLista.DoesNotExist):
+        return JsonResponse({'success': False, 'message': 'Item não encontrado!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

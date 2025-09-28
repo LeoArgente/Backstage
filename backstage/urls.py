@@ -25,5 +25,9 @@ urlpatterns = [
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
     path('api/watch-later/', views.buscar_ou_criar_lista_watch_later, name='watch_later'),
+    path('api/lista/<int:lista_id>/', views.editar_lista, name='editar_lista'),
+    path('api/lista/<int:lista_id>/deletar/', views.deletar_lista, name='deletar_lista'),
+    path('api/lista/<int:lista_id>/visualizar/', views.visualizar_lista, name='visualizar_lista'),
     path('api/lista/<int:lista_id>/adicionar/<int:tmdb_id>/', views.adicionar_filme_lista, name='adicionar_filme_lista'),
+    path('api/lista/<int:lista_id>/remover/<int:tmdb_id>/', views.remover_filme_da_lista, name='remover_filme_lista'),
 ]

@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Star rating functionality
   const starButtons = document.querySelectorAll('.star-rating .star');
+  const ratingInput = document.getElementById('rating-value');
   let currentRating = 0;
 
   starButtons.forEach((star, index) => {
@@ -176,7 +177,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     star.addEventListener('click', () => {
       currentRating = index + 1;
       highlightStars(currentRating);
-      
+
+      // Update hidden input for form submission
+      if (ratingInput) {
+        ratingInput.value = currentRating;
+      }
+
       // Show feedback
       showRatingFeedback(currentRating);
     });
@@ -193,9 +199,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function showRatingFeedback(rating) {
-    // You could add a toast notification here
     console.log(`Avaliação: ${rating} estrelas`);
   }
+
+  // Initialize with default color
+  highlightStars(0);
 
   // Initialize with default content
   loadTabContent('overview');

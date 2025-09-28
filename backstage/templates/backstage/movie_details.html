@@ -156,6 +156,14 @@
   .list-item-add:hover {
       background: #5a6fd8;
   }
+
+  /* Estilo para quando não há críticas */
+  .no-reviews {
+      text-align: center;
+      padding: 2rem;
+      color: #888;
+      font-style: italic;
+  }
   </style>
 <body>
   <header class="site-header">
@@ -466,45 +474,33 @@
             </div>
             
             <div class="reviews-list">
+              {% for critica in criticas %}
               <article class="review-card">
                 <div class="review-header">
-                  <img src="https://ui-avatars.com/api/?name=Carlos&background=667eea&color=fff" alt="Carlos" class="reviewer-avatar" />
+                  <img src="https://ui-avatars.com/api/?name={{ critica.usuario.username }}&background=667eea&color=fff" alt="{{ critica.usuario.username }}" class="reviewer-avatar" />
                   <div class="reviewer-info">
-                    <span class="reviewer-name">Carlos Mendes</span>
+                    <span class="reviewer-name">{{ critica.usuario.username }}</span>
                     <div class="review-meta">
-                      <span class="review-rating">★★★★★</span>
-                      <span class="review-date">há 2 dias</span>
+                      <span class="review-rating">
+                        {% for star in "12345" %}
+                          {% if forloop.counter <= critica.nota %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                      </span>
+                      <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
                     </div>
                   </div>
                 </div>
-                <p class="review-text">
-                  Uma obra-prima cinematográfica que desafia nossa percepção da realidade. Nolan criou um universo complexo e fascinante que mantém você pensando muito depois dos créditos finais.
-                </p>
+                <p class="review-text">{{ critica.texto }}</p>
                 <div class="review-actions">
-                  <button class="review-action">👍 127</button>
-                  <button class="review-action">💬 8</button>
+                  <button class="review-action">👍 0</button>
+                  <button class="review-action">💬 0</button>
                 </div>
               </article>
-              
-              <article class="review-card">
-                <div class="review-header">
-                  <img src="https://ui-avatars.com/api/?name=Ana&background=ec4899&color=fff" alt="Ana" class="reviewer-avatar" />
-                  <div class="reviewer-info">
-                    <span class="reviewer-name">Ana Silva</span>
-                    <div class="review-meta">
-                      <span class="review-rating">★★★★☆</span>
-                      <span class="review-date">há 1 semana</span>
-                    </div>
-                  </div>
-                </div>
-                <p class="review-text">
-                  Visualmente impressionante e intelectualmente estimulante. A trilha sonora de Hans Zimmer é absolutamente épica. Único defeito é que pode ser um pouco confuso na primeira vez que você assiste.
-                </p>
-                <div class="review-actions">
-                  <button class="review-action">👍 89</button>
-                  <button class="review-action">💬 5</button>
-                </div>
-              </article>
+              {% empty %}
+              <div class="no-reviews">
+                <p>Ainda não há críticas para este filme. Seja o primeiro a avaliar!</p>
+              </div>
+              {% endfor %}
             </div>
           </section>
         </div>
@@ -753,12 +749,7 @@
   </footer>
 
   <script src="{% static 'js/main.js' %}" defer></script>
-<<<<<<< HEAD
-  <script src="{% static 'js/movie-details.js' %}" defer></script>
-  <script src="{% static 'js/reviews.js' %}" defer></script>
-=======
   <script src="{% static 'js/movie_details.js' %}" defer></script>
->>>>>>> 6718ae52ded3bfd37bd2b662da4b7dc3f1b8d2b9
   <script>
   // Inicialização simples e direta
   document.addEventListener('DOMContentLoaded', function() {
@@ -945,6 +936,8 @@
           return cookieValue;
       }
 
+      // Sistema de avaliação por estrelas movido para movie_details.js
+
       // Função para "Assistir Mais Tarde"
       window.addToWatchLater = function() {
           const tmdbId = getCurrentMovieTMDbId();
@@ -1018,7 +1011,9 @@
   }
 
 // Inicializa quando o DOM carregar
-document.addEventListener('DOMContentLoaded', initListPopup);
+document.addEventListener('DOMContentLoaded', function() {
+    initListPopup();
+});
 </script>
 </body>
 </html>

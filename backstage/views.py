@@ -1,30 +1,66 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from .models import Filme, Critica
-from django.shortcuts import get_object_or_404, redirect
+from .models import Filme, Critica, Lista, ItemLista
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 import json
 from django.http import JsonResponse
-
-
-@login_required(login_url='backstage:login')
-def salvar_critica(request):
-    if not request.user.is_authenticated:
-        messages.error(request, 'Faça login para enviar uma avaliação.')
-        return redirect('backstage:login')
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
-from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-import json
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from django.conf import settings
+
 from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
+
+@login_required(login_url='backstage:login')
+def salvar_critica(request):
+    if request.method == 'POST':
+        filme_id = request.POST.get('filme_id')
+        nota = request.POST.get('nota')
+        texto = request.POST.get('texto')
+
+        if not filme_id or not texto:
+            messages.error(request, 'Filme e texto da crítica são obrigatórios.')
+            return redirect(f'/filmes/{filme_id}/')
+
+        if not nota or nota == '':
+            messages.error(request, 'Por favor, selecione uma nota de 1 a 5 estrelas.')
+            return redirect(f'/filmes/{filme_id}/')
+
+        try:
+            # Validar nota
+            nota_int = int(float(nota))
+            if nota_int < 1 or nota_int > 5:
+                messages.error(request, 'A nota deve ser entre 1 e 5.')
+                return redirect(f'/filmes/{filme_id}/')
+
+            # Criar ou buscar o filme no banco local
+            filme, created = Filme.objects.get_or_create(
+                tmdb_id=int(filme_id),
+                defaults={'titulo': f'Filme TMDb {filme_id}'}
+            )
+
+            # Criar a crítica
+            critica = Critica.objects.create(
+                filme=filme,
+                usuario=request.user,
+                texto=texto,
+                nota=nota_int
+            )
+
+            messages.success(request, 'Sua avaliação foi salva com sucesso!')
+            return redirect(f'/filmes/{filme_id}/')
+
+        except Exception as e:
+            messages.error(request, f'Erro ao salvar avaliação: {str(e)}')
+            return redirect(f'/filmes/{filme_id}/')
+
+    else:
+        messages.error(request, 'Método não permitido.')
+        return redirect('backstage:index')
 
 # backend lou e leo #################################################################
 def pagina_login(request):

@@ -947,40 +947,20 @@
               return;
           }
 
-          // Criar ou usar lista "Assistir Mais Tarde"
-          fetch('/api/criar-lista/', {
-              method: 'POST',
+          // Buscar ou criar lista "Assistir Mais Tarde" usando nova API
+          fetch('/api/watch-later/', {
+              method: 'GET',
               headers: {
-                  'Content-Type': 'application/json',
                   'X-CSRFToken': getCookie('csrftoken')
-              },
-              body: JSON.stringify({
-                  nome: 'Assistir Mais Tarde',
-                  descricao: 'Filmes para assistir mais tarde',
-                  publica: false
-              })
+              }
           })
           .then(response => response.json())
           .then(data => {
-              const listaId = data.lista_id || null;
-
               if (data.success) {
-                  // Lista criada com sucesso
-                  return addMovieToWatchLater(listaId);
-              } else if (data.message && data.message.includes('já existe')) {
-                  // Lista já existe, buscar ID
-                  return fetch('/api/buscar-listas/')
-                      .then(res => res.json())
-                      .then(listasData => {
-                          const watchLaterList = listasData.listas.find(l => l.nome === 'Assistir Mais Tarde');
-                          if (watchLaterList) {
-                              return addMovieToWatchLater(watchLaterList.id);
-                          } else {
-                              throw new Error('Lista não encontrada');
-                          }
-                      });
+                  // Agora adicionar o filme à lista (existente ou recém-criada)
+                  return addMovieToWatchLater(data.lista_id);
               } else {
-                  alert('Erro ao criar lista: ' + data.message);
+                  alert('Erro ao acessar lista: ' + data.message);
               }
           })
           .catch(error => {

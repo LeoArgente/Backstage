@@ -20,4 +20,6 @@ urlpatterns = [
     path('filme/<int:tmdb_id>/criticar/', views.adicionar_critica, name='adicionar_critica'),
     path('filmes/<int:tmdb_id>/', views.detalhes_filme, name='detalhes_filme'),
     path('buscar/', views.buscar, name='buscar'),
+    path('api/criar-lista/', views.criar_lista, name='criar_lista'),
+    path('api/lista/<int:lista_id>/adicionar/<int:tmdb_id>/', views.adicionar_filme_lista, name='adicionar_filme_lista'),
 ]

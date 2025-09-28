@@ -1,5 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from .models import Filme, Critica
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+import json
+from django.http import JsonResponse
+
+
+@login_required(login_url='backstage:login')
+def salvar_critica(request):
+    if not request.user.is_authenticated:
+        messages.error(request, 'Faça login para enviar uma avaliação.')
+        return redirect('backstage:login')
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
@@ -95,6 +108,86 @@ def wireframer(request):
 
 # back vitor e henrique ###########################################################################
 from .models import Filme, Critica
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+#@login_required
+def salvar_critica(request):
+    if request.method == 'POST':
+        texto = request.POST.get('texto')
+        nota = request.POST.get('nota')
+        filme_id = request.POST.get('filme_id')
+        filme = get_object_or_404(Filme, tmdb_id=filme_id)
+
+        if texto and nota:
+            try:
+                # Tenta encontrar uma crítica existente deste usuário para este filme
+                critica = Critica.objects.filter(usuario=request.user, filme=filme).first()
+                
+                if critica:
+                    # Atualiza a crítica existente
+                    critica.texto = texto
+                    critica.nota = int(nota)
+                    critica.save()
+                    messages.success(request, 'Crítica atualizada com sucesso!')
+                else:
+                    # Cria uma nova crítica
+                    Critica.objects.create(
+                        usuario=request.user,
+                        filme=filme,
+                        texto=texto,
+                        nota=int(nota)
+                    )
+                    messages.success(request, 'Crítica adicionada com sucesso!')
+            except Exception as e:
+                messages.error(request, 'Erro ao salvar a crítica.')
+        else:
+            messages.error(request, 'Por favor, preencha a nota e o texto da crítica.')
+
+#def get_criticas(request, filme_id):
+    filme = get_object_or_404(Filme, tmdb_id=filme_id)
+    criticas = Critica.objects.filter(filme=filme).order_by('-data')
+    
+    criticas_list = [{
+        'usuario': critica.usuario.username,
+        'texto': critica.texto,
+        'nota': critica.nota,
+        'data': critica.data.isoformat()
+    } for critica in criticas]
+    
+    return JsonResponse({'criticas': criticas_list})
+
+@login_required
+def salvar_critica(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            filme_id = data.get('filme_id')
+            texto = data.get('texto')
+            nota = data.get('nota')
+
+            if not all([filme_id, texto, nota]):
+                return JsonResponse({'error': 'Dados incompletos'}, status=400)
+
+            filme = get_object_or_404(Filme, tmdb_id=filme_id)
+            
+            # Verifica se já existe uma crítica deste usuário para este filme
+            critica, created = Critica.objects.get_or_create(
+                usuario=request.user,
+                filme=filme,
+                defaults={'texto': texto, 'nota': nota}
+            )
+
+            if not created:
+                critica.texto = texto
+                critica.nota = nota
+                critica.save()
+
+            return JsonResponse({'message': 'Crítica salva com sucesso!'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
 
 @login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
@@ -181,6 +274,25 @@ def buscar(request):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
     return render(request, "backstage/busca.html", context)
+from django.http import JsonResponse
+from .models import Critica
+
+def relatorio(request):
+    # Pega as 10 críticas mais recentes
+    criticas = Critica.objects.select_related("filme").all().order_by("-criado_em")[:10]
+
+    data = []
+    for c in criticas:
+        data.append({
+            "filme": c.filme.titulo,
+            "usuario": c.usuario.username if hasattr(c, "usuario") else "Anônimo",
+            "nota": c.nota,
+            "texto": c.texto,
+            "criado_em": c.criado_em.strftime("%Y-%m-%d %H:%M"),
+        })
+
+    return JsonResponse({"relatorio": data})
+
 
 # back lou e leo ###################################################
 # dados da API

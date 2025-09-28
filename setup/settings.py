@@ -117,9 +117,9 @@ STATICFILES_DIRS = [BASE_DIR, "backstage/static"]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Autenticação / redirecionamentos
-LOGIN_URL = 'backstage:login' #se alguém tentar acessar uma view com @login_required, será mandado para essa rota
-LOGIN_REDIRECT_URL = 'backstage:home' #para onde mandar o usuário depois de um login bem-sucedido (quando não houver next)
-LOGOUT_REDIRECT_URL = 'backstage:login' #para onde mandar após o logout()
+#LOGIN_URL = 'backstage:login' #se alguém tentar acessar uma view com @login_required, será mandado para essa rota
+# LOGIN_REDIRECT_URL = 'backstage:home' #para onde mandar o usuário depois de um login bem-sucedido (quando não houver next)
+# LOGOUT_REDIRECT_URL = 'backstage:login' #para onde mandar após o logout()
 
 # setup/settings.py
 TMDB_API_KEY = "e2bf84876d17e898ef5fc63655cd5040"

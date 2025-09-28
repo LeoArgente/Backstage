@@ -86,7 +86,7 @@
         </button>
       </div>
       
-      <div class="movie-info-section">
+      <div class="movie-info-section" data-movie-id="{{ filme.tmdb_id }}">
         <div class="movie-header">
           <h1 class="movie-title">{{ filme.titulo }}</h1>
           <span class="movie-original-title">{{ filme.titulo }}</span>
@@ -211,18 +211,22 @@
               <button class="star" data-rating="4">★</button>
               <button class="star" data-rating="5">★</button>
             </div>
-                <div class="review-input-group">
+                <form class="review-input-group" method="POST" action="{% url 'backstage:salvar_critica' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="filme_id" value="{{ filme.tmdb_id }}">
+                  <input type="hidden" name="nota" id="rating-value" value="">
                   <textarea 
                     class="movie-review-text" 
                     placeholder="Escreva sua resenha aqui..."
-                    name="review"
+                    name="texto"
+                    required
                   ></textarea>
                   <button type="submit" class="send-review-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
                     </svg>
                   </button>
-                </div>
+                </form>
               </div>
             
           </div>
@@ -575,6 +579,7 @@
 
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie-details.js' %}" defer></script>
+  <script src="{% static 'js/reviews.js' %}" defer></script>
   <script>
 // Inicialização simples e direta
 document.addEventListener('DOMContentLoaded', function() {

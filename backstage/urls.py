@@ -24,5 +24,6 @@ urlpatterns = [
     path("filmes/<int:tmdb_id>/relatorio/", views.relatorio, name="relatorio"),
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
+    path('api/watch-later/', views.buscar_ou_criar_lista_watch_later, name='watch_later'),
     path('api/lista/<int:lista_id>/adicionar/<int:tmdb_id>/', views.adicionar_filme_lista, name='adicionar_filme_lista'),
 ]

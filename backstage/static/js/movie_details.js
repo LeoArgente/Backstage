@@ -16,34 +16,24 @@ let currentMovieCredits = null;
 let currentSimilarMovies = null;
 
 
-// ===== Get Current Movie ID from URL and find TMDb ID =====
+// ===== Get TMDb ID directly from Django URL =====
 function getCurrentMovieId() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const movieId = urlParams.get('id');
-  return movieId ? parseInt(movieId) : 1; // Default to local movie ID 1 (Inception)
+  // Get tmdb_id directly from Django URL: /filmes/123/
+  const path = window.location.pathname;
+  const match = path.match(/\/filmes\/(\d+)\//);
+  return match ? parseInt(match[1]) : null;
 }
 
 function getCurrentMovieTMDbId() {
-  const localMovieId = getCurrentMovieId();
+  const tmdbId = getCurrentMovieId();
+  console.log('TMDb ID from URL:', tmdbId);
 
-  // Check if moviesDatabase is available
-  if (!window.moviesDatabase) {
-    console.error('moviesDatabase not found in window scope. Using fallback data.');
-    return 27205; // Fallback to Inception
+  if (!tmdbId) {
+    console.error('No TMDb ID found in URL');
+    return null;
   }
 
-  // Find the movie in the local database to get the TMDb ID
-  const movie = window.moviesDatabase.find(m => m.id == localMovieId);
-
-  console.log('Movie lookup:', {
-    localMovieId,
-    movieFound: !!movie,
-    movieTitle: movie?.titulo,
-    tmdbId: movie?.tmdbId,
-    director: movie?.diretor
-  });
-
-  return movie ? movie.tmdbId : 27205; // Default to Inception TMDb ID
+  return tmdbId;
 }
 
 // ===== TMDb API Functions =====
@@ -120,23 +110,8 @@ async function fetchMovieVideos(movieId) {
   }
 }
 
-// ===== Wait for Movies Database to Load =====
-async function waitForMoviesDatabase() {
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  while (!window.moviesDatabase && attempts < maxAttempts) {
-    console.log(`Waiting for moviesDatabase to load... attempt ${attempts + 1}/${maxAttempts}`);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    attempts++;
-  }
-
-  if (!window.moviesDatabase) {
-    console.error('Failed to load moviesDatabase after maximum attempts');
-  } else {
-    console.log('moviesDatabase loaded successfully');
-  }
-}
+// ===== Movie Database no longer needed =====
+// Using direct TMDb API calls based on URL instead
 
 // ===== Tab System =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -146,8 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize news dropdown
   initNewsDropdown();
 
-  // Wait for main.js to load moviesDatabase, then load movie data
-  await waitForMoviesDatabase();
+  // Load movie data directly from TMDb API using URL
   await loadMovieData();
 
   // Tab switching functionality
@@ -238,6 +212,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ===== Load Movie Data from TMDb API =====
 async function loadMovieData() {
   const tmdbMovieId = getCurrentMovieTMDbId();
+
+  if (!tmdbMovieId) {
+    console.error('No TMDb ID found, cannot load movie data');
+    showErrorState();
+    return;
+  }
 
   // Show loading states for all sections that will be updated
   showLoadingState();
@@ -1149,16 +1129,10 @@ function switchToCrewTab() {
   loadTabContent('crew');
 }
 
-// Navigate to movie details (this receives TMDb ID but we need to map to local ID)
+// Navigate to movie details using Django URL pattern
 function navigateToMovie(tmdbMovieId) {
-  // Try to find local movie with this TMDb ID
-  const localMovie = window.moviesDatabase?.find(m => m.tmdbId == tmdbMovieId);
-  if (localMovie) {
-    window.location.href = `filmes.html?id=${localMovie.id}`;
-  } else {
-    // If not found locally, use TMDb ID directly (might not work with current setup)
-    console.warn(`Movie with TMDb ID ${tmdbMovieId} not found in local database`);
-  }
+  // Use Django URL pattern directly with TMDb ID
+  window.location.href = `/filmes/${tmdbMovieId}/`;
 }
 
 // ===== Image Expansion Functionality =====

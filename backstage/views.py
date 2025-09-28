@@ -240,6 +240,25 @@ def criar_lista(request):
         return JsonResponse({'success': False, 'message': str(e)})
 
 @login_required(login_url='backstage:login')
+def buscar_listas_usuario(request):
+    try:
+        listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
+        listas_data = [{
+            'id': lista.id,
+            'nome': lista.nome,
+            'descricao': lista.descricao,
+            'publica': lista.publica,
+            'count': lista.itens.count()
+        } for lista in listas]
+
+        return JsonResponse({
+            'success': True,
+            'listas': listas_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
 def adicionar_filme_lista(request, lista_id, tmdb_id):
     try:

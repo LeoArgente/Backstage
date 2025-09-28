@@ -1056,8 +1056,8 @@ function sortMovies(sortBy) {
 
 // ===== Movie Detail Page Functionality =====
 function initMovieDetailPage() {
-  // Load movie data based on URL parameter
-  loadMovieDetails();
+  // Movie data loading is now handled by movie_details.js
+  // loadMovieDetails(); // DISABLED - using movie_details.js instead
   
   // Star rating functionality
   const stars = document.querySelectorAll('.star');

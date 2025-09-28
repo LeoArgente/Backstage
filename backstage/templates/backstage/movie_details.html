@@ -107,6 +107,55 @@
       background: #444;
       color: #fff;
   }
+
+  /* Estilos para listas existentes */
+  .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  }
+
+  .list-item:hover {
+      background: #333;
+      border-color: #667eea;
+  }
+
+  .list-item-info {
+      flex-grow: 1;
+  }
+
+  .list-item-name {
+      color: #fff;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+  }
+
+  .list-item-meta {
+      color: #888;
+      font-size: 0.8rem;
+  }
+
+  .list-item-add {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s ease;
+  }
+
+  .list-item-add:hover {
+      background: #5a6fd8;
+  }
   </style>
 <body>
   <header class="site-header">
@@ -285,6 +334,20 @@
 
           <!-- Opções principais -->
           <div class="popup-content" id="popupOptions">
+              <!-- Lista de listas existentes -->
+              <div id="existingLists" style="margin-bottom: 1rem;">
+                  <div id="loadingLists" style="color: #888; text-align: center; padding: 1rem;">
+                      Carregando suas listas...
+                  </div>
+                  <div id="listsContainer" style="display: none;">
+                      <!-- As listas serão carregadas aqui via JavaScript -->
+                  </div>
+                  <div id="noLists" style="display: none; color: #888; text-align: center; padding: 1rem;">
+                      Você ainda não criou nenhuma lista
+                  </div>
+              </div>
+
+              <!-- Botões de ação -->
               <button class="popup-option create-list" onclick="showCreateListForm()">
                   <span class="icon">+</span>
                   <span>Criar Nova Lista</span>
@@ -774,8 +837,88 @@
       };
 
       function loadUserLists() {
-          // Aqui você pode carregar as listas do usuário via AJAX se quiser
-          // Por enquanto mantemos simples
+          const loadingEl = document.getElementById('loadingLists');
+          const containerEl = document.getElementById('listsContainer');
+          const noListsEl = document.getElementById('noLists');
+
+          // Mostrar loading
+          loadingEl.style.display = 'block';
+          containerEl.style.display = 'none';
+          noListsEl.style.display = 'none';
+
+          // Buscar listas do usuário
+          fetch('/api/buscar-listas/', {
+              method: 'GET',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              loadingEl.style.display = 'none';
+
+              if (data.success && data.listas.length > 0) {
+                  // Mostrar listas existentes
+                  containerEl.innerHTML = data.listas.map(lista => `
+                      <div class="list-item">
+                          <div class="list-item-info">
+                              <div class="list-item-name">${lista.nome}</div>
+                              <div class="list-item-meta">${lista.count} filme${lista.count !== 1 ? 's' : ''}</div>
+                          </div>
+                          <button class="list-item-add" onclick="addMovieToList(${lista.id}, '${lista.nome}')">
+                              Adicionar
+                          </button>
+                      </div>
+                  `).join('');
+                  containerEl.style.display = 'block';
+              } else {
+                  // Não tem listas
+                  noListsEl.style.display = 'block';
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao carregar listas:', error);
+              loadingEl.style.display = 'none';
+              noListsEl.style.display = 'block';
+              noListsEl.textContent = 'Erro ao carregar listas';
+          });
+      }
+
+      // Função para adicionar filme a uma lista existente
+      function addMovieToList(listaId, listaNome) {
+          const tmdbId = getCurrentMovieTMDbId();
+
+          if (!tmdbId) {
+              alert('Erro: ID do filme não encontrado');
+              return;
+          }
+
+          fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert(`Filme adicionado à lista "${listaNome}"!`);
+                  hideListPopup();
+              } else {
+                  alert(`Erro: ${data.message}`);
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao adicionar filme à lista:', error);
+              alert('Erro ao adicionar filme à lista');
+          });
+      }
+
+      // Função para obter TMDb ID da URL (mesmo que no movie_details.js)
+      function getCurrentMovieTMDbId() {
+          const path = window.location.pathname;
+          const match = path.match(/\/filmes\/(\d+)\//);
+          return match ? parseInt(match[1]) : null;
       }
 
       function getCookie(name) {
@@ -791,6 +934,77 @@
               }
           }
           return cookieValue;
+      }
+
+      // Função para "Assistir Mais Tarde"
+      window.addToWatchLater = function() {
+          const tmdbId = getCurrentMovieTMDbId();
+
+          if (!tmdbId) {
+              alert('Erro: ID do filme não encontrado');
+              return;
+          }
+
+          // Criar ou usar lista "Assistir Mais Tarde"
+          fetch('/api/criar-lista/', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCookie('csrftoken')
+              },
+              body: JSON.stringify({
+                  nome: 'Assistir Mais Tarde',
+                  descricao: 'Filmes para assistir mais tarde',
+                  publica: false
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              const listaId = data.lista_id || null;
+
+              if (data.success) {
+                  // Lista criada com sucesso
+                  return addMovieToWatchLater(listaId);
+              } else if (data.message && data.message.includes('já existe')) {
+                  // Lista já existe, buscar ID
+                  return fetch('/api/buscar-listas/')
+                      .then(res => res.json())
+                      .then(listasData => {
+                          const watchLaterList = listasData.listas.find(l => l.nome === 'Assistir Mais Tarde');
+                          if (watchLaterList) {
+                              return addMovieToWatchLater(watchLaterList.id);
+                          } else {
+                              throw new Error('Lista não encontrada');
+                          }
+                      });
+              } else {
+                  alert('Erro ao criar lista: ' + data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Erro:', error);
+              alert('Erro ao adicionar à Assistir Mais Tarde');
+          });
+      };
+
+      function addMovieToWatchLater(listaId) {
+          const tmdbId = getCurrentMovieTMDbId();
+
+          return fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert('Filme adicionado à "Assistir Mais Tarde"!');
+                  hideListPopup();
+              } else {
+                  alert(`Erro: ${data.message}`);
+              }
+          });
       }
   }
 

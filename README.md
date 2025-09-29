@@ -42,19 +42,21 @@ Link paras as histórias: [Histórias](https://docs.google.com/document/d/1aqIHF
 O objetivo desta segunda sprint é dar início ao desenvolvimento do projeto, colocando em prática a implementação das primeiras histórias de usuário.
 
 ## HISTÓRIA 1:
-Permite que o usuário pesquise o filme por meio de filtros como: título, gênero, elenco e etc.
-
-foto da historia
-
-## HISTÓRIA 2:
 Permite que o usuário veja os detalhes de um filme (elenco, duração, classificação...) ao clicar nele.
 
-foto da historia
+![Hitoria1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes1.PNG)
+![Hitoria1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes2.PNG)
+![Hitoria1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes3.PNG)
+
+## HISTÓRIA 2:
+Permite que o usuário salve um filme para assistir mais tarde
+
+![Hitoria2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/assistirmaistarde.PNG)
 
 ## HISTÓRIA 3:
 Permite que o usuário deixa uma resenha sobre o filme.
 
-foto da historia
+![Hitoria3](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/critica.PNG)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -62,29 +64,34 @@ foto da historia
 Você pode acessar (AQUI) o vídeo explicativo do nosso projeto já desenvolvido em Django, com as três histórias implementadas.
 
 ## Backlog no Jira
-print do backlog
+![backlog2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/backlog2.PNG)
 
 ## Quadro no jira
-printo do quadro
+![quadro2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/quadro2.PNG)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Bugtracker
 Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que queremos fazer para o Backstage.
 
-print do bug tracker
+![bugtracker1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker.PNG)
 
 Bugs corrigídos:
+-O template chamado em backstage/views.py (backstage/busca.html) não era compatível com a estrutura de pastas existente, pois o arquivo busca.html não foi encontrado dentro de backstage/templates/backstage/.
 
-Melhorias:
+-O template chamado em backstage/views.py (backstage/register.html) não era compatível com a estrutura de pastas existente, pois o arquivo register.html não foi encontrado dentro de backstage/templates/backstage/.
+
+-A view salvar_critica em backstage/views.py não era compatível com o fluxo do Django, pois não retornava um objeto HttpResponse, mas sim None.
+
+-O template chamado em backstage/views.py (backstage/login.html) não era compatível com a estrutura de pastas existente, pois o arquivo login.html não foi encontrado dentro de backstage/templates/backstage/.
+
+-Os path definidos em setup/urls.py não incluíam uma rota para o caminho vazio (""), resultando no erro 404 ao acessar http://127.0.0.1:8000/.
+
+-Os path, namespace e views "comunidade" (em backstage/urls.py) não eram compatíveis com o nome do arquivo (community.html)
 
 ## Programação em Par
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre o esse processo.
 
-
-
-
-  
 </details>
 
 <details>

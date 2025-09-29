@@ -56,8 +56,7 @@ Permite que o usuário salve um filme para assistir mais tarde
 ## HISTÓRIA 3:
 Permite que o usuário deixa uma resenha sobre o filme.
 
-![Historia3](C:\Users\marilia liz\Desktop\backstage\imagens\critica.png)
-
+![Historia3](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/critica.PNG)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Screencast
@@ -77,6 +76,7 @@ Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que que
 ![bugtracker1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker.PNG)
 
 Bugs corrigídos:
+
 -O template chamado em backstage/views.py (backstage/busca.html) não era compatível com a estrutura de pastas existente, pois o arquivo busca.html não foi encontrado dentro de backstage/templates/backstage/.
 
 -O template chamado em backstage/views.py (backstage/register.html) não era compatível com a estrutura de pastas existente, pois o arquivo register.html não foi encontrado dentro de backstage/templates/backstage/.

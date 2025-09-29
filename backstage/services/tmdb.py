@@ -74,6 +74,11 @@ def buscar_filme_destaque():
         filme = random.choice(filmes[:5])  # Escolhe entre os 5 primeiros
         # Já vem padronizado da função buscar_filmes_em_cartaz
         filme['duracao_min'] = 120  # Valor padrão
+        # Converter nota da escala 10 para escala 5 com 1 casa decimal
+        if filme.get('nota_tmdb'):
+            filme['nota_escala_5'] = round(filme['nota_tmdb'] / 2, 1)
+        else:
+            filme['nota_escala_5'] = 4.0  # Valor padrão
         return filme
     return None
 
@@ -147,3 +152,352 @@ def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str 
     else:
         FilmeCache.objects.create(id_tmdb=id_tmdb, payload=payload)
     return payload
+
+def converter_para_estrelas(nota_tmdb):
+    """Converte nota TMDb (0-10) para escala de 5 estrelas com meia estrela"""
+    if not nota_tmdb:
+        return 0
+    estrelas = nota_tmdb / 2
+    # Arredondar para meia estrela mais próxima
+    return round(estrelas * 2) / 2
+
+def formatar_duracao(minutos):
+    """Converte minutos para formato 'Xh Ymin'"""
+    if not minutos:
+        return ""
+    horas = minutos // 60
+    mins = minutos % 60
+    if horas > 0:
+        return f"{horas}h {mins}min" if mins > 0 else f"{horas}h"
+    return f"{mins}min"
+
+def obter_top_filmes(limit=5, usar_cache=True):
+    """Busca os filmes mais bem avaliados para a Hero Section"""
+    cache_key = f"top_rated_{limit}"
+
+    if usar_cache:
+        try:
+            fc = FilmeCache.objects.filter(id_tmdb=999999).first()
+            if fc and fc.payload.get('cache_type') == cache_key:
+                if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=6):
+                    return fc.payload.get('filmes', [])
+        except:
+            pass
+
+    # Buscar da API
+    data = _get("/movie/top_rated", params={"language": "pt-BR", "page": 1})
+    filmes = data.get("results", [])[:limit]
+
+    # Formatar para Hero Section
+    hero_movies = []
+    for filme in filmes:
+        # Buscar detalhes completos para ter duração
+        try:
+            detalhes = buscar_detalhes_filme(filme['id'])
+            duracao = detalhes.get('runtime')
+        except:
+            duracao = None
+
+        hero_movies.append({
+            'tmdb_id': filme.get('id'),
+            'titulo': filme.get('title'),
+            'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+            'duracao': formatar_duracao(duracao),
+            'nota': filme.get('vote_average', 0),
+            'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+            'poster_path': filme.get('poster_path'),
+            'backdrop_path': filme.get('backdrop_path'),
+            'sinopse': filme.get('overview', '')
+        })
+
+    # Salvar no cache
+    if usar_cache and hero_movies:
+        cache_payload = {
+            'cache_type': cache_key,
+            'filmes': hero_movies
+        }
+        FilmeCache.objects.update_or_create(
+            id_tmdb=999999,
+            defaults={'payload': cache_payload}
+        )
+
+    return hero_movies
+
+def obter_trending(limit=20, usar_cache=True):
+    """Busca filmes em tendência (trending da semana)"""
+    cache_key = f"trending_{limit}"
+
+    if usar_cache:
+        try:
+            fc = FilmeCache.objects.filter(id_tmdb=999998).first()
+            if fc and fc.payload.get('cache_type') == cache_key:
+                if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=1):
+                    return fc.payload.get('filmes', [])
+        except:
+            pass
+
+    # Buscar da API
+    data = _get("/trending/movie/week", params={"language": "pt-BR"})
+    filmes = data.get("results", [])[:limit]
+
+    # Formatar
+    trending_movies = []
+    for filme in filmes:
+        trending_movies.append({
+            'tmdb_id': filme.get('id'),
+            'titulo': filme.get('title'),
+            'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+            'nota': filme.get('vote_average', 0),
+            'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+            'poster_path': filme.get('poster_path'),
+            'backdrop_path': filme.get('backdrop_path'),
+            'sinopse': filme.get('overview', ''),
+            'generos': []  # Seria necessário buscar detalhes para ter gêneros
+        })
+
+    # Salvar no cache
+    if usar_cache and trending_movies:
+        cache_payload = {
+            'cache_type': cache_key,
+            'filmes': trending_movies
+        }
+        FilmeCache.objects.update_or_create(
+            id_tmdb=999998,
+            defaults={'payload': cache_payload}
+        )
+
+    return trending_movies
+
+def obter_recomendados(limit=12, usar_cache=True):
+    """Busca filmes recomendados (populares com boa nota)"""
+    cache_key = f"recommended_{limit}"
+
+    if usar_cache:
+        try:
+            fc = FilmeCache.objects.filter(id_tmdb=999997).first()
+            if fc and fc.payload.get('cache_type') == cache_key:
+                if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=3):
+                    return fc.payload.get('filmes', [])
+        except:
+            pass
+
+    # Buscar filmes populares
+    data = _get("/movie/popular", params={"language": "pt-BR", "page": 1})
+    # Filtrar apenas filmes com nota >= 7
+    filmes = [f for f in data.get("results", []) if f.get('vote_average', 0) >= 7][:limit]
+
+    # Formatar
+    recommended_movies = []
+    for filme in filmes:
+        recommended_movies.append({
+            'tmdb_id': filme.get('id'),
+            'titulo': filme.get('title'),
+            'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+            'nota': filme.get('vote_average', 0),
+            'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+            'poster_path': filme.get('poster_path'),
+            'backdrop_path': filme.get('backdrop_path'),
+            'sinopse': filme.get('overview', ''),
+            'generos': []
+        })
+
+    # Salvar no cache
+    if usar_cache and recommended_movies:
+        cache_payload = {
+            'cache_type': cache_key,
+            'filmes': recommended_movies
+        }
+        FilmeCache.objects.update_or_create(
+            id_tmdb=999997,
+            defaults={'payload': cache_payload}
+        )
+
+    return recommended_movies
+
+def obter_goats(limit=20, usar_cache=True):
+    """Busca filmes GOATS (Greatest of All Time) - os com as maiores notas da história"""
+    cache_key = f"goats_{limit}"
+
+    if usar_cache:
+        try:
+            fc = FilmeCache.objects.filter(id_tmdb=999996).first()
+            if fc and fc.payload.get('cache_type') == cache_key:
+                if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=12):
+                    return fc.payload.get('filmes', [])
+        except:
+            pass
+
+    # Buscar filmes com melhor avaliação (top rated) com filtro mais rigoroso
+    goats_movies = []
+
+    # Buscar múltiplas páginas para ter mais opções
+    for page in range(1, 4):  # Buscar 3 páginas
+        try:
+            data = _get("/movie/top_rated", params={"language": "pt-BR", "page": page})
+            filmes = data.get("results", [])
+
+            # Filtrar apenas filmes com nota muito alta (>= 8.0) e quantidade significativa de votos
+            filmes_filtrados = [
+                f for f in filmes
+                if f.get('vote_average', 0) >= 8.0 and f.get('vote_count', 0) >= 1000
+            ]
+
+            for filme in filmes_filtrados:
+                if len(goats_movies) >= limit:
+                    break
+
+                goats_movies.append({
+                    'tmdb_id': filme.get('id'),
+                    'titulo': filme.get('title'),
+                    'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                    'nota': filme.get('vote_average', 0),
+                    'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+                    'poster_path': filme.get('poster_path'),
+                    'backdrop_path': filme.get('backdrop_path'),
+                    'sinopse': filme.get('overview', ''),
+                    'votos': filme.get('vote_count', 0),
+                    'generos': []
+                })
+
+            if len(goats_movies) >= limit:
+                break
+
+        except Exception as e:
+            print(f"Erro ao buscar página {page} de GOATS: {e}")
+            continue
+
+    # Ordenar por nota (decrescente) e depois por número de votos
+    goats_movies.sort(key=lambda x: (x['nota'], x['votos']), reverse=True)
+    goats_movies = goats_movies[:limit]
+
+    # Salvar no cache
+    if usar_cache and goats_movies:
+        cache_payload = {
+            'cache_type': cache_key,
+            'filmes': goats_movies
+        }
+        FilmeCache.objects.update_or_create(
+            id_tmdb=999996,
+            defaults={'payload': cache_payload}
+        )
+
+    return goats_movies
+
+def obter_em_cartaz(limit=12, usar_cache=True):
+    """Busca filmes em cartaz nos cinemas"""
+    cache_key = f"now_playing_{limit}"
+
+    if usar_cache:
+        try:
+            fc = FilmeCache.objects.filter(id_tmdb=999995).first()
+            if fc and fc.payload.get('cache_type') == cache_key:
+                if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=6):
+                    return fc.payload.get('filmes', [])
+        except:
+            pass
+
+    # Buscar filmes em cartaz
+    data = _get("/movie/now_playing", params={"language": "pt-BR", "region": "BR"})
+    filmes = data.get("results", [])[:limit]
+
+    # Formatar
+    now_playing_movies = []
+    for filme in filmes:
+        now_playing_movies.append({
+            'tmdb_id': filme.get('id'),
+            'titulo': filme.get('title'),
+            'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+            'nota': filme.get('vote_average', 0),
+            'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+            'poster_path': filme.get('poster_path'),
+            'backdrop_path': filme.get('backdrop_path'),
+            'sinopse': filme.get('overview', ''),
+            'generos': []
+        })
+
+    # Salvar no cache
+    if usar_cache and now_playing_movies:
+        cache_payload = {
+            'cache_type': cache_key,
+            'filmes': now_playing_movies
+        }
+        FilmeCache.objects.update_or_create(
+            id_tmdb=999995,
+            defaults={'payload': cache_payload}
+        )
+
+    return now_playing_movies
+
+def obter_classicos(limit=12, usar_cache=True):
+    """Busca filmes clássicos (filmes antigos bem avaliados)"""
+    cache_key = f"classics_{limit}"
+
+    if usar_cache:
+        try:
+            fc = FilmeCache.objects.filter(id_tmdb=999994).first()
+            if fc and fc.payload.get('cache_type') == cache_key:
+                if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=24):
+                    return fc.payload.get('filmes', [])
+        except:
+            pass
+
+    # Buscar filmes clássicos (top rated com data antiga)
+    classics_movies = []
+
+    # Buscar múltiplas páginas para ter mais opções
+    for page in range(1, 5):
+        try:
+            data = _get("/movie/top_rated", params={"language": "pt-BR", "page": page})
+            filmes = data.get("results", [])
+
+            # Filtrar filmes antigos (antes de 2000) com boa avaliação
+            for filme in filmes:
+                if len(classics_movies) >= limit:
+                    break
+
+                # Verificar se é um filme antigo (antes de 2000) com boa nota
+                release_date = filme.get('release_date', '')
+                if release_date:
+                    try:
+                        year = int(release_date[:4])
+                        vote_avg = filme.get('vote_average', 0)
+                        vote_count = filme.get('vote_count', 0)
+
+                        if year < 2000 and vote_avg >= 7.5 and vote_count >= 500:
+                            classics_movies.append({
+                                'tmdb_id': filme.get('id'),
+                                'titulo': filme.get('title'),
+                                'ano': year,
+                                'nota': vote_avg,
+                                'nota_estrelas': converter_para_estrelas(vote_avg),
+                                'poster_path': filme.get('poster_path'),
+                                'backdrop_path': filme.get('backdrop_path'),
+                                'sinopse': filme.get('overview', ''),
+                                'generos': []
+                            })
+                    except ValueError:
+                        continue
+
+            if len(classics_movies) >= limit:
+                break
+
+        except Exception as e:
+            print(f"Erro ao buscar página {page} de clássicos: {e}")
+            continue
+
+    # Ordenar por nota e depois por ano (mais antigos primeiro em caso de empate)
+    classics_movies.sort(key=lambda x: (x['nota'], -x['ano']), reverse=True)
+    classics_movies = classics_movies[:limit]
+
+    # Salvar no cache
+    if usar_cache and classics_movies:
+        cache_payload = {
+            'cache_type': cache_key,
+            'filmes': classics_movies
+        }
+        FilmeCache.objects.update_or_create(
+            id_tmdb=999994,
+            defaults={'payload': cache_payload}
+        )
+
+    return classics_movies

@@ -14,7 +14,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
-from .services.tmdb import obter_detalhes_com_cache, montar_payload_agregado
+from .services.tmdb import (
+    obter_detalhes_com_cache,
+    montar_payload_agregado,
+    obter_top_filmes,
+    obter_recomendados,
+    obter_goats,
+    obter_em_cartaz,
+    obter_classicos,
+    converter_para_estrelas
+)
 
 @login_required(login_url='backstage:login')
 def salvar_critica(request):
@@ -323,6 +332,55 @@ def buscar(request):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
     return render(request, "backstage/busca.html", context)
+
+def filmes_home(request):
+    """API endpoint que retorna dados para a página inicial com cache"""
+    try:
+        # Buscar dados com cache
+        hero_movies = obter_top_filmes(limit=5)
+        goats = obter_goats(limit=20)
+        recommended = obter_recomendados(limit=12)
+        em_cartaz = obter_em_cartaz(limit=12)
+        classicos = obter_classicos(limit=12)
+
+        # Adicionar URL base para imagens
+        tmdb_image_base = settings.TMDB_IMAGE_BASE_URL
+        tmdb_backdrop_base = settings.TMDB_BACKDROP_BASE_URL
+
+        # Adicionar URLs completas para as imagens
+        for movie in hero_movies + goats + recommended + em_cartaz + classicos:
+            if movie.get('poster_path'):
+                movie['poster_url'] = f"{tmdb_image_base}{movie['poster_path']}"
+            else:
+                movie['poster_url'] = None
+
+            if movie.get('backdrop_path'):
+                movie['backdrop_url'] = f"{tmdb_backdrop_base}{movie['backdrop_path']}"
+            else:
+                movie['backdrop_url'] = None
+
+        return JsonResponse({
+            'success': True,
+            'hero_movies': hero_movies,
+            'goats': goats,
+            'recommended': recommended,
+            'em_cartaz': em_cartaz,
+            'classicos': classicos,
+            'image_base_url': tmdb_image_base,
+            'backdrop_base_url': tmdb_backdrop_base
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'hero_movies': [],
+            'goats': [],
+            'recommended': [],
+            'em_cartaz': [],
+            'classicos': []
+        }, status=500)
+
 from django.http import JsonResponse
 from .models import Critica
 

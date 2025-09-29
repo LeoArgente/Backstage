@@ -23,6 +23,7 @@ urlpatterns = [
     path('filmes/<int:tmdb_id>/', views.detalhes_filme, name='detalhes_filme'),
     path('buscar/', views.buscar, name='buscar'),
     path("filmes/<int:tmdb_id>/relatorio/", views.relatorio, name="relatorio"),
+    path('api/filmes-home/', views.filmes_home, name='filmes_home'),
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
     path('api/watch-later/', views.buscar_ou_criar_lista_watch_later, name='watch_later'),

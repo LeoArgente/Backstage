@@ -4,454 +4,115 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const TMDB_BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original';
 
-// ===== Movie Database with Real TMDB Data =====
-const moviesDatabase = [
-  {
-    id: 1,
-    tmdbId: 27205,
-    titulo: "A Origem",
-    tituloOriginal: "Inception",
-    ano: 2010,
-    duracao: "2h 28min",
-    classificacao: "PG-13",
-    poster: "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
-    backdrop: "/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
-    nota: 8.364,
-    imdbRating: 8.4,
-    rottenTomatoes: 87,
-    metacritic: 74,
-    generos: ["Ação", "Ficção Científica", "Aventura"],
-    diretor: "Christopher Nolan",
-    sinopse: "Cobb, um ladrão habilidoso que comete espionagem corporativa infiltrando-se no subconsciente de seus alvos, recebe uma chance de recuperar sua vida antiga como pagamento por uma tarefa considerada impossível: a 'origem', o implante da ideia de outra pessoa no subconsciente de um alvo.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Netflix", "Prime Video", "Apple TV+"]
-  },
-  {
-    id: 2,
-    tmdbId: 157336,
-    titulo: "Interestelar",
-    tituloOriginal: "Interstellar",
-    ano: 2014,
-    duracao: "2h 49min",
-    classificacao: "PG-13",
-    poster: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
-    backdrop: "/pbrkL804c8yAv3zBZR4QPEafpAR.jpg",
-    nota: 8.417,
-    imdbRating: 8.4,
-    rottenTomatoes: 72,
-    metacritic: 74,
-    generos: ["Aventura", "Drama", "Ficção Científica"],
-    diretor: "Christopher Nolan",
-    sinopse: "As aventuras de um grupo de exploradores que fazem uso de um buraco de minhoca recém-descoberto para superar as limitações das viagens espaciais humanas e conquistar as vastas distâncias envolvidas em uma viagem interestelar.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Paramount+", "Prime Video"]
-  },
-  {
-    id: 3,
-    tmdbId: 155,
-    titulo: "Batman: O Cavaleiro das Trevas",
-    tituloOriginal: "The Dark Knight",
-    ano: 2008,
-    duracao: "2h 32min",
-    classificacao: "PG-13",
-    poster: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-    backdrop: "/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg",
-    nota: 8.512,
-    imdbRating: 8.5,
-    rottenTomatoes: 94,
-    metacritic: 84,
-    generos: ["Drama", "Ação", "Crime", "Thriller"],
-    diretor: "Christopher Nolan",
-    sinopse: "Batman intensifica sua guerra contra o crime. Com a ajuda do tenente Jim Gordon e do promotor Harvey Dent, Batman pretende desmantelar as organizações criminosas restantes que assolam as ruas. A parceria se mostra eficaz, mas eles logo se tornam presas de um reino de caos desencadeado por um gênio criminoso conhecido pelos cidadãos aterrorizados de Gotham como o Coringa.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Max", "Prime Video"]
-  },
-  {
-    id: 4,
-    tmdbId: 19995,
-    titulo: "Avatar",
-    tituloOriginal: "Avatar",
-    ano: 2009,
-    duracao: "2h 42min",
-    classificacao: "PG-13",
-    poster: "/kyeqWdyUXW608qlYkRqosgbbJyK.jpg",
-    backdrop: "/vL5LR6WdxWPjLPFRLe133jXWsh5.jpg",
-    nota: 7.573,
-    imdbRating: 7.6,
-    rottenTomatoes: 82,
-    metacritic: 83,
-    generos: ["Ação", "Aventura", "Fantasia", "Ficção Científica"],
-    diretor: "James Cameron",
-    sinopse: "No século 22, um fuzileiro naval paraplégico é enviado à lua Pandora em uma missão única, mas fica dividido entre seguir ordens e proteger uma civilização alienígena.",
-    assistido: false,
-    favorito: false,
-    naLista: true,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 5,
-    tmdbId: 24428,
-    titulo: "Os Vingadores",
-    tituloOriginal: "The Avengers",
-    ano: 2012,
-    duracao: "2h 23min",
-    classificacao: "PG-13",
-    poster: "/RYMX2wcKCBAr24UyPD7xwmjaTn.jpg",
-    backdrop: "/9BBTo63ANSmhC4e6r62OJFuK2GL.jpg",
-    nota: 7.71,
-    imdbRating: 8.0,
-    rottenTomatoes: 91,
-    metacritic: 69,
-    generos: ["Ficção Científica", "Ação", "Aventura"],
-    diretor: "Joss Whedon",
-    sinopse: "Quando um inimigo inesperado emerge e ameaça a segurança global, Nick Fury, diretor da agência internacional de manutenção da paz conhecida como S.H.I.E.L.D., precisa de uma equipe para tirar o mundo de volta do precipício da destruição. Abrangendo o globo, um esforço de recrutamento ousado começa!",
-    assistido: true,
-    favorito: false,
-    naLista: false,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 6,
-    tmdbId: 293660,
-    titulo: "Deadpool",
-    tituloOriginal: "Deadpool",
-    ano: 2016,
-    duracao: "1h 48min",
-    classificacao: "R",
-    poster: "/zq8Cl3PNIDGU3iWNRoc5nEZ6pCe.jpg",
-    backdrop: "/en971MEXui9diirXlogOrPKmsEn.jpg",
-    nota: 7.606,
-    imdbRating: 8.0,
-    rottenTomatoes: 85,
-    metacritic: 65,
-    generos: ["Ação", "Aventura", "Comédia"],
-    diretor: "Tim Miller",
-    sinopse: "A história de origem do ex-operador das Forças Especiais que se tornou mercenário Wade Wilson, que, depois de ser submetido a um experimento desonesto que o deixa com poderes de cura acelerada, adota o alter ego Deadpool. Armado com suas novas habilidades e um senso de humor sombrio e distorcido, Deadpool caça o homem que quase destruiu sua vida.",
-    assistido: false,
-    favorito: false,
-    naLista: true,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 7,
-    tmdbId: 299536,
-    titulo: "Vingadores: Guerra Infinita",
-    tituloOriginal: "Avengers: Infinity War",
-    ano: 2018,
-    duracao: "2h 29min",
-    classificacao: "PG-13",
-    poster: "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg",
-    backdrop: "/mDfJG3LC3Dqb67AZ52x3Z0jU0uB.jpg",
-    nota: 8.255,
-    imdbRating: 8.4,
-    rottenTomatoes: 85,
-    metacritic: 68,
-    generos: ["Aventura", "Ação", "Ficção Científica"],
-    diretor: "Anthony Russo, Joe Russo",
-    sinopse: "Enquanto os Vingadores e seus aliados continuaram a proteger o mundo de ameaças grandes demais para qualquer herói lidar sozinho, um novo perigo emergiu das sombras cósmicas: Thanos. Um déspota de infâmia intergaláctica, seu objetivo é coletar todas as seis Joias do Infinito, artefatos de poder inimaginável, e usá-las para infligir sua vontade distorcida sobre toda a realidade.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 8,
-    tmdbId: 550,
-    titulo: "Clube da Luta",
-    tituloOriginal: "Fight Club",
-    ano: 1999,
-    duracao: "2h 19min",
-    classificacao: "R",
-    poster: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
-    backdrop: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
-    nota: 8.438,
-    imdbRating: 8.4,
-    rottenTomatoes: 79,
-    metacritic: 66,
-    generos: ["Drama"],
-    diretor: "David Fincher",
-    sinopse: "Um insone bomba-relógio e um vendedor de sabão escorregadio canalizam a agressão masculina primitiva em uma nova forma chocante de terapia. Seu conceito pega, com 'clubes de luta' subterrâneos se formando em todas as cidades, até que um excêntrico atrapalha o caminho e acende uma espiral fora de controle em direção ao esquecimento.",
-    assistido: true,
-    favorito: false,
-    naLista: false,
-    streaming: ["Hulu", "Prime Video"]
-  },
-  {
-    id: 9,
-    tmdbId: 118340,
-    titulo: "Guardiões da Galáxia",
-    tituloOriginal: "Guardians of the Galaxy",
-    ano: 2014,
-    duracao: "2h 1min",
-    classificacao: "PG-13",
-    poster: "/r7vmZjiyZw9rpJMQJdXpjgiCOk9.jpg",
-    backdrop: "/uLtVbjvS1O7gXL8lUOwsFOH4man.jpg",
-    nota: 7.906,
-    imdbRating: 8.0,
-    rottenTomatoes: 92,
-    metacritic: 76,
-    generos: ["Ação", "Ficção Científica", "Aventura"],
-    diretor: "James Gunn",
-    sinopse: "Anos-luz da Terra, 26 anos após ser abduzido, Peter Quill se encontra como alvo principal de uma caçada humana depois de descobrir um orbe desejado por Ronan, o Acusador.",
-    assistido: false,
-    favorito: false,
-    naLista: true,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 10,
-    tmdbId: 680,
-    titulo: "Pulp Fiction: Tempo de Violência",
-    tituloOriginal: "Pulp Fiction",
-    ano: 1994,
-    duracao: "2h 34min",
-    classificacao: "R",
-    poster: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
-    backdrop: "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
-    nota: 8.488,
-    imdbRating: 8.9,
-    rottenTomatoes: 92,
-    metacritic: 94,
-    generos: ["Thriller", "Crime"],
-    diretor: "Quentin Tarantino",
-    sinopse: "Um assassino amante de hambúrgueres, seu parceiro filosófico, a namorada viciada em drogas de um gângster e um boxeador em decadência convergem nesta ampla farsa criminal. Suas aventuras se desenrolam em três histórias que viajam engenhosamente para frente e para trás no tempo.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Netflix", "Prime Video"]
-  },
-  {
-    id: 11,
-    tmdbId: 13,
-    titulo: "Forrest Gump: O Contador de Histórias",
-    tituloOriginal: "Forrest Gump",
-    ano: 1994,
-    duracao: "2h 22min",
-    classificacao: "PG-13",
-    poster: "/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg",
-    backdrop: "/qdIMHd4sEfJSckfVJfKQvisL02a.jpg",
-    nota: 8.477,
-    imdbRating: 8.8,
-    rottenTomatoes: 71,
-    metacritic: 82,
-    generos: ["Comédia", "Drama", "Romance"],
-    diretor: "Robert Zemeckis",
-    sinopse: "Um homem com baixo QI realizou grandes coisas em sua vida e esteve presente durante eventos históricos significativos — em cada caso, excedendo em muito o que qualquer um imaginou que ele poderia fazer. Mas apesar de tudo o que conquistou, seu único amor verdadeiro o ilude.",
-    assistido: false,
-    favorito: false,
-    naLista: true,
-    streaming: ["Paramount+", "Prime Video"]
-  },
-  {
-    id: 12,
-    tmdbId: 671,
-    titulo: "Harry Potter e a Pedra Filosofal",
-    tituloOriginal: "Harry Potter and the Philosopher's Stone",
-    ano: 2001,
-    duracao: "2h 32min",
-    classificacao: "PG",
-    poster: "/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg",
-    backdrop: "/hziiv14OpD73u9gAak4XDDfBKa2.jpg",
-    nota: 7.916,
-    imdbRating: 7.6,
-    rottenTomatoes: 81,
-    metacritic: 64,
-    generos: ["Aventura", "Fantasia"],
-    diretor: "Chris Columbus",
-    sinopse: "Harry Potter viveu sob as escadas na casa de sua tia e tio por toda a vida. Mas no seu 11º aniversário, ele descobre que é um bruxo poderoso — com um lugar esperando por ele na Escola de Magia e Bruxaria de Hogwarts. Ao aprender a usar seus poderes recém-descobertos com a ajuda do bondoso diretor da escola, Harry descobre a verdade sobre a morte de seus pais — e sobre o vilão que é o culpado.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Max", "Prime Video"]
-  },
-  {
-    id: 13,
-    tmdbId: 1726,
-    titulo: "Homem de Ferro",
-    tituloOriginal: "Iron Man",
-    ano: 2008,
-    duracao: "2h 6min",
-    classificacao: "PG-13",
-    poster: "/78lPtwv72eTNqFW9COBYI0dWDJa.jpg",
-    backdrop: "/cyecB7godJ6kNHGONFjUyVN9OX5.jpg",
-    nota: 7.64,
-    imdbRating: 7.9,
-    rottenTomatoes: 94,
-    metacritic: 79,
-    generos: ["Ação", "Ficção Científica", "Aventura"],
-    diretor: "Jon Favreau",
-    sinopse: "Depois de ser mantido em cativeiro em uma caverna afegã, o engenheiro bilionário Tony Stark cria uma armadura única e poderosa para lutar contra o mal.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 14,
-    tmdbId: 68718,
-    titulo: "Django Livre",
-    tituloOriginal: "Django Unchained",
-    ano: 2012,
-    duracao: "2h 45min",
-    classificacao: "R",
-    poster: "/7oWY8VDWW7thTzWh3OKYRkWUlD5.jpg",
-    backdrop: "/5Lbm0gpFDRAPIV1Cth6ln9iL1ou.jpg",
-    nota: 8.171,
-    imdbRating: 8.4,
-    rottenTomatoes: 87,
-    metacritic: 81,
-    generos: ["Drama", "Western"],
-    diretor: "Quentin Tarantino",
-    sinopse: "Com a ajuda de um caçador de recompensas alemão, um escravo liberto parte para resgatar sua esposa de um brutal proprietário de plantação no Mississippi.",
-    assistido: false,
-    favorito: false,
-    naLista: true,
-    streaming: ["Netflix", "Prime Video"]
-  },
-  {
-    id: 15,
-    tmdbId: 278,
-    titulo: "Um Sonho de Liberdade",
-    tituloOriginal: "The Shawshank Redemption",
-    ano: 1994,
-    duracao: "2h 22min",
-    classificacao: "R",
-    poster: "/lyQBXzOQSuE59IsHyhrp0qIiPAz.jpg",
-    backdrop: "/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg",
-    nota: 8.702,
-    imdbRating: 9.3,
-    rottenTomatoes: 91,
-    metacritic: 80,
-    generos: ["Drama", "Crime"],
-    diretor: "Frank Darabont",
-    sinopse: "Condenado na década de 1940 pelo duplo assassinato de sua esposa e do amante dela, o banqueiro íntegro Andy Dufresne inicia uma nova vida na prisão de Shawshank, onde coloca suas habilidades contábeis para trabalhar para um diretor desonesto. Durante sua longa permanência na prisão, Dufresne passa a ser admirado pelos outros presos — incluindo um prisioneiro mais velho chamado Red — por sua integridade e senso inabalável de esperança.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Netflix", "Prime Video"]
-  },
-  {
-    id: 16,
-    tmdbId: 299534,
-    titulo: "Vingadores: Ultimato",
-    tituloOriginal: "Avengers: Endgame",
-    ano: 2019,
-    duracao: "3h 1min",
-    classificacao: "PG-13",
-    poster: "/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
-    backdrop: "/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg",
-    nota: 8.263,
-    imdbRating: 8.4,
-    rottenTomatoes: 94,
-    metacritic: 78,
-    generos: ["Aventura", "Ficção Científica", "Ação"],
-    diretor: "Anthony Russo, Joe Russo",
-    sinopse: "Após os eventos devastadores de Vingadores: Guerra Infinita, o universo está em ruínas devido aos esforços do Titã Louco, Thanos. Com a ajuda dos aliados restantes, os Vingadores devem se reunir mais uma vez para desfazer as ações de Thanos e restaurar a ordem ao universo de uma vez por todas, não importa quais consequências possam estar reservadas.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Disney+", "Prime Video"]
-  },
-  {
-    id: 17,
-    tmdbId: 603,
-    titulo: "Matrix",
-    tituloOriginal: "The Matrix",
-    ano: 1999,
-    duracao: "2h 16min",
-    classificacao: "R",
-    poster: "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
-    backdrop: "/fNG7i7RqMErkcqhohV2a6cV1Ehy.jpg",
-    nota: 8.206,
-    imdbRating: 8.7,
-    rottenTomatoes: 88,
-    metacritic: 73,
-    generos: ["Ação", "Ficção Científica"],
-    diretor: "Lana Wachowski, Lilly Wachowski",
-    sinopse: "Ambientado no século 22, Matrix conta a história de um hacker de computador que se junta a um grupo de insurgentes subterrâneos lutando contra os computadores vastos e poderosos que agora governam a Terra.",
-    assistido: true,
-    favorito: true,
-    naLista: false,
-    streaming: ["Max", "Netflix"]
-  },
-  {
-    id: 18,
-    tmdbId: 597,
-    titulo: "Titanic",
-    tituloOriginal: "Titanic",
-    ano: 1997,
-    duracao: "3h 14min",
-    classificacao: "PG-13",
-    poster: "/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg",
-    backdrop: "/rzdPqYx7Um4FUZeD8wpXqjAUcEm.jpg",
-    nota: 7.9,
-    imdbRating: 7.8,
-    rottenTomatoes: 89,
-    metacritic: 75,
-    generos: ["Drama", "Romance"],
-    diretor: "James Cameron",
-    sinopse: "Rose DeWitt Bukater, de 101 anos, conta a história de sua vida a bordo do Titanic, 84 anos depois. Uma jovem Rose embarca no navio com sua mãe e noivo. Enquanto isso, Jack Dawson e Fabrizio De Rossi ganham bilhetes de terceira classe a bordo do navio. Rose conta toda a história da partida do Titanic até sua morte — em sua primeira e última viagem — em 15 de abril de 1912.",
-    assistido: false,
-    favorito: false,
-    naLista: true,
-    streaming: ["Paramount+", "Prime Video"]
-  },
-  {
-    id: 19,
-    tmdbId: 475557,
-    titulo: "Coringa",
-    tituloOriginal: "Joker",
-    ano: 2019,
-    duracao: "2h 2min",
-    classificacao: "R",
-    poster: "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",
-    backdrop: "/hO7KbdvGOtDdeg0W4Y5nKEHeDDh.jpg",
-    nota: 8.168,
-    imdbRating: 8.4,
-    rottenTomatoes: 68,
-    metacritic: 59,
-    generos: ["Crime", "Thriller", "Drama"],
-    diretor: "Todd Phillips",
-    sinopse: "Durante a década de 1980, um comediante fracassado é levado à loucura e se volta para uma vida de crime e caos na Cidade de Gotham, enquanto se torna uma figura infame de crime psicopático.",
-    assistido: true,
-    favorito: false,
-    naLista: false,
-    streaming: ["Max", "Prime Video"]
-  },
-  {
-    id: 20,
-    tmdbId: 76341,
-    titulo: "Mad Max: Estrada da Fúria",
-    tituloOriginal: "Mad Max: Fury Road",
-    ano: 2015,
-    duracao: "2h 0min",
-    classificacao: "R",
-    poster: "/8tZYtuWezp8JbcsvHYO0O46tFbo.jpg",
-    backdrop: "/nlCHUWjY9XWbuEUQauCBgnY8ymF.jpg",
-    nota: 7.582,
-    imdbRating: 8.1,
-    rottenTomatoes: 97,
-    metacritic: 90,
-    generos: ["Ação", "Aventura", "Ficção Científica"],
-    diretor: "George Miller",
-    sinopse: "Uma história apocalíptica situada nos confins mais distantes do nosso planeta, em uma paisagem desértica onde a humanidade está fragmentada e a maioria está enlouquecida lutando pelas necessidades da vida. Dentro deste mundo existem dois rebeldes em fuga que talvez consigam restaurar a ordem.",
-    assistido: false,
-    favorito: false,
-    naLista: false,
-    streaming: ["Max", "Prime Video"]
+// ===== Movie Data will be fetched from API =====
+// Data now comes from /api/filmes-home/ endpoint with real TMDb data
+let moviesData = []; // Will be populated from API
+
+// ===== Cache System =====
+const MovieCache = {
+    set(key, data, ttlMinutes = 30) {
+        const item = {
+            data: data,
+            expires: Date.now() + (ttlMinutes * 60 * 1000)
+        };
+        localStorage.setItem('movie_' + key, JSON.stringify(item));
+    },
+
+    get(key) {
+        const item = JSON.parse(localStorage.getItem('movie_' + key));
+        if (!item) return null;
+        if (Date.now() > item.expires) {
+            localStorage.removeItem('movie_' + key);
+            return null;
+        }
+        return item.data;
+    },
+
+    clear() {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('movie_')) {
+                localStorage.removeItem(key);
+            }
+        });
+    }
+};
+
+// ===== API Data Management =====
+let apiData = {
+  heroMovies: [],
+  goats: [],
+  recommended: [],
+  emCartaz: [],
+  classicos: []
+};
+
+// Fetch data from API
+async function fetchMoviesData() {
+  try {
+    // Check cache first
+    const cachedData = MovieCache.get('home_data');
+    if (cachedData) {
+      apiData = cachedData;
+      return cachedData;
+    }
+
+    // Fetch from API
+    const response = await fetch('/api/filmes-home/');
+    if (!response.ok) {
+      throw new Error('Failed to fetch movies');
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      apiData = {
+        heroMovies: data.hero_movies || [],
+        goats: data.goats || [],
+        recommended: data.recommended || [],
+        emCartaz: data.em_cartaz || [],
+        classicos: data.classicos || []
+      };
+
+
+      // Cache for 30 minutes
+      MovieCache.set('home_data', apiData, 30);
+      return apiData;
+    }
+
+    throw new Error('API returned error');
+
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    // Return empty data on error
+    return {
+      heroMovies: [],
+      goats: [],
+      recommended: [],
+      emCartaz: [],
+      classicos: []
+    };
   }
-];
+}
+
+// Loading state helper
+function showLoadingState(container) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando filmes...</p>
+    </div>
+  `;
+}
+
+// MovieDatabase removed - now using API data
 
 // ===== DOM Elements =====
-const trendingMoviesGrid = document.getElementById('trending-movies');
+const goatsMoviesGrid = document.getElementById('goats-movies');
 const recentTrack = document.getElementById('recent-track');
 const recommendedMoviesGrid = document.getElementById('recommended-movies');
+const emCartazMoviesGrid = document.getElementById('em-cartaz-movies');
+const classicosMoviesGrid = document.getElementById('classicos-movies');
 
 // ===== Utility Functions =====
 function getFullImageUrl(path, isBackdrop = false) {
@@ -577,41 +238,53 @@ async function searchMovies(query) {
 }
 
 // ===== Initialize Homepage =====
-function initHomepage() {
-  if (trendingMoviesGrid) {
-    renderTrendingMovies();
-  }
-  if (recentTrack) {
-    renderRecentMovies();
-  }
-  if (recommendedMoviesGrid) {
-    renderRecommendedMovies();
-  }
-  
-  // Initialize carousel controls
+async function initHomepage() {
+  // Initialize non-async components first
   initCarouselControls();
-  
-  // Initialize filters
-  initFilters();
-  
-  // Set featured movie with TOP 5
-  setFeaturedMoviesCarousel();
+  // Filters disabled - would need API implementation
+
+  // Load async components with proper error handling
+  try {
+    if (goatsMoviesGrid) {
+      await renderGoatsMovies();
+    }
+    // Recent movies section not implemented yet (would need watch history from API)
+    if (recommendedMoviesGrid) {
+      await renderRecommendedMovies();
+    }
+    if (emCartazMoviesGrid) {
+      await renderEmCartazMovies();
+    }
+    if (classicosMoviesGrid) {
+      await renderClassicosMovies();
+    }
+
+    // Set featured movie with TOP 5 - must be after API data is loaded
+    await setFeaturedMoviesCarousel();
+  } catch (error) {
+    console.error('Erro ao inicializar página:', error);
+  }
 }
 
 // ===== Set Featured Movies Carousel (TOP 5) =====
 let currentFeaturedIndex = 0;
 let featuredRotationInterval = null;
 
-function setFeaturedMoviesCarousel() {
-  // Get top 5 movies by rating
-  const top5Movies = moviesDatabase
-    .sort((a, b) => b.nota - a.nota)
-    .slice(0, 5);
-  
-  if (top5Movies.length === 0) return;
-  
+async function setFeaturedMoviesCarousel() {
   const heroSection = document.querySelector('.hero');
   if (!heroSection) return;
+
+  // Fetch data if not already loaded
+  if (!apiData.heroMovies || apiData.heroMovies.length === 0) {
+    await fetchMoviesData();
+  }
+
+  const top5Movies = apiData.heroMovies;
+
+  if (top5Movies.length === 0) {
+    heroSection.innerHTML = '<p>Nenhum filme disponível no momento.</p>';
+    return;
+  }
   
   // Clear existing interval if any
   if (featuredRotationInterval) {
@@ -634,12 +307,12 @@ function setFeaturedMoviesCarousel() {
       const newImg = new Image();
       newImg.onload = function() {
         // Direct backdrop update without transition
-        heroBackdrop.src = getFullImageUrl(movie.backdrop, true);
+        heroBackdrop.src = getFullImageUrl(movie.backdrop_path, true);
         heroBackdrop.alt = movie.titulo;
         heroBackdrop.style.opacity = '0.6'; // Meio termo entre o fade forte e fraco
         heroBackdrop.style.filter = 'blur(0px)';
       };
-      newImg.src = getFullImageUrl(movie.backdrop, true);
+      newImg.src = getFullImageUrl(movie.backdrop_path, true);
     }
     
     // Stagger text changes for seamless transition
@@ -671,19 +344,7 @@ function setFeaturedMoviesCarousel() {
       }
     }, 400);
     
-    setTimeout(() => {
-      if (heroSynopsis) {
-        heroSynopsis.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-        heroSynopsis.style.transform = 'translateY(15px)';
-        heroSynopsis.style.opacity = '0';
-        
-        setTimeout(() => {
-          heroSynopsis.textContent = obterSinopsePersonalizada(movie.id, movie.sinopse);
-          heroSynopsis.style.transform = 'translateY(0)';
-          heroSynopsis.style.opacity = '1';
-        }, 200);
-      }
-    }, 600);
+    // Sinopse removida da hero section
     
     setTimeout(() => {
       if (heroMeta) {
@@ -692,6 +353,10 @@ function setFeaturedMoviesCarousel() {
         heroMeta.style.opacity = '0';
         
         setTimeout(() => {
+          // Converter nota da escala 10 para escala 5 com 1 casa decimal
+          const notaEscala10 = movie.nota || movie.nota_estrelas * 2 || 0;
+          const notaEscala5 = (notaEscala10 / 2).toFixed(1);
+
           heroMeta.innerHTML = `
             <span class="hero-year">${movie.ano}</span>
             <span class="hero-duration">${movie.duracao}</span>
@@ -699,7 +364,7 @@ function setFeaturedMoviesCarousel() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              ${(movie.nota / 2).toFixed(1)}
+              ${notaEscala5}
             </span>
           `;
           heroMeta.style.transform = 'scale(1)';
@@ -833,47 +498,97 @@ function setFeaturedMoviesCarousel() {
     const currentMovie = top5Movies[currentFeaturedIndex];
     if (currentMovie) {
       // Redirect imediatamente (sem animação de clique)
-      window.location.href = `html/filmes.html?id=${currentMovie.id}`;
+      window.location.href = `/filmes/${currentMovie.tmdb_id}/`;
     }
   });
 }
 
-// ===== Render Trending Movies =====
-function renderTrendingMovies() {
-  if (!trendingMoviesGrid) return;
-  
-  const trendingMovies = moviesDatabase
-    .sort((a, b) => b.nota - a.nota);
-  
-  trendingMoviesGrid.innerHTML = trendingMovies.map(movie => createMovieCard(movie)).join('');
+// ===== Render GOATS Movies =====
+window.renderGoatsMovies = async function() {
+  if (!goatsMoviesGrid) return;
+
+  // Show loading state
+  showLoadingState(goatsMoviesGrid);
+
+  // Fetch data if not already loaded
+  if (!apiData.goats || apiData.goats.length === 0) {
+    await fetchMoviesData();
+  }
+
+  const goatsMovies = apiData.goats;
+
+  if (!goatsMovies || goatsMovies.length === 0) {
+    goatsMoviesGrid.innerHTML = '<p class="no-movies">Nenhum filme GOATS encontrado.</p>';
+    return;
+  }
+
+  goatsMoviesGrid.innerHTML = goatsMovies.map(movie => createMovieCard(movie)).join('');
 }
 
 // ===== Render Recent Movies =====
-function renderRecentMovies() {
-  if (!recentTrack) return;
-  
-  const recentMovies = moviesDatabase
-    .filter(movie => movie.assistido);
-  
-  recentTrack.innerHTML = recentMovies.map(movie => createMovieCard(movie)).join('');
-}
+// Function removed - not implemented yet (would need watch history from API)
 
 // ===== Render Recommended Movies =====
-function renderRecommendedMovies() {
+window.renderRecommendedMovies = async function() {
   if (!recommendedMoviesGrid) return;
-  
-  const recommendedMovies = moviesDatabase
-    .filter(movie => !movie.assistido && movie.nota >= 8.0);
-  
+
+  // Show loading state
+  showLoadingState(recommendedMoviesGrid);
+
+  // Fetch data if not already loaded
+  if (!apiData.recommended || apiData.recommended.length === 0) {
+    await fetchMoviesData();
+  }
+
+  const recommendedMovies = apiData.recommended;
+
   recommendedMoviesGrid.innerHTML = recommendedMovies.map(movie => createMovieCard(movie)).join('');
+}
+
+// ===== Render Em Cartaz Movies =====
+window.renderEmCartazMovies = async function() {
+  if (!emCartazMoviesGrid) return;
+
+  // Show loading state
+  showLoadingState(emCartazMoviesGrid);
+
+  // Fetch data if not already loaded
+  if (!apiData.emCartaz || apiData.emCartaz.length === 0) {
+    await fetchMoviesData();
+  }
+
+  const emCartazMovies = apiData.emCartaz;
+
+  emCartazMoviesGrid.innerHTML = emCartazMovies.map(movie => createMovieCard(movie)).join('');
+}
+
+// ===== Render Clássicos Movies =====
+window.renderClassicosMovies = async function() {
+  if (!classicosMoviesGrid) return;
+
+  // Show loading state
+  showLoadingState(classicosMoviesGrid);
+
+  // Fetch data if not already loaded
+  if (!apiData.classicos || apiData.classicos.length === 0) {
+    await fetchMoviesData();
+  }
+
+  const classicosMovies = apiData.classicos;
+
+  classicosMoviesGrid.innerHTML = classicosMovies.map(movie => createMovieCard(movie)).join('');
 }
 
 // ===== Create Movie Card =====
 function createMovieCard(movie) {
-  const posterUrl = getFullImageUrl(movie.poster);
-  
+  const posterUrl = getFullImageUrl(movie.poster_path);
+
+  // Converter nota da escala 10 para escala 5 com 1 casa decimal
+  const notaEscala10 = movie.nota || movie.nota_estrelas * 2 || 0;
+  const notaEscala5 = (notaEscala10 / 2).toFixed(1);
+
   return `
-    <div class="movie-card" data-id="${movie.id}">
+    <div class="movie-card" data-id="${movie.tmdb_id}">
       <div class="movie-card-poster">
         <img src="${posterUrl}" alt="${movie.titulo}" loading="lazy" />
         <div class="movie-card-overlay">
@@ -881,7 +596,7 @@ function createMovieCard(movie) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            ${(movie.nota / 2).toFixed(1)}
+            ${notaEscala5}
           </span>
         </div>
       </div>
@@ -1002,57 +717,10 @@ function initFilters() {
 }
 
 // ===== Filter Movies by Genre =====
-function filterMoviesByGenre(genre) {
-  if (!trendingMoviesGrid) return;
-  
-  let filteredMovies;
-  
-  if (genre === 'Todos') {
-    filteredMovies = moviesDatabase;
-  } else {
-    filteredMovies = moviesDatabase.filter(movie => 
-      movie.generos.includes(genre)
-    );
-  }
-  
-  showLoading(trendingMoviesGrid);
-  
-  setTimeout(() => {
-    trendingMoviesGrid.innerHTML = filteredMovies
-      .map(movie => createMovieCard(movie))
-      .join('');
-  }, 300);
-}
+// Function removed - filtering would need to be implemented with API calls
 
 // ===== Sort Movies =====
-function sortMovies(sortBy) {
-  if (!trendingMoviesGrid) return;
-  
-  let sortedMovies = [...moviesDatabase];
-  
-  switch(sortBy) {
-    case 'Mais populares':
-      sortedMovies.sort((a, b) => b.nota - a.nota);
-      break;
-    case 'Melhor avaliados':
-      sortedMovies.sort((a, b) => b.imdbRating - a.imdbRating);
-      break;
-    case 'Lançamentos':
-      sortedMovies.sort((a, b) => b.ano - a.ano);
-      break;
-    case 'Alfabético':
-      sortedMovies.sort((a, b) => a.titulo.localeCompare(b.titulo));
-      break;
-  }
-  
-  showLoading(trendingMoviesGrid);
-  
-  setTimeout(() => {
-    trendingMoviesGrid.innerHTML = sortedMovies
-      .map(movie => createMovieCard(movie))
-      .join('');
-  }, 300);
-}
+// Function removed - sorting would need to be implemented with API calls
 
 // ===== Movie Detail Page Functionality =====
 function initMovieDetailPage() {
@@ -1119,39 +787,7 @@ function initMovieDetailPage() {
 }
 
 // ===== Load Movie Details =====
-function loadMovieDetails() {
-  // Get movie ID from URL parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  const movieId = urlParams.get('id');
-  
-  if (!movieId) {
-    console.error('No movie ID provided in URL');
-    return;
-  }
-  
-  // Find movie in database
-  const movie = moviesDatabase.find(m => m.id == movieId);
-  
-  if (!movie) {
-    console.error('Movie not found:', movieId);
-    return;
-  }
-  
-  // Update page title
-  document.title = `${movie.titulo} — Backstage`;
-  
-  // Update movie hero section
-  updateMovieHero(movie);
-  
-  // Update cast section
-  updateCastSection(movie);
-  
-  // Update similar movies section
-  updateSimilarMovies(movie);
-  
-  // Initialize tab contents
-  initTabContents(movie);
-}
+// Function removed - movie details now handled by movie_details.js with Django backend
 
 // ===== Update Movie Hero =====
 function updateMovieHero(movie) {
@@ -1572,15 +1208,15 @@ function initSearch() {
         
         console.log('Resultados da busca:', { local: localResults, api: apiResults });
         
-        // Display search results in trending section for demo
-        if (trendingMoviesGrid && localResults.length > 0) {
-          trendingMoviesGrid.innerHTML = localResults
+        // Display search results in GOATS section for demo
+        if (goatsMoviesGrid && localResults.length > 0) {
+          goatsMoviesGrid.innerHTML = localResults
             .map(movie => createMovieCard(movie))
             .join('');
         }
       } else if (searchTerm.length === 0) {
-        // Reset to trending movies
-        renderTrendingMovies();
+        // Reset to GOATS movies
+        renderGoatsMovies();
       }
     }, 300));
   }
@@ -1630,21 +1266,20 @@ function handleImageError(img) {
   img.onerror = null;
 }
 
-// ===== Make moviesDatabase and API config available globally for other scripts =====
-window.moviesDatabase = moviesDatabase;
+// ===== Make API config available globally for other scripts =====
 window.TMDB_API_KEY = TMDB_API_KEY;
 window.TMDB_BASE_URL = TMDB_BASE_URL;
 window.TMDB_IMAGE_BASE_URL = TMDB_IMAGE_BASE_URL;
 window.TMDB_BACKDROP_BASE_URL = TMDB_BACKDROP_BASE_URL;
 
 // ===== Initialize Everything =====
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Check which page we're on
-  const isHomepage = document.getElementById('trending-movies');
+  const isHomepage = document.getElementById('goats-movies');
   const isMovieDetail = document.querySelector('.movie-hero');
-  
+
   if (isHomepage) {
-    initHomepage();
+    await initHomepage();
     initSearch();
     initRefreshButton();
   }
@@ -1679,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const movieId = card.dataset.id;
       
       // Redirect to movie detail page
-      window.location.href = `html/filmes.html?id=${movieId}`;
+      window.location.href = `/filmes/${movieId}/`;
     }
   });
   

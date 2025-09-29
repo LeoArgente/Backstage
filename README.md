@@ -56,7 +56,7 @@ Permite que o usuário salve um filme para assistir mais tarde
 ## HISTÓRIA 3:
 Permite que o usuário deixa uma resenha sobre o filme.
 
-![Historia3](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/critica.PNG)
+![Historia3](imagens/critica.png)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Screencast

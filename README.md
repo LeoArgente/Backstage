@@ -60,7 +60,7 @@ Permite que o usuário deixa uma resenha sobre o filme.
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Screencast
-Você pode acessar (AQUI) o vídeo explicativo do nosso projeto já desenvolvido em Django, com as três histórias implementadas.
+Você pode acessar ([AQUI](https://youtu.be/MOOjIxs7I2w)) o vídeo explicativo do nosso projeto já desenvolvido em Django, com as três histórias implementadas.
 
 ## Backlog no Jira
 ![backlog2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/backlog2.PNG)

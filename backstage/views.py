@@ -34,7 +34,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from rapidfuzz import fuzz
 
-def buscar(request):
+def barra_buscar(request):
     query = request.GET.get("q", "").strip()
     resultados = []
 
@@ -356,7 +356,7 @@ def detalhes_filme(request, tmdb_id):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
         }
     return render(request, "backstage/movie_details.html", context)
-
+'''
 def buscar(request):
 
     query = request.GET.get('q', '')
@@ -374,7 +374,7 @@ def buscar(request):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
     return render(request, "backstage/busca.html", context)
-
+'''
 def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:

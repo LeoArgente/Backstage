@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -22,7 +22,13 @@ from .services.tmdb import (
     obter_goats,
     obter_em_cartaz,
     obter_classicos,
-    converter_para_estrelas
+    converter_para_estrelas,
+    buscar_series_populares,
+    buscar_detalhes_serie,
+    buscar_temporada,
+    buscar_filme_destaque,
+    buscar_filmes_populares,
+    buscar_filme_por_titulo,
 )
 
 @login_required(login_url='backstage:login')
@@ -85,8 +91,7 @@ def pagina_login(request):
     return render(request, 'backstage/login.html')
 
 def index(request):
-    from backstage.services.tmdb import buscar_filme_destaque
-
+    
     try:
         filme_destaque = buscar_filme_destaque()
     except:
@@ -213,7 +218,7 @@ def lists(request):
     return render(request, "backstage/lists.html", context)
 
 def movies(request):
-    from backstage.services.tmdb import buscar_filmes_populares
+
     try:
         filmes = buscar_filmes_populares()
     except:
@@ -229,7 +234,7 @@ def noticias(request):
     return render(request, "backstage/noticias.html")
 
 def series(request):
-    from backstage.services.tmdb import buscar_series_populares
+
     try:
         series_list = buscar_series_populares()
     except:
@@ -245,11 +250,10 @@ def wireframer(request):
     return render(request, "backstage/wireframer.html")
 
 # back vitor e henrique ###########################################################################
-from .models import Filme, Critica
 
 @login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
-    from backstage.services.tmdb import obter_detalhes_com_cache
+
     notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
 
     #Busca dados do filme da API
@@ -290,7 +294,7 @@ def adicionar_critica(request, tmdb_id):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL})
 
 def detalhes_filme(request, tmdb_id):
-    from backstage.services.tmdb import obter_detalhes_com_cache
+
     try:
         dados_filme = obter_detalhes_com_cache(tmdb_id)
     except:
@@ -315,7 +319,6 @@ def detalhes_filme(request, tmdb_id):
     return render(request, "backstage/movie_details.html", context)
 
 def buscar(request):
-    from backstage.services.tmdb import buscar_filme_por_titulo
 
     query = request.GET.get('q', '')
     resultados = []
@@ -381,8 +384,6 @@ def filmes_home(request):
             'classicos': []
         }, status=500)
 
-from django.http import JsonResponse
-from .models import Critica
 
 def relatorio(request):
     # Pega as 10 críticas mais recentes
@@ -624,8 +625,6 @@ def remover_filme_da_lista(request, lista_id, tmdb_id):
     
 def detalhes_serie(request, tmdb_id):
     """View para mostrar detalhes de uma série"""
-    from backstage.services.tmdb import buscar_detalhes_serie
-    from backstage.models import Serie, CriticaSerie
     
     try:
         # Buscar dados da API
@@ -701,7 +700,6 @@ def salvar_critica_serie(request):
 
 def buscar_temporada_api(request, tmdb_id, numero_temporada):
     """API endpoint para buscar episódios de uma temporada"""
-    from backstage.services.tmdb import buscar_temporada
     
     try:
         dados_temporada = buscar_temporada(tmdb_id, numero_temporada)

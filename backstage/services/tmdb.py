@@ -1,4 +1,6 @@
 import json
+import requests
+import random
 from urllib import request, parse
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
@@ -504,9 +506,7 @@ def obter_classicos(limit=12, usar_cache=True):
 
 def buscar_detalhes_serie(tmdb_id):
     """Busca detalhes completos de uma série no TMDb"""
-    from django.conf import settings
-    import requests
-    
+   
     api_key = settings.TMDB_API_KEY
     url = f"https://api.themoviedb.org/3/tv/{tmdb_id}"
     
@@ -547,9 +547,7 @@ def buscar_detalhes_serie(tmdb_id):
 
 def buscar_temporada(tmdb_id, numero_temporada):
     """Busca detalhes de uma temporada específica"""
-    from django.conf import settings
-    import requests
-    
+
     api_key = settings.TMDB_API_KEY
     url = f"https://api.themoviedb.org/3/tv/{tmdb_id}/season/{numero_temporada}"
     
@@ -607,6 +605,22 @@ def formatar_equipe_serie(crew):
             })
     
     return equipe_filtrada[:20]  # Limitar a 20
+
+def formatar_elenco(cast_list):
+    elenco_formatado = []
+    
+    for ator in cast_list[:20]:  # Limitar a 20 atores
+        elenco_formatado.append({
+            'nome': ator.get('name', 'Nome não disponível'),
+            'personagem': ator.get('character', 'Personagem não disponível'),
+            'foto_path': ator.get('profile_path'),
+            'ordem': ator.get('order', 999)
+        })
+    
+    # Ordenar por ordem de aparição
+    elenco_formatado.sort(key=lambda x: x['ordem'])
+    
+    return elenco_formatado
 
 def traduzir_cargo(cargo):
     """Traduz cargos para português"""

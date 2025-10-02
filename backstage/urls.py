@@ -32,4 +32,7 @@ urlpatterns = [
     path('api/lista/<int:lista_id>/visualizar/', views.visualizar_lista, name='visualizar_lista'),
     path('api/lista/<int:lista_id>/adicionar/<int:tmdb_id>/', views.adicionar_filme_lista, name='adicionar_filme_lista'),
     path('api/lista/<int:lista_id>/remover/<int:tmdb_id>/', views.remover_filme_da_lista, name='remover_filme_lista'),
+    path('series/<int:tmdb_id>/', views.detalhes_serie, name='detalhes_serie'),
+    path('salvar-critica-serie/', views.salvar_critica_serie, name='salvar_critica_serie'),
+    path('api/series/<int:tmdb_id>/temporada/<int:numero_temporada>/', views.buscar_temporada_api, name='buscar_temporada'),
 ]

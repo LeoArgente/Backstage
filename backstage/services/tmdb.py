@@ -1,4 +1,6 @@
 import json
+import requests
+import random
 from urllib import request, parse
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
@@ -501,3 +503,132 @@ def obter_classicos(limit=12, usar_cache=True):
         )
 
     return classics_movies
+
+def buscar_detalhes_serie(tmdb_id):
+    """Busca detalhes completos de uma série no TMDb"""
+   
+    api_key = settings.TMDB_API_KEY
+    url = f"https://api.themoviedb.org/3/tv/{tmdb_id}"
+    
+    params = {
+        'api_key': api_key,
+        'language': 'pt-BR',
+        'append_to_response': 'credits,videos,images,similar,content_ratings'
+    }
+    
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+    
+    # Formatar dados
+    return {
+        'tmdb_id': data.get('id'),
+        'titulo': data.get('name'),
+        'titulo_original': data.get('original_name'),
+        'sinopse': data.get('overview'),
+        'poster_path': data.get('poster_path'),
+        'backdrop_path': data.get('backdrop_path'),
+        'nota_tmdb': data.get('vote_average'),
+        'votos': data.get('vote_count'),
+        'numero_temporadas': data.get('number_of_seasons'),
+        'numero_episodios': data.get('number_of_episodes'),
+        'status': traduzir_status_serie(data.get('status')),
+        'data_primeira_exibicao': data.get('first_air_date'),
+        'data_ultima_exibicao': data.get('last_air_date'),
+        'criadores': [c.get('name') for c in data.get('created_by', [])],
+        'generos': [g.get('name') for g in data.get('genres', [])],
+        'redes': [n.get('name') for n in data.get('networks', [])],
+        'elenco_principal': formatar_elenco(data.get('credits', {}).get('cast', [])[:10]),
+        'equipe': formatar_equipe_serie(data.get('credits', {}).get('crew', [])),
+        'temporadas': data.get('seasons', []),
+        'videos': data.get('videos', {}).get('results', []),
+        'series_similares': data.get('similar', {}).get('results', [])[:12],
+    }
+
+def buscar_temporada(tmdb_id, numero_temporada):
+    """Busca detalhes de uma temporada específica"""
+
+    api_key = settings.TMDB_API_KEY
+    url = f"https://api.themoviedb.org/3/tv/{tmdb_id}/season/{numero_temporada}"
+    
+    params = {
+        'api_key': api_key,
+        'language': 'pt-BR'
+    }
+    
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+    
+    return {
+        'numero_temporada': data.get('season_number'),
+        'nome': data.get('name'),
+        'sinopse': data.get('overview'),
+        'poster_path': data.get('poster_path'),
+        'data_exibicao': data.get('air_date'),
+        'episodios': [
+            {
+                'numero': ep.get('episode_number'),
+                'nome': ep.get('name'),
+                'sinopse': ep.get('overview'),
+                'nota': ep.get('vote_average'),
+                'data_exibicao': ep.get('air_date'),
+                'duracao': ep.get('runtime'),
+                'imagem': ep.get('still_path')
+            }
+            for ep in data.get('episodes', [])
+        ]
+    }
+
+def traduzir_status_serie(status):
+    """Traduz o status da série"""
+    traducoes = {
+        'Returning Series': 'Em exibição',
+        'Ended': 'Finalizada',
+        'Canceled': 'Cancelada',
+        'In Production': 'Em produção',
+        'Planned': 'Planejada'
+    }
+    return traducoes.get(status, status)
+
+def formatar_equipe_serie(crew):
+    """Formata a equipe de uma série"""
+    cargos_importantes = ['Creator', 'Executive Producer', 'Producer', 'Writer', 'Director']
+    equipe_filtrada = []
+    
+    for membro in crew:
+        if membro.get('job') in cargos_importantes:
+            equipe_filtrada.append({
+                'nome': membro.get('name'),
+                'cargo': traduzir_cargo(membro.get('job')),
+                'foto_path': membro.get('profile_path')
+            })
+    
+    return equipe_filtrada[:20]  # Limitar a 20
+
+def formatar_elenco(cast_list):
+    elenco_formatado = []
+    
+    for ator in cast_list[:20]:  # Limitar a 20 atores
+        elenco_formatado.append({
+            'nome': ator.get('name', 'Nome não disponível'),
+            'personagem': ator.get('character', 'Personagem não disponível'),
+            'foto_path': ator.get('profile_path'),
+            'ordem': ator.get('order', 999)
+        })
+    
+    # Ordenar por ordem de aparição
+    elenco_formatado.sort(key=lambda x: x['ordem'])
+    
+    return elenco_formatado
+
+def traduzir_cargo(cargo):
+    """Traduz cargos para português"""
+    traducoes = {
+        'Creator': 'Criador',
+        'Executive Producer': 'Produtor Executivo',
+        'Producer': 'Produtor',
+        'Writer': 'Roteirista',
+        'Director': 'Diretor'
+    }
+    return traducoes.get(cargo, cargo)

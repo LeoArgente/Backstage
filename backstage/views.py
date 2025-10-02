@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -21,7 +21,13 @@ from .services.tmdb import (
     obter_goats,
     obter_em_cartaz,
     obter_classicos,
-    converter_para_estrelas
+    converter_para_estrelas,
+    buscar_series_populares,
+    buscar_detalhes_serie,
+    buscar_temporada,
+    buscar_filme_destaque,
+    buscar_filmes_populares,
+    buscar_filme_por_titulo,
 )
 #####################
 from django.db.models import Q
@@ -124,8 +130,7 @@ def pagina_login(request):
     return render(request, 'backstage/login.html')
 
 def index(request):
-    from backstage.services.tmdb import buscar_filme_destaque
-
+    
     try:
         filme_destaque = buscar_filme_destaque()
     except:
@@ -252,7 +257,7 @@ def lists(request):
     return render(request, "backstage/lists.html", context)
 
 def movies(request):
-    from backstage.services.tmdb import buscar_filmes_populares
+
     try:
         filmes = buscar_filmes_populares()
     except:
@@ -268,7 +273,7 @@ def noticias(request):
     return render(request, "backstage/noticias.html")
 
 def series(request):
-    from backstage.services.tmdb import buscar_series_populares
+
     try:
         series_list = buscar_series_populares()
     except:
@@ -284,11 +289,10 @@ def wireframer(request):
     return render(request, "backstage/wireframer.html")
 
 # back vitor e henrique ###########################################################################
-from .models import Filme, Critica
 
 @login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
-    from backstage.services.tmdb import obter_detalhes_com_cache
+
     notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
 
     #Busca dados do filme da API
@@ -329,7 +333,7 @@ def adicionar_critica(request, tmdb_id):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL})
 
 def detalhes_filme(request, tmdb_id):
-    from backstage.services.tmdb import obter_detalhes_com_cache
+
     try:
         dados_filme = obter_detalhes_com_cache(tmdb_id)
     except:
@@ -354,7 +358,6 @@ def detalhes_filme(request, tmdb_id):
     return render(request, "backstage/movie_details.html", context)
 
 def buscar(request):
-    from backstage.services.tmdb import buscar_filme_por_titulo
 
     query = request.GET.get('q', '')
     resultados = []
@@ -420,8 +423,6 @@ def filmes_home(request):
             'classicos': []
         }, status=500)
 
-from django.http import JsonResponse
-from .models import Critica
 
 def relatorio(request):
     # Pega as 10 críticas mais recentes
@@ -660,3 +661,93 @@ def remover_filme_da_lista(request, lista_id, tmdb_id):
         return JsonResponse({'success': False, 'message': 'Item não encontrado!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+    
+def detalhes_serie(request, tmdb_id):
+    """View para mostrar detalhes de uma série"""
+    
+    try:
+        # Buscar dados da API
+        dados_serie = buscar_detalhes_serie(tmdb_id)
+    except:
+        return render(request, '404.html', {'erro': 'Série não encontrada'})
+    
+    # Criar ou buscar série no banco local
+    serie_local, created = Serie.objects.get_or_create(
+        tmdb_id=tmdb_id,
+        defaults={
+            'titulo': dados_serie.get('titulo', ''),
+            'descricao': dados_serie.get('sinopse', ''),
+            'numero_temporadas': dados_serie.get('numero_temporadas', 0),
+            'numero_episodios': dados_serie.get('numero_episodios', 0),
+            'status': dados_serie.get('status', ''),
+        }
+    )
+    
+    # Buscar críticas locais
+    criticas = CriticaSerie.objects.filter(serie=serie_local).order_by('-criado_em')
+    
+    context = {
+        'serie': dados_serie,
+        'serie_local': serie_local,
+        'criticas': criticas,
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+    }
+    
+    return render(request, "backstage/series_details.html", context)
+
+@login_required(login_url='backstage:login')
+def salvar_critica_serie(request):
+    """Salvar crítica de série"""
+    if request.method == 'POST':
+        serie_id = request.POST.get('serie_id')
+        nota = request.POST.get('nota')
+        texto = request.POST.get('texto')
+        
+        if not serie_id or not texto or not nota:
+            messages.error(request, 'Todos os campos são obrigatórios.')
+            return redirect(f'/series/{serie_id}/')
+        
+        try:
+            nota_int = int(float(nota))
+            if nota_int < 1 or nota_int > 5:
+                messages.error(request, 'A nota deve ser entre 1 e 5.')
+                return redirect(f'/series/{serie_id}/')
+            
+            # Criar ou buscar série local
+            serie, created = Serie.objects.get_or_create(
+                tmdb_id=int(serie_id),
+                defaults={'titulo': f'Série TMDb {serie_id}'}
+            )
+            
+            # Criar crítica
+            CriticaSerie.objects.create(
+                serie=serie,
+                usuario=request.user,
+                texto=texto,
+                nota=nota_int
+            )
+            
+            messages.success(request, 'Sua avaliação foi salva com sucesso!')
+            return redirect(f'/series/{serie_id}/')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao salvar avaliação: {str(e)}')
+            return redirect(f'/series/{serie_id}/')
+    else:
+        messages.error(request, 'Método não permitido.')
+        return redirect('backstage:index')
+
+def buscar_temporada_api(request, tmdb_id, numero_temporada):
+    """API endpoint para buscar episódios de uma temporada"""
+    
+    try:
+        dados_temporada = buscar_temporada(tmdb_id, numero_temporada)
+        return JsonResponse({
+            'success': True,
+            'temporada': dados_temporada
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+            }, status=500)

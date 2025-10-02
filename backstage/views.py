@@ -621,3 +621,96 @@ def remover_filme_da_lista(request, lista_id, tmdb_id):
         return JsonResponse({'success': False, 'message': 'Item não encontrado!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+    
+def detalhes_serie(request, tmdb_id):
+    """View para mostrar detalhes de uma série"""
+    from backstage.services.tmdb import buscar_detalhes_serie
+    from backstage.models import Serie, CriticaSerie
+    
+    try:
+        # Buscar dados da API
+        dados_serie = buscar_detalhes_serie(tmdb_id)
+    except:
+        return render(request, '404.html', {'erro': 'Série não encontrada'})
+    
+    # Criar ou buscar série no banco local
+    serie_local, created = Serie.objects.get_or_create(
+        tmdb_id=tmdb_id,
+        defaults={
+            'titulo': dados_serie.get('titulo', ''),
+            'descricao': dados_serie.get('sinopse', ''),
+            'numero_temporadas': dados_serie.get('numero_temporadas', 0),
+            'numero_episodios': dados_serie.get('numero_episodios', 0),
+            'status': dados_serie.get('status', ''),
+        }
+    )
+    
+    # Buscar críticas locais
+    criticas = CriticaSerie.objects.filter(serie=serie_local).order_by('-criado_em')
+    
+    context = {
+        'serie': dados_serie,
+        'serie_local': serie_local,
+        'criticas': criticas,
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+    }
+    
+    return render(request, "backstage/series_details.html", context)
+
+@login_required(login_url='backstage:login')
+def salvar_critica_serie(request):
+    """Salvar crítica de série"""
+    if request.method == 'POST':
+        serie_id = request.POST.get('serie_id')
+        nota = request.POST.get('nota')
+        texto = request.POST.get('texto')
+        
+        if not serie_id or not texto or not nota:
+            messages.error(request, 'Todos os campos são obrigatórios.')
+            return redirect(f'/series/{serie_id}/')
+        
+        try:
+            nota_int = int(float(nota))
+            if nota_int < 1 or nota_int > 5:
+                messages.error(request, 'A nota deve ser entre 1 e 5.')
+                return redirect(f'/series/{serie_id}/')
+            
+            # Criar ou buscar série local
+            serie, created = Serie.objects.get_or_create(
+                tmdb_id=int(serie_id),
+                defaults={'titulo': f'Série TMDb {serie_id}'}
+            )
+            
+            # Criar crítica
+            CriticaSerie.objects.create(
+                serie=serie,
+                usuario=request.user,
+                texto=texto,
+                nota=nota_int
+            )
+            
+            messages.success(request, 'Sua avaliação foi salva com sucesso!')
+            return redirect(f'/series/{serie_id}/')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao salvar avaliação: {str(e)}')
+            return redirect(f'/series/{serie_id}/')
+    else:
+        messages.error(request, 'Método não permitido.')
+        return redirect('backstage:index')
+
+def buscar_temporada_api(request, tmdb_id, numero_temporada):
+    """API endpoint para buscar episódios de uma temporada"""
+    from backstage.services.tmdb import buscar_temporada
+    
+    try:
+        dados_temporada = buscar_temporada(tmdb_id, numero_temporada)
+        return JsonResponse({
+            'success': True,
+            'temporada': dados_temporada
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+            }, status=500)

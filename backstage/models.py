@@ -52,3 +52,28 @@ class ItemLista(models.Model):
     posicao = models.PositiveIntegerField(default=0)
     class Meta:
         unique_together = ('lista', 'filme')
+
+class Serie(models.Model):
+    tmdb_id = models.IntegerField(unique=True)
+    titulo = models.CharField(max_length=255)
+    descricao = models.TextField(blank=True, null=True)
+    numero_temporadas = models.IntegerField(default=0)
+    numero_episodios = models.IntegerField(default=0)
+    status = models.CharField(max_length=50, blank=True, null=True)  # "Em exibição", "Finalizada"
+    data_primeira_exibicao = models.DateField(blank=True, null=True)
+    data_ultima_exibicao = models.DateField(blank=True, null=True)
+    poster = models.URLField(blank=True, null=True)
+    backdrop = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.titulo
+
+class CriticaSerie(models.Model):
+    serie = models.ForeignKey(Serie, on_delete=models.CASCADE, related_name="criticas")
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    texto = models.TextField("Sua análise")
+    nota = models.IntegerField(choices=[(i, f"{i} ⭐") for i in range(1, 6)], default=5)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.usuario} - {self.serie} ({self.nota})"

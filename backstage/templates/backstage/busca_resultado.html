@@ -1,0 +1,26 @@
+<h2>Resultados para "{{ query }}"</h2>
+
+<ul>
+  {% for filme in page_obj %}
+    <li>
+      <strong>{{ filme.title }}</strong><br>
+      Elenco: {{ filme.cast }}<br>
+      Gênero: {{ filme.genre }}
+    </li>
+  {% empty %}
+    <li>Nenhum resultado encontrado</li>
+  {% endfor %}
+</ul>
+
+<!-- 🔹 Navegação da paginação -->
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Anterior</a>
+  {% endif %}
+
+  <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+  {% if page_obj.has_next %}
+    <a href="?q={{ query }}&page={{ page_obj.next_page_number }}">Próxima</a>
+  {% endif %}
+</div>

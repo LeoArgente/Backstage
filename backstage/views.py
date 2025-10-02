@@ -13,7 +13,6 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-
 from .services.tmdb import (
     obter_detalhes_com_cache,
     montar_payload_agregado,
@@ -30,6 +29,46 @@ from .services.tmdb import (
     buscar_filmes_populares,
     buscar_filme_por_titulo,
 )
+#####################
+from django.db.models import Q
+from django.core.paginator import Paginator
+from rapidfuzz import fuzz
+
+def barra_buscar(request):
+    query = request.GET.get("q", "").strip()
+    resultados = []
+
+    if query:
+        candidatos = Filme.objects.filter(
+            Q(title__icontains=query) |
+            Q(cast__icontains=query) |
+            Q(genre__icontains=query)
+        )
+
+        resultados = []
+        for filme in candidatos:
+            score_title = fuzz.partial_ratio(query.lower(), filme.title.lower())
+            score_cast = fuzz.partial_ratio(query.lower(), filme.cast.lower())
+            score_genre = fuzz.partial_ratio(query.lower(), filme.genre.lower())
+            score = max(score_title, score_cast, score_genre)
+            resultados.append((filme, score))
+
+        # Ordena pela relação com o termo buscado (maior primeiro)
+        resultados.sort(key=lambda x: x[1], reverse=True)
+
+        # Mantém só os objetos Filme
+        resultados = [r[0] for r in resultados]
+
+    # 🔹 Paginação: 10 resultados por página
+    paginator = Paginator(resultados, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "results.html", {
+        "query": query,
+        "page_obj": page_obj,  # objeto de paginação
+    })
+########################
 
 @login_required(login_url='backstage:login')
 def salvar_critica(request):
@@ -317,7 +356,7 @@ def detalhes_filme(request, tmdb_id):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
         }
     return render(request, "backstage/movie_details.html", context)
-
+'''
 def buscar(request):
 
     query = request.GET.get('q', '')
@@ -335,7 +374,7 @@ def buscar(request):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
     return render(request, "backstage/busca.html", context)
-
+'''
 def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:

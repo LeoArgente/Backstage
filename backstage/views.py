@@ -676,14 +676,21 @@ def detalhes_serie(request, tmdb_id):
     
     # Buscar críticas locais
     criticas = CriticaSerie.objects.filter(serie=serie_local).order_by('-criado_em')
-    
+
+    # Converter temporadas e vídeos para JSON
+    import json
+    temporadas_json = json.dumps(dados_serie.get('temporadas', []))
+    videos_json = json.dumps(dados_serie.get('videos', []))
+
     context = {
         'serie': dados_serie,
         'serie_local': serie_local,
         'criticas': criticas,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'temporadas_json': temporadas_json,
+        'videos_json': videos_json
     }
-    
+
     return render(request, "backstage/series_details.html", context)
 
 @login_required(login_url='backstage:login')

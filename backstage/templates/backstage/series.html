@@ -115,7 +115,7 @@
     <section class="series-grid-section">
       <div class="series-grid" id="series-grid">
         {% for serie in series %}
-        <div class="series-card">
+        <div class="series-card" onclick="window.location.href='{% url 'backstage:detalhes_serie' serie.tmdb_id %}'" style="cursor: pointer;">
           <div class="series-poster">
             <img src="{{ tmdb_image_base }}w500{{ serie.poster_path }}" alt="{{ serie.titulo }}" />
             <div class="series-overlay">

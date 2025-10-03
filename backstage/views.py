@@ -9,10 +9,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from functools import wraps
 from .services.tmdb import (
     obter_detalhes_com_cache,
     montar_payload_agregado,
@@ -69,6 +71,19 @@ def barra_buscar(request):
         "page_obj": page_obj,  # objeto de paginação
     })
 ########################
+
+# Decorator personalizado para APIs que retorna JSON em vez de redirecionar
+
+def api_login_required(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'message': 'Você precisa estar logado para realizar esta ação.'
+            }, status=401)
+        return function(request, *args, **kwargs)
+    return wrap
 
 @login_required(login_url='backstage:login')
 def salvar_critica(request):
@@ -419,26 +434,44 @@ class FilmeDetalheAPIView(APIView):
             # você pode logar 'e' com sentry/logging
             return Response({"detalhe": "Falha ao consultar a TMDb."}, status=status.HTTP_502_BAD_GATEWAY)
 
-@login_required(login_url='backstage:login')
-#@require_http_methods(["POST"])
+@api_login_required
+@require_http_methods(["POST"])
 def criar_lista(request):
     try:
-        data = json.loads(request.body)
+        # Verificar se o corpo da requisição não está vazio
+        if not request.body:
+            return JsonResponse({'success': False, 'message': 'Corpo da requisição está vazio'})
+
+        # Tentar fazer o parse do JSON
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as je:
+            return JsonResponse({'success': False, 'message': f'JSON inválido: {str(je)}'})
+
+        # Verificar se o nome foi fornecido
+        if 'nome' not in data or not data['nome']:
+            return JsonResponse({'success': False, 'message': 'Nome da lista é obrigatório'})
+
+        # Criar a lista
         lista = Lista.objects.create(
             nome=data['nome'],
             descricao=data.get('descricao', ''),
             usuario=request.user,
             publica=data.get('publica', False)
         )
+
         return JsonResponse({
             'success': True,
             'lista_id': lista.id,
             'message': 'Lista criada com sucesso!'
         })
-    except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)})
 
-@login_required(login_url='backstage:login')
+    except KeyError as ke:
+        return JsonResponse({'success': False, 'message': f'Campo obrigatório ausente: {str(ke)}'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Erro ao criar lista: {str(e)}'})
+
+@api_login_required
 def buscar_ou_criar_lista_watch_later(request):
     try:
         lista, created = Lista.objects.get_or_create(
@@ -458,7 +491,7 @@ def buscar_ou_criar_lista_watch_later(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
-@login_required(login_url='backstage:login')
+@api_login_required
 def buscar_listas_usuario(request):
     try:
         listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
@@ -477,7 +510,7 @@ def buscar_listas_usuario(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
-@login_required(login_url='backstage:login')
+@api_login_required
 @require_http_methods(["POST"])
 def adicionar_filme_lista(request, lista_id, tmdb_id):
     try:
@@ -503,7 +536,7 @@ def adicionar_filme_lista(request, lista_id, tmdb_id):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
-@login_required(login_url='backstage:login')
+@api_login_required
 def editar_lista(request, lista_id):
     try:
         lista = Lista.objects.get(id=lista_id, usuario=request.user)
@@ -536,7 +569,7 @@ def editar_lista(request, lista_id):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
-@login_required(login_url='backstage:login')
+@api_login_required
 def deletar_lista(request, lista_id):
     if request.method != 'DELETE':
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
@@ -556,7 +589,7 @@ def deletar_lista(request, lista_id):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
-@login_required(login_url='backstage:login')
+@api_login_required
 def visualizar_lista(request, lista_id):
     try:
         # Buscar lista do usuário ou lista pública

@@ -104,8 +104,17 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(data)
         })
-        .then(response => response.json())
+        .then(response => {
+            // Verificar se usuário não está autenticado (status 401)
+            if (response.status === 401) {
+                window.location.href = '/login/';
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data) return; // Se redirecionou, não processar
+
             if (data.success) {
                 alert('Lista criada com sucesso!');
                 location.reload(); // Recarrega para mostrar a nova lista
@@ -139,8 +148,17 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(data)
         })
-        .then(response => response.json())
+        .then(response => {
+            // Verificar se usuário não está autenticado (status 401)
+            if (response.status === 401) {
+                window.location.href = '/login/';
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data) return; // Se redirecionou, não processar
+
             if (data.success) {
                 alert('Lista atualizada com sucesso!');
                 closeEditModal();
@@ -181,8 +199,17 @@ window.editList = function(listId) {
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        // Verificar se usuário não está autenticado (status 401)
+        if (response.status === 401) {
+            window.location.href = '/login/';
+            return;
+        }
+        return response.json();
+    })
     .then(data => {
+        if (!data) return; // Se redirecionou, não processar
+
         if (data.success) {
             const lista = data.lista;
             document.getElementById('edit-list-id').value = lista.id;
@@ -209,8 +236,17 @@ window.deleteList = function(listId, listName) {
                 'X-CSRFToken': getCookie('csrftoken')
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            // Verificar se usuário não está autenticado (status 401)
+            if (response.status === 401) {
+                window.location.href = '/login/';
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data) return; // Se redirecionou, não processar
+
             if (data.success) {
                 alert(data.message);
                 // Remove the list card from the page
@@ -237,8 +273,17 @@ window.viewList = function(listId) {
             'X-CSRFToken': getCookie('csrftoken')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        // Verificar se usuário não está autenticado (status 401)
+        if (response.status === 401) {
+            window.location.href = '/login/';
+            return;
+        }
+        return response.json();
+    })
     .then(data => {
+        if (!data) return; // Se redirecionou, não processar
+
         if (data.success) {
             const lista = data.lista;
 

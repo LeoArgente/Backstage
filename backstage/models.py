@@ -77,3 +77,15 @@ class CriticaSerie(models.Model):
 
     def __str__(self):
         return f"{self.usuario} - {self.serie} ({self.nota})"
+
+class ItemListaSerie(models.Model):
+    lista = models.ForeignKey(Lista, on_delete=models.CASCADE, related_name='itens_serie')
+    serie = models.ForeignKey(Serie, on_delete=models.CASCADE)
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    posicao = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('lista', 'serie')
+
+    def __str__(self):
+        return f"{self.serie.titulo} em {self.lista.nome}"

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -262,8 +262,17 @@ def filmes(request):
 # back leo e lou ########################
 @login_required(login_url='backstage:login')
 def lists(request):
-    minhas_listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
-    listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).order_by('-atualizada_em')
+    from django.db.models import Count
+
+    minhas_listas = Lista.objects.filter(usuario=request.user).annotate(
+        num_filmes=Count('itens'),
+        num_series=Count('itens_serie')
+    ).order_by('-atualizada_em')
+
+    listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
+        num_filmes=Count('itens'),
+        num_series=Count('itens_serie')
+    ).order_by('-atualizada_em')
 
     context = {
         'minhas_listas': minhas_listas,
@@ -598,18 +607,34 @@ def visualizar_lista(request, lista_id):
         except Lista.DoesNotExist:
             lista = Lista.objects.get(id=lista_id, publica=True)
 
-        # Buscar itens da lista com detalhes dos filmes
-        itens = lista.itens.all().order_by('posicao')
+        # Buscar itens de filmes da lista
+        itens_filmes = lista.itens.all().order_by('posicao')
         filmes_data = []
-
-        for item in itens:
+        for item in itens_filmes:
             filmes_data.append({
+                'tipo': 'filme',
                 'tmdb_id': item.filme.tmdb_id,
                 'titulo': item.filme.titulo,
                 'descricao': item.filme.descricao,
                 'adicionado_em': item.adicionado_em.strftime('%d/%m/%Y'),
                 'posicao': item.posicao
             })
+
+        # Buscar itens de séries da lista
+        itens_series = lista.itens_serie.all().order_by('posicao')
+        series_data = []
+        for item in itens_series:
+            series_data.append({
+                'tipo': 'serie',
+                'tmdb_id': item.serie.tmdb_id,
+                'titulo': item.serie.titulo,
+                'descricao': item.serie.descricao,
+                'adicionado_em': item.adicionado_em.strftime('%d/%m/%Y'),
+                'posicao': item.posicao
+            })
+
+        # Combinar filmes e séries
+        todos_itens = filmes_data + series_data
 
         return JsonResponse({
             'success': True,
@@ -621,8 +646,10 @@ def visualizar_lista(request, lista_id):
                 'usuario': lista.usuario.username,
                 'criada_em': lista.criada_em.strftime('%d/%m/%Y'),
                 'atualizada_em': lista.atualizada_em.strftime('%d/%m/%Y'),
-                'filmes': filmes_data,
-                'total_filmes': len(filmes_data)
+                'itens': todos_itens,
+                'total_itens': len(todos_itens),
+                'total_filmes': len(filmes_data),
+                'total_series': len(series_data)
             }
         })
 
@@ -652,7 +679,54 @@ def remover_filme_da_lista(request, lista_id, tmdb_id):
         return JsonResponse({'success': False, 'message': 'Item não encontrado!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
-    
+
+@api_login_required
+def adicionar_serie_lista(request, lista_id, tmdb_id):
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        serie, _ = Serie.objects.get_or_create(
+            tmdb_id=tmdb_id,
+            defaults={'titulo': 'Série TMDB ' + str(tmdb_id)}
+        )
+
+        item, created = ItemListaSerie.objects.get_or_create(
+            lista=lista,
+            serie=serie,
+            defaults={'posicao': lista.itens_serie.count()}
+        )
+
+        if created:
+            return JsonResponse({'success': True, 'message': 'Série adicionada à lista!'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Série já está na lista!'})
+
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
+def remover_serie_da_lista(request, lista_id, tmdb_id):
+    if request.method != 'DELETE':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+    try:
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+        serie = Serie.objects.get(tmdb_id=tmdb_id)
+        item = ItemListaSerie.objects.get(lista=lista, serie=serie)
+
+        item.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Série removida da lista com sucesso!'
+        })
+
+    except (Lista.DoesNotExist, Serie.DoesNotExist, ItemListaSerie.DoesNotExist):
+        return JsonResponse({'success': False, 'message': 'Item não encontrado!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
 def detalhes_serie(request, tmdb_id):
     """View para mostrar detalhes de uma série"""
     

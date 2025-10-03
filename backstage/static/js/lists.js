@@ -266,7 +266,7 @@ window.deleteList = function(listId, listName) {
 }
 
 window.viewList = function(listId) {
-    // Fetch list data with movies
+    // Fetch list data with movies and series
     fetch(`/api/lista/${listId}/visualizar/`, {
         method: 'GET',
         headers: {
@@ -293,26 +293,31 @@ window.viewList = function(listId) {
             document.getElementById('view-list-author').textContent = `por ${lista.usuario}`;
             document.getElementById('view-list-date').textContent = `Criada em ${lista.criada_em}`;
             document.getElementById('view-list-description').textContent = lista.descricao || 'Sem descrição';
-            document.getElementById('view-list-count').textContent = lista.total_filmes;
+            document.getElementById('view-list-count').textContent = `${lista.total_filmes + lista.total_series} (${lista.total_filmes} filme${lista.total_filmes !== 1 ? 's' : ''}, ${lista.total_series} série${lista.total_series !== 1 ? 's' : ''})`;
 
-            // Populate movies grid
+            // Populate items grid (movies and series)
             const moviesGrid = document.getElementById('view-movies-grid');
-            if (lista.filmes.length === 0) {
-                moviesGrid.innerHTML = '<p class="empty-message">Esta lista não possui filmes ainda.</p>';
+            if (lista.itens.length === 0) {
+                moviesGrid.innerHTML = '<p class="empty-message">Esta lista não possui itens ainda.</p>';
             } else {
-                moviesGrid.innerHTML = lista.filmes.map(filme => `
-                    <div class="movie-item">
-                        <div class="movie-info">
-                            <h4 class="movie-title">${filme.titulo}</h4>
-                            <p class="movie-added">Adicionado em ${filme.adicionado_em}</p>
+                moviesGrid.innerHTML = lista.itens.map(item => {
+                    const detailsUrl = item.tipo === 'filme' ? `/filmes/${item.tmdb_id}/` : `/series/${item.tmdb_id}/`;
+                    const tipoLabel = item.tipo === 'filme' ? 'Filme' : 'Série';
+
+                    return `
+                        <div class="movie-item">
+                            <div class="movie-info">
+                                <h4 class="movie-title">${item.titulo} <span style="font-size: 0.8em; color: #888;">(${tipoLabel})</span></h4>
+                                <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
+                            </div>
+                            <div class="movie-actions">
+                                <button class="btn btn-small btn-primary" onclick="window.location.href='${detailsUrl}'">
+                                    Ver Detalhes
+                                </button>
+                            </div>
                         </div>
-                        <div class="movie-actions">
-                            <button class="btn btn-small btn-primary" onclick="window.location.href='/filmes/${filme.tmdb_id}/'">
-                                Ver Detalhes
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
 
             document.getElementById('view-list-modal').classList.add('active');

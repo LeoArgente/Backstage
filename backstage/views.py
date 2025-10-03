@@ -290,7 +290,7 @@ def wireframer(request):
 
 # back vitor e henrique ###########################################################################
 
-@login_required(login_url='backstage:login')
+'''@login_required(login_url='backstage:login')
 def adicionar_critica(request, tmdb_id):
 
     notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
@@ -331,6 +331,7 @@ def adicionar_critica(request, tmdb_id):
         'filme': dados_filme,
         'notas': notas,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL})
+'''
 
 def detalhes_filme(request, tmdb_id):
 
@@ -356,7 +357,7 @@ def detalhes_filme(request, tmdb_id):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
         }
     return render(request, "backstage/movie_details.html", context)
-'''
+
 def buscar(request):
 
     query = request.GET.get('q', '')
@@ -374,7 +375,7 @@ def buscar(request):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
     return render(request, "backstage/busca.html", context)
-'''
+
 def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:

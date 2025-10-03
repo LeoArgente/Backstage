@@ -422,6 +422,12 @@
                     name="texto"
                     required
                   ></textarea>
+                  <div class="spoiler-checkbox-container">
+                    <label class="spoiler-checkbox-label">
+                      <input type="checkbox" name="tem_spoiler" id="spoiler-checkbox">
+                      <span>🚨 SPOILER</span>
+                    </label>
+                  </div>
                   <button type="submit" class="send-review-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
@@ -505,10 +511,20 @@
                         {% endfor %}
                       </span>
                       <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
+                      {% if critica.tem_spoiler %}
+                      <span class="spoiler-badge">⚠️ SPOILER</span>
+                      {% endif %}
                     </div>
                   </div>
                 </div>
-                <p class="review-text">{{ critica.texto }}</p>
+                <p class="review-text {% if critica.tem_spoiler %}has-spoiler{% endif %}" data-original-text="{{ critica.texto }}">
+                  {% if critica.tem_spoiler %}
+                    <span class="spoiler-blur">{{ critica.texto }}</span>
+                    <button class="show-spoiler-btn" onclick="toggleSpoiler(this)">Clique para revelar spoiler</button>
+                  {% else %}
+                    {{ critica.texto }}
+                  {% endif %}
+                </p>
                 <div class="review-actions">
                   <button class="review-action">👍 0</button>
                   <button class="review-action">💬 0</button>

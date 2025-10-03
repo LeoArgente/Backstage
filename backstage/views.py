@@ -91,6 +91,7 @@ def salvar_critica(request):
         filme_id = request.POST.get('filme_id')
         nota = request.POST.get('nota')
         texto = request.POST.get('texto')
+        tem_spoiler = request.POST.get('tem_spoiler') == 'on'  # checkbox retorna 'on' se marcado
 
         if not filme_id or not texto:
             messages.error(request, 'Filme e texto da crítica são obrigatórios.')
@@ -118,7 +119,8 @@ def salvar_critica(request):
                 filme=filme,
                 usuario=request.user,
                 texto=texto,
-                nota=nota_int
+                nota=nota_int,
+                tem_spoiler=tem_spoiler
             )
 
             messages.success(request, 'Sua avaliação foi salva com sucesso!')
@@ -774,6 +776,7 @@ def salvar_critica_serie(request):
         serie_id = request.POST.get('serie_id')
         nota = request.POST.get('nota')
         texto = request.POST.get('texto')
+        tem_spoiler = request.POST.get('tem_spoiler') == 'on'  # checkbox retorna 'on' se marcado
         
         if not serie_id or not texto or not nota:
             messages.error(request, 'Todos os campos são obrigatórios.')
@@ -796,7 +799,8 @@ def salvar_critica_serie(request):
                 serie=serie,
                 usuario=request.user,
                 texto=texto,
-                nota=nota_int
+                nota=nota_int,
+                tem_spoiler=tem_spoiler
             )
             
             messages.success(request, 'Sua avaliação foi salva com sucesso!')

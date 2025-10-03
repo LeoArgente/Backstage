@@ -21,6 +21,7 @@ class Critica(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     texto = models.TextField("Sua análise")
     nota = models.IntegerField(choices=[(i, f"{i} ⭐") for i in range(1, 6)], default=5)
+    tem_spoiler = models.BooleanField(default=False, verbose_name="Contém spoiler")
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -73,6 +74,7 @@ class CriticaSerie(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     texto = models.TextField("Sua análise")
     nota = models.IntegerField(choices=[(i, f"{i} ⭐") for i in range(1, 6)], default=5)
+    tem_spoiler = models.BooleanField(default=False, verbose_name="Contém spoiler")
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

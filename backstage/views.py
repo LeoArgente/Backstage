@@ -290,49 +290,6 @@ def wireframer(request):
 
 # back vitor e henrique ###########################################################################
 
-'''@login_required(login_url='backstage:login')
-def adicionar_critica(request, tmdb_id):
-
-    notas = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5]
-
-    #Busca dados do filme da API
-    try:
-        dados_filme = obter_detalhes_com_cache(tmdb_id)
-    except:
-        return render(request, '404.html', {'erro': 'Filme não encontrado'})
-
-    # Garante que filme existe localmente
-    filme_local, _ = Filme.objects.get_or_create(
-        tmdb_id=tmdb_id,
-        defaults={
-            'titulo': dados_filme.get('titulo', ''),
-            'descricao': dados_filme.get('sinopse', ''),})
-
-    if request.method == "POST":
-        texto = request.POST.get('texto')
-        nota = request.POST.get('nota')
-
-        if texto and nota:
-            Critica.objects.create(
-                filme=filme_local,
-                usuario=request.user,
-                texto=texto,
-                nota=float(nota))
-            return redirect('backstage:detalhes_filme', tmdb_id=tmdb_id)
-        else:
-            erro = "Todos os campos são obrigatórios."
-            return render(request, 'backstage/adicionar_critica.html', {
-                'filme': dados_filme,
-                'erro': erro,
-                'notas': notas,
-                'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL})
-
-    return render(request, 'backstage/adicionar_critica.html', {
-        'filme': dados_filme,
-        'notas': notas,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL})
-'''
-
 def detalhes_filme(request, tmdb_id):
 
     try:

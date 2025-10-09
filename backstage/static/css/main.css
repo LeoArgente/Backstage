@@ -319,21 +319,31 @@ button {
 }
 
 .nav-primary {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   padding: 16px 0;
-  gap: 32px;
+  gap: 16px;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 700;
-  font-size: 24px;
-  letter-spacing: -0.5px;
-  transition: transform var(--transition-base);
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-weight: 700 !important;
+  font-size: 28px !important;
+  letter-spacing: -0.5px !important;
+  transition: transform var(--transition-base) !important;
+  margin-right: 40px !important;
+  margin-left: -30px !important;
+  flex-shrink: 0 !important;
+}
+
+.brand img {
+  max-width: none !important;
+  width: 250px !important;
+  height: auto !important;
+  display: block !important;
 }
 
 .brand:hover {
@@ -347,12 +357,16 @@ button {
   background-clip: text;
   font-weight: 800;
   position: relative;
+  color: transparent;
+  min-width: 120px !important;
+  height: 28px !important;
 }
 
 .brand-text::before {
   content: "Back";
   position: absolute;
-  top: 0;
+  top: 50%;
+  transform: translateY(-50%);
   left: 0;
   color: var(--blue-light);
   -webkit-text-fill-color: var(--blue-light);
@@ -362,8 +376,9 @@ button {
 .brand-text::after {
   content: "stage";
   position: absolute;
-  top: 0;
-  left: 2.2em;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 2.4em;
   color: var(--red);
   -webkit-text-fill-color: var(--red);
   z-index: 1;
@@ -373,8 +388,6 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  margin-left: 32px;
 }
 
 .nav-link {
@@ -533,7 +546,7 @@ button {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .search-container {
@@ -554,7 +567,7 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 10px 16px 10px 44px;
-  width: 320px;
+  width: 250px;
   color: var(--text-primary);
   transition: all var(--transition-base);
 }
@@ -565,6 +578,85 @@ button {
   background: var(--surface-hover);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   transform: scale(1.02);
+}
+
+/* ===== Standardized Search Bar Variables ===== */
+:root {
+  /* Search bar specific variables (override site defaults where needed) */
+  --search-width: 320px; /* default max width */
+  --search-min-width: 140px;
+  --search-padding-vertical: 8px;
+  --search-padding-horizontal: 12px;
+  --search-radius: 25px;
+  --search-bg: var(--surface);
+  --search-bg-focus: var(--surface-hover);
+  --search-border: var(--border);
+  --search-border-focus: var(--blue-light);
+  --search-text-color: var(--text-primary);
+  --search-placeholder-color: var(--text-muted);
+  --search-icon-color: var(--text-muted);
+  --search-font-size: 14px;
+}
+
+.search-container {
+  /* make search-container adopt standardized vars and be responsive */
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--search-bg);
+  border-radius: var(--search-radius);
+  padding: var(--search-padding-vertical) var(--search-padding-horizontal);
+  width: 100%;
+  max-width: var(--search-width);
+  min-width: var(--search-min-width);
+  height: var(--search-height, 40px);
+  box-sizing: border-box;
+  border: 1px solid var(--search-border);
+  transition: all 0.2s ease;
+}
+
+.search-container:hover,
+.search-container:focus-within {
+  border-color: var(--search-border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.06);
+  background: var(--search-bg-focus);
+}
+
+.search-container .search-icon {
+  position: absolute;
+  left: calc(var(--search-padding-horizontal) + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--search-icon-color);
+  pointer-events: none;
+}
+
+/* make inline svgs inherit color */
+.search-container .search-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: inherit;
+  fill: currentColor;
+}
+
+.search-container .search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0 calc(var(--search-padding-horizontal) + 8px) 0 calc(var(--search-padding-horizontal) + 32px);
+  font-size: var(--search-font-size);
+  color: var(--search-text-color);
+  height: 100%;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.search-container .search-input::placeholder {
+  color: var(--search-placeholder-color);
 }
 
 .icon-btn {

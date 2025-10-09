@@ -1,10 +1,10 @@
 /* ===== Movie Details Page Styles ===== */
 
 .review-input-group {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
 }
 
 .movie-review-text {
@@ -12,24 +12,172 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     padding: 10px 16px;
-    width: 295px;
-    height: 40px;
+    width: 100%;
+  min-height: 80px;
     color: var(--text-primary);
     transition: all var(--transition-base);
-    resize: none;
+    resize: vertical;
+}
+
+.spoiler-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spoiler-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+
+.spoiler-checkbox-label:hover {
+    color: var(--text-primary);
+}
+
+.spoiler-checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #dc2626;
+}
+
+.spoiler-checkbox-label span {
+    user-select: none;
 }
 
 .send-review-btn {
     background: linear-gradient(135deg, #dc2626, #b91c1c, #991b1b);
     border: none;
     border-radius: 50%;
-    width: 35px;
-    height: 35px;
+  width: 36px;
+  height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    align-self: flex-end;
+}
+
+/* ---- Inline rating + review layout (desktop) ---- */
+.user-rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.user-rating .star-rating {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.user-rating .star {
+  font-size: 18px; /* slightly smaller to help fit */
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.user-rating .review-input-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0; /* allow flex children to shrink properly */
+}
+
+.user-rating .movie-review-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 84px; /* keep a compact single-lineish height */
+  resize: none;
+  overflow: auto;
+}
+
+.user-rating .spoiler-checkbox-container {
+  flex-shrink: 0;
+}
+
+.user-rating .send-review-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+/* make checkbox smaller to save space */
+.spoiler-checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 768px) {
+  .user-rating {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-rating .review-input-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .user-rating .movie-review-text {
+    max-height: none;
+    min-height: 80px;
+    resize: vertical;
+  }
+}
+
+/* Strong overrides (force inline layout on desktop) */
+.user-rating {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+.user-rating > .star-rating {
+  display: flex !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+}
+
+.user-rating > .review-input-group {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.user-rating .movie-review-text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-height: 84px !important;
+  resize: none !important;
+  overflow: auto !important;
+}
+
+.user-rating .send-review-btn {
+  flex-shrink: 0 !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.spoiler-checkbox-label input[type="checkbox"] {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 .send-review-btn svg {
@@ -340,6 +488,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .review-rating {
@@ -352,10 +501,54 @@
   color: var(--text-muted);
 }
 
+.spoiler-badge {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .review-text {
   color: var(--text-primary);
   line-height: 1.6;
   margin-bottom: 16px;
+  position: relative;
+}
+
+.review-text.has-spoiler {
+  position: relative;
+}
+
+.spoiler-blur {
+  filter: blur(8px);
+  user-select: none;
+  pointer-events: none;
+  display: block;
+}
+
+.show-spoiler-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.show-spoiler-btn:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  transform: translate(-50%, -50%) scale(1.05);
 }
 
 .review-actions {

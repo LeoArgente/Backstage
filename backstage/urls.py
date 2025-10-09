@@ -35,4 +35,6 @@ urlpatterns = [
     path('series/<int:tmdb_id>/', views.detalhes_serie, name='detalhes_serie'),
     path('salvar-critica-serie/', views.salvar_critica_serie, name='salvar_critica_serie'),
     path('api/series/<int:tmdb_id>/temporada/<int:numero_temporada>/', views.buscar_temporada_api, name='buscar_temporada'),
+    path('api/lista/<int:lista_id>/adicionar-serie/<int:tmdb_id>/', views.adicionar_serie_lista, name='adicionar_serie_lista'),
+    path('api/lista/<int:lista_id>/remover-serie/<int:tmdb_id>/', views.remover_serie_da_lista, name='remover_serie_lista'),
 ]

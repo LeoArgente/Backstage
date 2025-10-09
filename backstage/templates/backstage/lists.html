@@ -18,8 +18,7 @@
                 <a class="brand" href="{% url 'backstage:index' %}">
             <img src="{% static 'images/Logo_Backstage_branca.png' %}"
                  alt="Backstage Logo"
-                 width="40" height="40">
-            <span class="brand-text">Backstage</span>
+                 width="250">
         </a>
 
         <div class="nav-menu">
@@ -147,7 +146,7 @@
               </div>
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
               <div class="list-meta">
-                <span class="list-count">{{ lista.itens.count }} filme{{ lista.itens.count|pluralize }}</span>
+                <span class="list-count">{{ lista.num_filmes }} filme{{ lista.num_filmes|pluralize }} • {{ lista.num_series }} série{{ lista.num_series|pluralize }}</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
               </div>
             </div>
@@ -176,7 +175,7 @@
               </div>
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
               <div class="list-meta">
-                <span class="list-count">{{ lista.itens.count }} filme{{ lista.itens.count|pluralize }}</span>
+                <span class="list-count">{{ lista.num_filmes }} filme{{ lista.num_filmes|pluralize }} • {{ lista.num_series }} série{{ lista.num_series|pluralize }}</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
               </div>
             </div>
@@ -302,9 +301,9 @@
         </div>
 
         <div class="list-movies">
-          <h3>Filmes na Lista (<span id="view-list-count">0</span>)</h3>
+          <h3>Itens na Lista (<span id="view-list-count">0</span>)</h3>
           <div class="movies-grid" id="view-movies-grid">
-            <!-- Movies will be loaded here -->
+            <!-- Movies and series will be loaded here -->
           </div>
         </div>
       </div>
@@ -328,7 +327,7 @@
                 </defs>
               </svg>
             </span>
-            <span class="brand-text">Backstage</span>
+            <span class="brand-text">Back</span>
           </div>
           <p class="footer-description">
             Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.

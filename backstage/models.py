@@ -21,6 +21,7 @@ class Critica(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     texto = models.TextField("Sua análise")
     nota = models.IntegerField(choices=[(i, f"{i} ⭐") for i in range(1, 6)], default=5)
+    tem_spoiler = models.BooleanField(default=False, verbose_name="Contém spoiler")
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -73,7 +74,20 @@ class CriticaSerie(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     texto = models.TextField("Sua análise")
     nota = models.IntegerField(choices=[(i, f"{i} ⭐") for i in range(1, 6)], default=5)
+    tem_spoiler = models.BooleanField(default=False, verbose_name="Contém spoiler")
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.usuario} - {self.serie} ({self.nota})"
+
+class ItemListaSerie(models.Model):
+    lista = models.ForeignKey(Lista, on_delete=models.CASCADE, related_name='itens_serie')
+    serie = models.ForeignKey(Serie, on_delete=models.CASCADE)
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    posicao = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('lista', 'serie')
+
+    def __str__(self):
+        return f"{self.serie.titulo} em {self.lista.nome}"

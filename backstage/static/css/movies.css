@@ -1,4 +1,10 @@
 /* ===== Movies Page Styles ===== */
+
+/* Fix navigation header height */
+.nav-primary {
+  padding: 16px 0 !important;
+}
+
 .page-header {
   background: 
     linear-gradient(135deg, rgba(26, 31, 46, 0.9) 0%, rgba(30, 35, 51, 0.9) 100%),
@@ -440,65 +446,8 @@
   font-size: 14px;
 }
 
-.nav-actions {
-  margin: 20px 0;
-  display: flex;
-  justify-content: center;
-}
-
-.search-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: #1a1f2e;
-  border-radius: 25px;
-  padding: 8px 16px;
-  width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
-  display: block;
-}
-
-.search-container .search-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
-  padding: 8px 12px 8px 40px;  
-  font-size: 14px;
-  color: #333;
-  box-sizing: border-box;
-}
-
-.search-container .search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #888;
-  pointer-events: none;
-}
-
-.search-icon {
-  color: #666;
-  margin-right: 8px;
-}
-
-.search-input {
-  border: none;
-  padding: 8px 12px 8px 36px
-  background: transparent;
-  outline: none;
-  width: 100%;
-  color: #333;
-  font-size: 14px;
-}
-
-.search-input::placeholder {
-  color: #888;
-}
+/* Search bar uses standardized styles in main.css. 
+   Customize search appearance by overriding the --search-* variables in main.css or a page-specific stylesheet. */
 
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {

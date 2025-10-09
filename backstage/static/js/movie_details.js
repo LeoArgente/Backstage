@@ -1316,3 +1316,15 @@ function initNewsDropdown() {
     </a>
   `).join('');
 }
+
+// ===== Spoiler Reveal Functionality =====
+function toggleSpoiler(button) {
+  const reviewText = button.closest('.review-text');
+  const spoilerBlur = reviewText.querySelector('.spoiler-blur');
+  
+  if (spoilerBlur) {
+    spoilerBlur.style.filter = 'none';
+    spoilerBlur.style.userSelect = 'text';
+    button.style.display = 'none';
+  }
+}

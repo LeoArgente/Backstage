@@ -337,7 +337,13 @@ button {
   margin-right: 80px !important;
   margin-left: -50px !important;
   flex-shrink: 0 !important;
-  max-width: 160px !important;
+}
+
+.brand img {
+  max-width: none !important;
+  width: 250px !important;
+  height: auto !important;
+  display: block !important;
 }
 
 .brand:hover {
@@ -539,7 +545,7 @@ button {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .search-container {

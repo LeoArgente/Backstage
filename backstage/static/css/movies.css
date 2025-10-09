@@ -1,4 +1,10 @@
 /* ===== Movies Page Styles ===== */
+
+/* Fix navigation header height */
+.nav-primary {
+  padding: 16px 0 !important;
+}
+
 .page-header {
   background: 
     linear-gradient(135deg, rgba(26, 31, 46, 0.9) 0%, rgba(30, 35, 51, 0.9) 100%),
@@ -441,7 +447,6 @@
 }
 
 .nav-actions {
-  margin: 20px 0;
   display: flex;
   justify-content: center;
 }

@@ -580,6 +580,85 @@ button {
   transform: scale(1.02);
 }
 
+/* ===== Standardized Search Bar Variables ===== */
+:root {
+  /* Search bar specific variables (override site defaults where needed) */
+  --search-width: 320px; /* default max width */
+  --search-min-width: 140px;
+  --search-padding-vertical: 8px;
+  --search-padding-horizontal: 12px;
+  --search-radius: 25px;
+  --search-bg: var(--surface);
+  --search-bg-focus: var(--surface-hover);
+  --search-border: var(--border);
+  --search-border-focus: var(--blue-light);
+  --search-text-color: var(--text-primary);
+  --search-placeholder-color: var(--text-muted);
+  --search-icon-color: var(--text-muted);
+  --search-font-size: 14px;
+}
+
+.search-container {
+  /* make search-container adopt standardized vars and be responsive */
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--search-bg);
+  border-radius: var(--search-radius);
+  padding: var(--search-padding-vertical) var(--search-padding-horizontal);
+  width: 100%;
+  max-width: var(--search-width);
+  min-width: var(--search-min-width);
+  height: var(--search-height, 40px);
+  box-sizing: border-box;
+  border: 1px solid var(--search-border);
+  transition: all 0.2s ease;
+}
+
+.search-container:hover,
+.search-container:focus-within {
+  border-color: var(--search-border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.06);
+  background: var(--search-bg-focus);
+}
+
+.search-container .search-icon {
+  position: absolute;
+  left: calc(var(--search-padding-horizontal) + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--search-icon-color);
+  pointer-events: none;
+}
+
+/* make inline svgs inherit color */
+.search-container .search-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: inherit;
+  fill: currentColor;
+}
+
+.search-container .search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0 calc(var(--search-padding-horizontal) + 8px) 0 calc(var(--search-padding-horizontal) + 32px);
+  font-size: var(--search-font-size);
+  color: var(--search-text-color);
+  height: 100%;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.search-container .search-input::placeholder {
+  color: var(--search-placeholder-color);
+}
+
 .icon-btn {
   width: 40px;
   height: 40px;

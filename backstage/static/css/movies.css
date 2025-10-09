@@ -446,77 +446,8 @@
   font-size: 14px;
 }
 
-.nav-actions {
-  display: flex;
-  justify-content: center;
-}
-
-.search-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: var(--surface);
-  border-radius: 25px;
-  padding: 8px 16px;
-  width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
-  display: flex;
-  box-sizing: border-box;
-  border: 1px solid var(--border);
-  transition: all 0.3s ease;
-}
-
-.search-container:hover,
-.search-container:focus-within {
-  border-color: var(--blue-light);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-container .search-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
-  padding: 8px 12px 8px 40px;  
-  font-size: 14px;
-  color: var(--text-primary);
-  box-sizing: border-box;
-}
-
-.search-container .search-input::placeholder {
-  color: var(--text-muted);
-}
-
-.search-container .search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.search-icon {
-  color: #666;
-  margin-right: 8px;
-}
-
-.search-input {
-  border: none;
-  padding: 8px 12px 8px 36px
-  background: transparent;
-  outline: none;
-  width: 100%;
-  color: #333;
-  font-size: 14px;
-}
-
-.search-input::placeholder {
-  color: #888;
-}
+/* Search bar uses standardized styles in main.css. 
+   Customize search appearance by overriding the --search-* variables in main.css or a page-specific stylesheet. */
 
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {

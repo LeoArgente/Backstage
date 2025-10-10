@@ -687,3 +687,18 @@ def traduzir_cargo(cargo):
         'Director': 'Diretor'
     }
     return traducoes.get(cargo, cargo)
+def buscar_serie_por_titulo(query, page=1):
+    """Busca séries por título"""
+    data = _get("/search/tv", params={"language": "pt-BR", "query": query, "page": page})
+    series = data.get("results", [])
+    
+    return [{
+        'tmdb_id': serie.get('id'),
+        'titulo': serie.get('name'),
+        'sinopse': serie.get('overview'),
+        'poster_path': serie.get('poster_path'),
+        'backdrop_path': serie.get('backdrop_path'),
+        'ano_lancamento': serie.get('first_air_date', '')[:4] if serie.get('first_air_date') else '',
+        'nota_tmdb': serie.get('vote_average'),
+        'tipo': 'serie'
+    } for serie in series]

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from urllib3 import request
 from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie
 from django.contrib import messages
 import json
@@ -342,22 +343,68 @@ def detalhes_filme(request, tmdb_id):
     return render(request, "backstage/movie_details.html", context)
 
 def buscar(request):
-
-    query = request.GET.get('q', '')
-    resultados = []
+    from .services.tmdb import (
+        buscar_filme_por_titulo, 
+        buscar_pessoa_por_nome, 
+        buscar_filmes_por_pessoa,
+        buscar_generos,
+        buscar_filmes_por_genero
+    )
+    
+    query = request.GET.get('q', '').strip()
+    tipo_busca = request.GET.get('tipo', 'titulo')  # titulo, pessoa, genero
+    resultados_filmes = []
+    resultados_pessoas = []
+    generos = []
+    
+    try:
+        # Buscar gêneros para o filtro
+        generos = buscar_generos()
+    except:
+        generos = []
 
     if query:
         try:
-            resultados = buscar_filme_por_titulo(query)
-        except:
-            resultados = []
+            if tipo_busca == 'titulo':
+                # Busca por título
+                resultados_filmes = buscar_filme_por_titulo(query)
+            elif tipo_busca == 'pessoa':
+                # Busca por pessoa (ator/diretor)
+                pessoas = buscar_pessoa_por_nome(query)
+                resultados_pessoas = pessoas[:5]  # Limitar a 5 pessoas
+                
+                # Se encontrou pessoas, buscar filmes da primeira pessoa
+                if pessoas:
+                    primeira_pessoa = pessoas[0]
+                    resultados_filmes = buscar_filmes_por_pessoa(primeira_pessoa.get('id'))
+            elif tipo_busca == 'genero':
+                # Buscar gênero pelo nome
+                genero_encontrado = None
+                for genero in generos:
+                    if query.lower() in genero.get('name', '').lower():
+                        genero_encontrado = genero
+                        break
+                
+                if genero_encontrado:
+                    resultados_filmes = buscar_filmes_por_genero(genero_encontrado.get('id'))
+            else:
+                # Busca geral (título + pessoa)
+                resultados_filmes = buscar_filme_por_titulo(query)
+                
+        except Exception as e:
+            print(f"Erro na busca: {e}")
+            resultados_filmes = []
+            resultados_pessoas = []
 
     context = {
         'query': query,
-        'resultados': resultados,
+        'tipo_busca': tipo_busca,
+        'resultados_filmes': resultados_filmes,
+        'resultados_pessoas': resultados_pessoas,
+        'generos': generos,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
-    return render(request, "backstage/busca.html", context)
+    return render(request, "backstage/busca_resultado.html", context)
 
 def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""

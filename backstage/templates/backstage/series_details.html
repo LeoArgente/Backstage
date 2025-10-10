@@ -224,7 +224,7 @@
               </div>
 
               <div class="review-modal-body">
-                <h2 class="modal-movie-title">{{ serie.nome }}</h2>
+                <h2 class="modal-movie-title">{{ serie.titulo }}</h2>
 
                 <div class="modal-star-rating">
                   <span class="modal-rating-label">Sua avaliação:</span>
@@ -278,14 +278,14 @@
       <!-- Opções principais -->
       <div class="popup-content" id="popupOptions">
         <!-- Lista de listas existentes -->
-        <div id="existingLists" style="margin-bottom: 1rem;">
-          <div id="loadingLists" style="color: #888; text-align: center; padding: 1rem;">
+        <div id="existingLists">
+          <div id="loadingLists">
             Carregando suas listas...
           </div>
           <div id="listsContainer" style="display: none;">
             <!-- As listas serão carregadas aqui via JavaScript -->
           </div>
-          <div id="noLists" style="display: none; color: #888; text-align: center; padding: 1rem;">
+          <div id="noLists" style="display: none;">
             Você ainda não criou nenhuma lista
           </div>
         </div>
@@ -666,7 +666,7 @@
         containerEl.style.display = 'none';
         noListsEl.style.display = 'none';
 
-        fetch('/api/buscar-listas/', {
+        fetch('/api/buscar-listas/?tipo=serie', {
           method: 'GET',
           headers: {
             'X-CSRFToken': getCookie('csrftoken')
@@ -688,7 +688,7 @@
               <div class="list-item">
                 <div class="list-item-info">
                   <div class="list-item-name">${lista.nome}</div>
-                  <div class="list-item-meta">${lista.count} item${lista.count !== 1 ? 's' : ''}</div>
+                  <div class="list-item-meta">${lista.count} série${lista.count !== 1 ? 's' : ''}</div>
                 </div>
                 <button class="list-item-add" onclick="addSerieToList(${lista.id}, '${lista.nome}')">
                   Adicionar
@@ -732,6 +732,7 @@
           if (!data) return;
           if (data.success) {
             alert(`Série adicionada à lista "${listaNome}"!`);
+            loadUserLists(); // Recarrega listas para atualizar contadores
             hideListPopup();
           } else {
             alert(`Erro: ${data.message}`);
@@ -783,6 +784,7 @@
         .then(data => {
           if (data.success) {
             alert('Série adicionada à "Assistir Mais Tarde"!');
+            loadUserLists(); // Recarrega listas para atualizar contadores
             hideListPopup();
           } else {
             alert(`Erro: ${data.message}`);

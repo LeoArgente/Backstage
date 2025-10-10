@@ -11,160 +11,6 @@
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
 </head>
-<style>
-  .list-popup-overlay { position: fixed;top: 0;left: 0;width: 100%;height: 100%;
-    background: rgba(0,0,0,0.8);display: flex;align-items: center;
-    justify-content: center;z-index: 1000;opacity: 0;visibility: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .list-popup-overlay.show {opacity: 1;visibility: visible;
-  }
-
-  .list-popup {background: #1a1a1a;border-radius: 12px;padding: 2rem;
-    max-width: 400px;width: 90%;border: 1px solid #333;
-  }
-
-  .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-  }
-
-  .popup-header h3 {
-      color: #fff;
-      margin: 0;
-  }
-
-  .close-popup {
-      background: none;
-      border: none;
-      color: #888;
-      font-size: 1.5rem;
-      cursor: pointer;
-  }
-
-  .popup-option {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      width: 100%;
-      padding: 1rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 8px;
-      color: #fff;
-      cursor: pointer;
-      margin-bottom: 1rem;
-      transition: all 0.2s ease;
-  }
-
-  .popup-option:hover {
-      background: #333;
-      border-color: #667eea;
-  }
-
-  .form-group {
-      margin-bottom: 1rem;
-  }
-
-  .form-group label {
-      display: block;
-      color: #fff;
-      margin-bottom: 0.5rem;
-  }
-
-  .form-group input {
-      width: 100%;
-      padding: 0.75rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 6px;
-      color: #fff;
-  }
-
-  .form-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: flex-end;
-  }
-
-  .form-actions button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-  }
-
-  .form-actions button[type="submit"] {
-      background: #667eea;
-      color: #fff;
-  }
-
-  .form-actions button[type="button"] {
-      background: #444;
-      color: #fff;
-  }
-
-  /* Estilos para listas existentes */
-  .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-  }
-
-  .list-item:hover {
-      background: #333;
-      border-color: #667eea;
-  }
-
-  .list-item-info {
-      flex-grow: 1;
-  }
-
-  .list-item-name {
-      color: #fff;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-  }
-
-  .list-item-meta {
-      color: #888;
-      font-size: 0.8rem;
-  }
-
-  .list-item-add {
-      background: #667eea;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      transition: background 0.2s ease;
-  }
-
-  .list-item-add:hover {
-      background: #5a6fd8;
-  }
-
-  /* Estilo para quando não há críticas */
-  .no-reviews {
-      text-align: center;
-      padding: 2rem;
-      color: #888;
-      font-style: italic;
-  }
-  </style>
 <body>
   <header class="site-header">
     <div class="container">
@@ -360,14 +206,14 @@
           <!-- Opções principais -->
           <div class="popup-content" id="popupOptions">
               <!-- Lista de listas existentes -->
-              <div id="existingLists" style="margin-bottom: 1rem;">
-                  <div id="loadingLists" style="color: #888; text-align: center; padding: 1rem;">
+              <div id="existingLists">
+                  <div id="loadingLists">
                       Carregando suas listas...
                   </div>
                   <div id="listsContainer" style="display: none;">
                       <!-- As listas serão carregadas aqui via JavaScript -->
                   </div>
-                  <div id="noLists" style="display: none; color: #888; text-align: center; padding: 1rem;">
+                  <div id="noLists" style="display: none;">
                       Você ainda não criou nenhuma lista
                   </div>
               </div>
@@ -944,7 +790,7 @@
           noListsEl.style.display = 'none';
 
           // Buscar listas do usuário
-          fetch('/api/buscar-listas/', {
+          fetch('/api/buscar-listas/?tipo=filme', {
               method: 'GET',
               headers: {
                   'X-CSRFToken': getCookie('csrftoken')
@@ -1018,6 +864,7 @@
 
               if (data.success) {
                   alert(`Filme adicionado à lista "${listaNome}"!`);
+                  loadUserLists(); // Recarrega listas para atualizar contadores
                   hideListPopup();
               } else {
                   alert(`Erro: ${data.message}`);
@@ -1097,6 +944,7 @@
           .then(data => {
               if (data.success) {
                   alert('Filme adicionado à "Assistir Mais Tarde"!');
+                  loadUserLists(); // Recarrega listas para atualizar contadores
                   hideListPopup();
               } else {
                   alert(`Erro: ${data.message}`);

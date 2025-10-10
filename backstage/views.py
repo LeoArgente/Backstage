@@ -268,13 +268,13 @@ def lists(request):
     from django.db.models import Count
 
     minhas_listas = Lista.objects.filter(usuario=request.user).annotate(
-        num_filmes=Count('itens'),
-        num_series=Count('itens_serie')
+        num_filmes=Count('itens', distinct=True),
+        num_series=Count('itens_serie', distinct=True)
     ).order_by('-atualizada_em')
 
     listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
-        num_filmes=Count('itens'),
-        num_series=Count('itens_serie')
+        num_filmes=Count('itens', distinct=True),
+        num_series=Count('itens_serie', distinct=True)
     ).order_by('-atualizada_em')
 
     context = {
@@ -596,13 +596,16 @@ def buscar_ou_criar_lista_watch_later(request):
 @api_login_required
 def buscar_listas_usuario(request):
     try:
+        # Obtém o tipo de conteúdo (filme ou serie) dos parâmetros da query
+        tipo = request.GET.get('tipo', 'filme')
+
         listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
         listas_data = [{
             'id': lista.id,
             'nome': lista.nome,
             'descricao': lista.descricao,
             'publica': lista.publica,
-            'count': lista.itens.count()
+            'count': lista.itens_serie.count() if tipo == 'serie' else lista.itens.count()
         } for lista in listas]
 
         return JsonResponse({

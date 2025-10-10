@@ -348,7 +348,8 @@ def buscar(request):
         buscar_pessoa_por_nome, 
         buscar_filmes_por_pessoa,
         buscar_generos,
-        buscar_filmes_por_genero
+        buscar_filmes_por_genero,
+        buscar_serie_por_titulo
     )
     
     query = request.GET.get('q', '').strip()
@@ -366,8 +367,17 @@ def buscar(request):
     if query:
         try:
             if tipo_busca == 'titulo':
-                # Busca por título
-                resultados_filmes = buscar_filme_por_titulo(query)
+                 # Busca por título (filmes e séries)
+                filmes = buscar_filme_por_titulo(query)
+                series = buscar_serie_por_titulo(query)
+                
+                # Adicionar tipo para diferenciação
+                for filme in filmes:
+                    filme['tipo'] = 'filme'
+                for serie in series:
+                    serie['tipo'] = 'serie'
+                
+                resultados_filmes = filmes + series
             elif tipo_busca == 'pessoa':
                 # Busca por pessoa (ator/diretor)
                 pessoas = buscar_pessoa_por_nome(query)

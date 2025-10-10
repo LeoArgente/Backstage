@@ -406,6 +406,49 @@ def buscar(request):
     }
     return render(request, "backstage/busca_resultado.html", context)
 
+def busca_ajax(request):
+    """API endpoint para busca em tempo real"""
+    query = request.GET.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    try:
+        from .services.tmdb import buscar_filme_por_titulo, buscar_serie_por_titulo
+        
+        # Buscar filmes e séries (limitado a 5 cada)
+        filmes = buscar_filme_por_titulo(query)[:5]
+        series = buscar_serie_por_titulo(query)[:5]
+        
+        # Formatar resultados
+        resultados = []
+        
+        for filme in filmes:
+            resultados.append({
+                'id': filme['tmdb_id'],
+                'titulo': filme['titulo'],
+                'ano': filme['ano_lancamento'],
+                'poster': f"{settings.TMDB_IMAGE_BASE_URL}w200{filme['poster_path']}" if filme['poster_path'] else None,
+                'tipo': 'filme',
+                'url': f"/filmes/{filme['tmdb_id']}/"
+            })
+        
+        for serie in series:
+            resultados.append({
+                'id': serie['tmdb_id'],
+                'titulo': serie['titulo'],
+                'ano': serie['ano_lancamento'],
+                'poster': f"{settings.TMDB_IMAGE_BASE_URL}w200{serie['poster_path']}" if serie['poster_path'] else None,
+                'tipo': 'serie',
+                'url': f"/series/{serie['tmdb_id']}/"
+            })
+        
+        return JsonResponse({'results': resultados})
+        
+    except Exception as e:
+        return JsonResponse({'results': [], 'error': str(e)})
+
+
 def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:
@@ -415,6 +458,7 @@ def filmes_home(request):
         recommended = obter_recomendados(limit=12)
         em_cartaz = obter_em_cartaz(limit=12)
         classicos = obter_classicos(limit=12)
+        
 
         # Adicionar URL base para imagens
         tmdb_image_base = settings.TMDB_IMAGE_BASE_URL

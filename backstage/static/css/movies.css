@@ -496,3 +496,56 @@
     gap: 32px;
   }
 }
+/* === POPUP DE FILTRO === */
+.filter-popup {
+  display: none; /* começa escondido */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #1c1c2a;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  z-index: 999;
+  color: white;
+  width: 300px;
+}
+
+.filter-popup h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.filter-popup label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.filter-popup input,
+.filter-popup select {
+  width: 100%;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  margin-top: 5px;
+}
+
+.filter-popup button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background-color: #00aaff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.filter-popup button:hover {
+  background-color: #0088cc;
+}
+

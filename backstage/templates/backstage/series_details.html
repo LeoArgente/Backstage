@@ -586,13 +586,14 @@
   </footer>
 
   <!-- Dados da série para JavaScript -->
-  <script>
-    window.serieData = {
-      tmdbId: {{ serie.tmdb_id }},
-      temporadas: {{ temporadas_json|safe }},
-      videos: {{ videos_json|safe }}
-    };
-  </script>
+ <script>
+  window.serieData = {
+    tmdbId: "{{ serie.tmdb_id }}",
+    temporadas: JSON.parse('{{ temporadas_json|escapejs }}'),
+    videos: JSON.parse('{{ videos_json|escapejs }}')
+  };
+</script>
+
 
   <!-- JavaScript para Modal de Listas -->
   <script>

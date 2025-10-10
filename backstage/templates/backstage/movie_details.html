@@ -404,37 +404,102 @@
           
           <div class="user-rating">
             <span class="rating-label">Sua avaliação:</span>
-            <div class="star-rating">
-              <button class="star" data-rating="1">★</button>
-              <button class="star" data-rating="2">★</button>
-              <button class="star" data-rating="3">★</button>
-              <button class="star" data-rating="4">★</button>
-              <button class="star" data-rating="5">★</button>
-            </div>
-                <form class="review-input-group" method="POST" action="{% url 'backstage:salvar_critica' %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="filme_id" value="{{ filme.tmdb_id }}">
-                  <input type="hidden" name="nota" id="rating-value" value="">
-                  <textarea 
-                    class="movie-review-text" 
-                    placeholder="Escreva sua resenha aqui..."
-                    name="texto"
-                    required
-                  ></textarea>
+            <form class="review-input-group" method="POST" action="{% url 'backstage:salvar_critica' %}">
+              {% csrf_token %}
+              <input type="hidden" name="filme_id" value="{{ filme.tmdb_id }}">
+              <input type="hidden" name="nota" id="rating-value" value="">
+
+              <div class="textarea-wrapper">
+                <div class="star-rating">
+                  <button type="button" class="star" data-rating="1">★</button>
+                  <button type="button" class="star" data-rating="2">★</button>
+                  <button type="button" class="star" data-rating="3">★</button>
+                  <button type="button" class="star" data-rating="4">★</button>
+                  <button type="button" class="star" data-rating="5">★</button>
+                </div>
+
+                <textarea
+                  class="movie-review-text"
+                  placeholder="Escreva sua resenha aqui..."
+                  name="texto"
+                  required
+                  id="review-textarea"
+                ></textarea>
+
+                <div class="textarea-controls">
                   <div class="spoiler-checkbox-container">
                     <label class="spoiler-checkbox-label">
                       <input type="checkbox" name="tem_spoiler" id="spoiler-checkbox">
-                      <span>🚨 SPOILER</span>
+                      <span>SPOILER</span>
                     </label>
                   </div>
-                  <button type="submit" class="send-review-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                    </svg>
-                  </button>
-                </form>
+
+                  <div class="textarea-controls-right">
+                    <button type="button" class="expand-review-btn" onclick="openReviewModal()" title="Expandir">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                      </svg>
+                    </button>
+
+                    <button type="submit" class="send-review-btn" id="inline-submit-btn">
+                      Enviar
+                    </button>
+                  </div>
+                </div>
               </div>
-            
+            </form>
+          </div>
+
+          <!-- Modal de Resenha Expandida -->
+          <div class="review-modal-overlay" id="reviewModalOverlay">
+            <div class="review-modal">
+              <div class="review-modal-header">
+                <h3>Escreva sua Resenha</h3>
+                <button type="button" class="close-review-modal" onclick="closeReviewModal()">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="review-modal-body">
+                <h2 class="modal-movie-title">{{ filme.titulo }}</h2>
+
+                <div class="modal-star-rating">
+                  <span class="modal-rating-label">Sua avaliação:</span>
+                  <div class="star-rating" id="modal-star-rating">
+                    <button type="button" class="star" data-rating="1">★</button>
+                    <button type="button" class="star" data-rating="2">★</button>
+                    <button type="button" class="star" data-rating="3">★</button>
+                    <button type="button" class="star" data-rating="4">★</button>
+                    <button type="button" class="star" data-rating="5">★</button>
+                  </div>
+                </div>
+
+                <div class="modal-textarea-wrapper">
+                  <textarea
+                    class="modal-review-text"
+                    placeholder="Escreva sua resenha aqui..."
+                    id="modal-review-textarea"
+                  ></textarea>
+                </div>
+
+                <div class="modal-footer">
+                  <div class="modal-spoiler-checkbox">
+                    <label class="spoiler-checkbox-label">
+                      <input type="checkbox" id="modal-spoiler-checkbox">
+                      <span>SPOILER</span>
+                    </label>
+                  </div>
+
+                  <button type="button" class="modal-submit-btn" onclick="submitFromModal()">
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
       </div>
@@ -1196,6 +1261,149 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
+  });
+</script>
+
+<!-- Script para Modal de Resenha -->
+<script>
+  // Sincronizar avaliação por estrelas entre inline e modal
+  let currentRating = 0;
+
+  function syncStarRating() {
+    const inlineStars = document.querySelectorAll('.review-input-group .star');
+    const modalStars = document.querySelectorAll('#modal-star-rating .star');
+
+    // Função para atualizar estrelas
+    function updateStars(stars, rating) {
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
+    }
+
+    // Event listeners para estrelas inline
+    inlineStars.forEach(star => {
+      star.addEventListener('click', function() {
+        currentRating = parseInt(this.dataset.rating);
+        document.getElementById('rating-value').value = currentRating;
+        updateStars(inlineStars, currentRating);
+        updateStars(modalStars, currentRating);
+      });
+    });
+
+    // Event listeners para estrelas do modal
+    modalStars.forEach(star => {
+      star.addEventListener('click', function() {
+        currentRating = parseInt(this.dataset.rating);
+        document.getElementById('rating-value').value = currentRating;
+        updateStars(inlineStars, currentRating);
+        updateStars(modalStars, currentRating);
+      });
+    });
+  }
+
+  // Abrir modal
+  function openReviewModal() {
+    const overlay = document.getElementById('reviewModalOverlay');
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+    const inlineCheckbox = document.getElementById('spoiler-checkbox');
+    const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+
+    // Sincronizar conteúdo
+    modalTextarea.value = inlineTextarea.value;
+    modalCheckbox.checked = inlineCheckbox.checked;
+
+    // Mostrar modal
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    // Focus no textarea do modal
+    setTimeout(() => modalTextarea.focus(), 100);
+  }
+
+  // Fechar modal
+  function closeReviewModal() {
+    const overlay = document.getElementById('reviewModalOverlay');
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+    const inlineCheckbox = document.getElementById('spoiler-checkbox');
+    const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+
+    // Sincronizar conteúdo de volta
+    inlineTextarea.value = modalTextarea.value;
+    inlineCheckbox.checked = modalCheckbox.checked;
+
+    // Fechar modal
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  // Enviar do modal
+  function submitFromModal() {
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+    const inlineCheckbox = document.getElementById('spoiler-checkbox');
+    const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+    const form = document.querySelector('.review-input-group');
+
+    // Sincronizar valores
+    inlineTextarea.value = modalTextarea.value;
+    inlineCheckbox.checked = modalCheckbox.checked;
+
+    // Validar
+    if (!currentRating) {
+      alert('Por favor, selecione uma avaliação (estrelas)');
+      return;
+    }
+
+    if (!inlineTextarea.value.trim()) {
+      alert('Por favor, escreva sua resenha');
+      return;
+    }
+
+    // Fechar modal e submeter form
+    closeReviewModal();
+    form.submit();
+  }
+
+  // Fechar modal ao clicar fora
+  document.getElementById('reviewModalOverlay')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeReviewModal();
+    }
+  });
+
+  // Fechar modal com ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('reviewModalOverlay');
+      if (overlay && overlay.classList.contains('show')) {
+        closeReviewModal();
+      }
+    }
+  });
+
+  // Sincronizar textareas em tempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+
+    if (inlineTextarea && modalTextarea) {
+      inlineTextarea.addEventListener('input', function() {
+        modalTextarea.value = this.value;
+      });
+
+      modalTextarea.addEventListener('input', function() {
+        inlineTextarea.value = this.value;
+      });
+    }
+
+    // Inicializar sistema de estrelas
+    syncStarRating();
   });
 </script>
 </body>

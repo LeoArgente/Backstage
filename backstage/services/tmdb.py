@@ -54,12 +54,67 @@ def buscar_filmes_em_cartaz(page=1):
         'nota_tmdb': filme.get('vote_average')
     } for filme in filmes]
 
+'''
+
+'''
+
 def buscar_filme_por_titulo(query, page=1):
     data = _get("/search/movie", params={"language": "pt-BR", "query": query, "page": page})
     filmes = data.get("results", [])
     # Padroniza os campos
     return [{
-        'id_tmdb': filme.get('id'),
+        'tmdb_id': filme.get('id'),
+        'titulo': filme.get('title'),
+        'sinopse': filme.get('overview'),
+        'poster_path': filme.get('poster_path'),
+        'backdrop_path': filme.get('backdrop_path'),
+        'ano_lancamento': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+        'nota_tmdb': filme.get('vote_average')
+    } for filme in filmes]
+
+def buscar_pessoa_por_nome(query, page=1):
+    """Busca pessoas (atores, diretores) por nome"""
+    data = _get("/search/person", params={"language": "pt-BR", "query": query, "page": page})
+    return data.get("results", [])
+
+def buscar_filmes_por_pessoa(person_id):
+    """Busca filmes de uma pessoa específica"""
+    data = _get(f"/person/{person_id}/movie_credits", params={"language": "pt-BR"})
+    filmes = data.get("cast", []) + data.get("crew", [])
+    
+    # Remover duplicatas e padronizar
+    filmes_unicos = {}
+    for filme in filmes:
+        if filme.get('id') not in filmes_unicos:
+            filmes_unicos[filme.get('id')] = {
+                'tmdb_id': filme.get('id'),
+                'titulo': filme.get('title'),
+                'sinopse': filme.get('overview'),
+                'poster_path': filme.get('poster_path'),
+                'backdrop_path': filme.get('backdrop_path'),
+                'ano_lancamento': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                'nota_tmdb': filme.get('vote_average', 0)
+            }
+    
+    return list(filmes_unicos.values())
+
+def buscar_generos():
+    """Retorna lista de gêneros de filmes"""
+    data = _get("/genre/movie/list", params={"language": "pt-BR"})
+    return data.get("genres", [])
+
+def buscar_filmes_por_genero(genre_id, page=1):
+    """Busca filmes por gênero"""
+    data = _get("/discover/movie", params={
+        "language": "pt-BR",
+        "with_genres": genre_id,
+        "page": page,
+        "sort_by": "popularity.desc"
+    })
+    filmes = data.get("results", [])
+    
+    return [{
+        'tmdb_id': filme.get('id'),
         'titulo': filme.get('title'),
         'sinopse': filme.get('overview'),
         'poster_path': filme.get('poster_path'),

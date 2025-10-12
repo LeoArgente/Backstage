@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
   {% load static %}
+  {% load humanize %}
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ filme.titulo }} — Backstage</title>
@@ -453,27 +454,58 @@
           <section class="movie-facts">
             <h3 class="sidebar-title">Informações</h3>
             <dl class="facts-list">
+              {% if filme.status %}
               <dt>Status</dt>
-              <dd>Lançado</dd>
-              
+              <dd>
+                {% if filme.status == "Released" %}Lançado
+                {% elif filme.status == "Post Production" %}Pós-produção
+                {% elif filme.status == "In Production" %}Em produção
+                {% elif filme.status == "Planned" %}Planejado
+                {% else %}{{ filme.status }}{% endif %}
+              </dd>
+              {% endif %}
+
+              {% if filme.data_lancamento_formatada %}
+              <dt>Data de Lançamento</dt>
+              <dd>{{ filme.data_lancamento_formatada }}</dd>
+              {% endif %}
+
+              {% if filme.idioma_original %}
               <dt>Idioma Original</dt>
-              <dd>Inglês</dd>
-              
+              <dd>
+                {% if filme.idioma_original == "en" %}Inglês
+                {% elif filme.idioma_original == "pt" %}Português
+                {% elif filme.idioma_original == "es" %}Espanhol
+                {% elif filme.idioma_original == "fr" %}Francês
+                {% elif filme.idioma_original == "de" %}Alemão
+                {% elif filme.idioma_original == "it" %}Italiano
+                {% elif filme.idioma_original == "ja" %}Japonês
+                {% elif filme.idioma_original == "ko" %}Coreano
+                {% elif filme.idioma_original == "zh" %}Chinês
+                {% else %}{{ filme.idioma_original|upper }}{% endif %}
+              </dd>
+              {% endif %}
+
+              {% if filme.orcamento and filme.orcamento > 0 %}
               <dt>Orçamento</dt>
-              <dd>$160.000.000</dd>
-              
+              <dd>${{ filme.orcamento|floatformat:0|intcomma }}</dd>
+              {% endif %}
+
+              {% if filme.receita and filme.receita > 0 %}
               <dt>Receita</dt>
-              <dd>$836.836.967</dd>
-              
+              <dd>${{ filme.receita|floatformat:0|intcomma }}</dd>
+              {% endif %}
+
+              {% if filme.palavras_chave %}
               <dt>Palavras-chave</dt>
               <dd>
                 <div class="keyword-tags">
-                  <span class="keyword-tag">sonhos</span>
-                  <span class="keyword-tag">mente</span>
-                  <span class="keyword-tag">labirinto</span>
-                  <span class="keyword-tag">espionagem</span>
+                  {% for palavra in filme.palavras_chave %}
+                  <span class="keyword-tag">{{ palavra }}</span>
+                  {% endfor %}
                 </div>
               </dd>
+              {% endif %}
             </dl>
           </section>
 
@@ -681,6 +713,13 @@
       </div>
     </div>
   </footer>
+
+  <!-- Passar dados do Django para o JavaScript -->
+  <script>
+    // Dados de crew e cast vindos do backend Django
+    window.movieCrewData = {{ crew_data_json|safe }};
+    window.movieCastData = {{ cast_data_json|safe }};
+  </script>
 
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie_details.js' %}" defer></script>

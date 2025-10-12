@@ -319,10 +319,18 @@ def wireframer(request):
 
 def detalhes_filme(request, tmdb_id):
 
-    try:
-        dados_filme = obter_detalhes_com_cache(tmdb_id)
-    except:
-        return render(request, '404.html', {'erro': 'Filme não encontrado'})
+    dados_filme = obter_detalhes_com_cache(tmdb_id)
+
+    # Formatar data de lançamento para formato brasileiro
+    if dados_filme.get('data_lancamento'):
+        from datetime import datetime
+        try:
+            data_obj = datetime.strptime(dados_filme['data_lancamento'], '%Y-%m-%d')
+            dados_filme['data_lancamento_formatada'] = data_obj.strftime('%d/%m/%Y')
+        except:
+            dados_filme['data_lancamento_formatada'] = dados_filme['data_lancamento']
+    else:
+        dados_filme['data_lancamento_formatada'] = None
 
     # Criar ou buscar filme local para críticas
     filme_local, created = Filme.objects.get_or_create(
@@ -334,12 +342,16 @@ def detalhes_filme(request, tmdb_id):
 
     # Buscar críticas locais
     criticas = Critica.objects.filter(filme=filme_local)
+
+    # Passar dados de crew e cast para o JavaScript via JSON
     context = {
         'filme': dados_filme,
         'filme_local': filme_local,
         'criticas': criticas,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
-        }
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'crew_data_json': json.dumps(dados_filme.get('equipe', [])),
+        'cast_data_json': json.dumps(dados_filme.get('elenco_principal', []))
+    }
     return render(request, "backstage/movie_details.html", context)
 
 def buscar(request):
@@ -835,12 +847,9 @@ def remover_serie_da_lista(request, lista_id, tmdb_id):
 
 def detalhes_serie(request, tmdb_id):
     """View para mostrar detalhes de uma série"""
-    
-    try:
-        # Buscar dados da API
-        dados_serie = buscar_detalhes_serie(tmdb_id)
-    except:
-        return render(request, '404.html', {'erro': 'Série não encontrada'})
+
+    # Buscar dados da API
+    dados_serie = buscar_detalhes_serie(tmdb_id)
     
     # Criar ou buscar série no banco local
     serie_local, created = Serie.objects.get_or_create(

@@ -1,10 +1,6 @@
-// ===== TMDb API Configuration =====
-const TMDB_API_KEY = 'e2bf84876d17e898ef5fc63655cd5040';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-
-// ===== Movie Database =====
-// MovieDatabase removed - movies page now uses API data from TMDb via Django backend
+// ===== Movies Page JavaScript =====
+// Todos os dados de filmes são fornecidos pelo backend Django
+// Este arquivo apenas adiciona interatividade à página
 
 // ===== DOM Elements =====
 const moviesGrid = document.getElementById('movies-grid');

@@ -6,15 +6,45 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from ..models import FilmeCache
 
-def _get(endpoint, params=None):
+def _get(endpoint, params=None, max_retries=3, timeout=10):
+    """
+    Faz requisição à API do TMDb com retry e timeout
+
+    Args:
+        endpoint: Endpoint da API (ex: /movie/123)
+        params: Parâmetros da query string
+        max_retries: Número máximo de tentativas em caso de erro
+        timeout: Timeout em segundos para cada requisição
+    """
     params = params or {}
     params["api_key"] = settings.TMDB_API_KEY
     url = f"{settings.TMDB_BASE_URL}{endpoint}?{parse.urlencode(params)}"
 
-    with request.urlopen(url) as resp:
-        if resp.status != 200:
-            raise Exception(f"Erro TMDb: status {resp.status}")
-        return json.load(resp)
+    last_error = None
+
+    for attempt in range(max_retries):
+        try:
+            # Usar timeout para evitar requisições travadas
+            with request.urlopen(url, timeout=timeout) as resp:
+                if resp.status != 200:
+                    raise Exception(f"Erro TMDb: status {resp.status}")
+                return json.load(resp)
+
+        except Exception as e:
+            last_error = e
+
+            # Se não for a última tentativa, aguardar antes de tentar novamente
+            if attempt < max_retries - 1:
+                import time
+                wait_time = (attempt + 1) * 0.5  # Espera progressiva: 0.5s, 1s, 1.5s
+                print(f"Tentativa {attempt + 1}/{max_retries} falhou para {endpoint}. Tentando novamente em {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                # Última tentativa falhou
+                print(f"Todas as {max_retries} tentativas falharam para {endpoint}: {str(e)}")
+
+    # Se chegou aqui, todas as tentativas falharam
+    raise Exception(f"Falha ao buscar dados da API TMDb após {max_retries} tentativas: {str(last_error)}")
 
 def buscar_detalhes_filme(id_tmdb: int):
     return _get(f"/movie/{id_tmdb}", params={"language": "pt-BR"})
@@ -163,6 +193,9 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
     elenco = creditos.get("cast", []) or []
     elenco_ordenado = sorted(elenco, key=lambda c: c.get("order", 999))[:10]
 
+    # Extrair equipe (crew) principal
+    equipe = creditos.get("crew", []) or []
+
     plataformas = []
     for tipo in ("flatrate", "rent", "buy", "ads", "free"):
         for p in provs.get(tipo, []) or []:
@@ -175,13 +208,20 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
     return {
         "tmdb_id": id_tmdb,
         "titulo": detalhes.get("title"),
+        "titulo_original": detalhes.get("original_title"),
         "sinopse": detalhes.get("overview"),
         "poster_path": detalhes.get("poster_path"),
         "backdrop_path": detalhes.get("backdrop_path"),
         "ano_lancamento": detalhes.get("release_date", "")[:4] if detalhes.get("release_date") else "",
+        "data_lancamento": detalhes.get("release_date"),
         "nota_tmdb": detalhes.get("vote_average"),
         "duracao_min": detalhes.get("runtime"),
         "generos": [genero.get("name") for genero in detalhes.get("genres", [])],
+        "status": detalhes.get("status"),  # "Released", "Post Production", etc
+        "idioma_original": detalhes.get("original_language"),  # "en", "pt", etc
+        "orcamento": detalhes.get("budget", 0),
+        "receita": detalhes.get("revenue", 0),
+        "palavras_chave": [],  # Será preenchido com keywords da API se necessário
         "elenco_principal": [
             {
                 "nome": p.get("name"),
@@ -190,10 +230,16 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
             }
             for p in elenco_ordenado
         ],
+        "equipe": equipe,  # Incluir crew completa para o JavaScript processar
         "plataformas": plataformas
     }
 
 def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str = None):
+    """
+    Busca detalhes do filme com cache. Trata race condition em requisições simultâneas.
+    """
+    from django.db import IntegrityError
+
     # Tenta usar cache até 'ttl_minutos' (default 24h). Se expirado, refaz na TMDb e atualiza.
     try:
         fc = FilmeCache.objects.get(id_tmdb=id_tmdb)
@@ -203,11 +249,26 @@ def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str 
         fc = None
 
     payload = montar_payload_agregado(id_tmdb, region=region)
+
     if fc:
+        # Cache existe mas está expirado - atualizar
         fc.payload = payload
         fc.save(update_fields=["payload", "atualizado_em"])
     else:
-        FilmeCache.objects.create(id_tmdb=id_tmdb, payload=payload)
+        # Cache não existe - tentar criar
+        try:
+            FilmeCache.objects.create(id_tmdb=id_tmdb, payload=payload)
+        except IntegrityError:
+            # Outra requisição já criou o cache - buscar e retornar
+            # Isso acontece quando múltiplas requisições chegam simultaneamente
+            print(f"[INFO] Cache para filme {id_tmdb} já existe (criado por outra requisição)")
+            try:
+                fc = FilmeCache.objects.get(id_tmdb=id_tmdb)
+                return fc.payload
+            except FilmeCache.DoesNotExist:
+                # Caso extremamente raro - retornar o payload que acabamos de buscar
+                pass
+
     return payload
 
 def converter_para_estrelas(nota_tmdb):

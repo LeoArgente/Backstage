@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from urllib3 import request
 from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie
 from django.contrib import messages
 import json
@@ -267,13 +268,13 @@ def lists(request):
     from django.db.models import Count
 
     minhas_listas = Lista.objects.filter(usuario=request.user).annotate(
-        num_filmes=Count('itens'),
-        num_series=Count('itens_serie')
+        num_filmes=Count('itens', distinct=True),
+        num_series=Count('itens_serie', distinct=True)
     ).order_by('-atualizada_em')
 
     listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
-        num_filmes=Count('itens'),
-        num_series=Count('itens_serie')
+        num_filmes=Count('itens', distinct=True),
+        num_series=Count('itens_serie', distinct=True)
     ).order_by('-atualizada_em')
 
     context = {
@@ -318,10 +319,18 @@ def wireframer(request):
 
 def detalhes_filme(request, tmdb_id):
 
-    try:
-        dados_filme = obter_detalhes_com_cache(tmdb_id)
-    except:
-        return render(request, '404.html', {'erro': 'Filme não encontrado'})
+    dados_filme = obter_detalhes_com_cache(tmdb_id)
+
+    # Formatar data de lançamento para formato brasileiro
+    if dados_filme.get('data_lancamento'):
+        from datetime import datetime
+        try:
+            data_obj = datetime.strptime(dados_filme['data_lancamento'], '%Y-%m-%d')
+            dados_filme['data_lancamento_formatada'] = data_obj.strftime('%d/%m/%Y')
+        except:
+            dados_filme['data_lancamento_formatada'] = dados_filme['data_lancamento']
+    else:
+        dados_filme['data_lancamento_formatada'] = None
 
     # Criar ou buscar filme local para críticas
     filme_local, created = Filme.objects.get_or_create(
@@ -333,31 +342,134 @@ def detalhes_filme(request, tmdb_id):
 
     # Buscar críticas locais
     criticas = Critica.objects.filter(filme=filme_local)
+
+    # Passar dados de crew e cast para o JavaScript via JSON
     context = {
         'filme': dados_filme,
         'filme_local': filme_local,
         'criticas': criticas,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
-        }
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'crew_data_json': json.dumps(dados_filme.get('equipe', [])),
+        'cast_data_json': json.dumps(dados_filme.get('elenco_principal', []))
+    }
     return render(request, "backstage/movie_details.html", context)
 
 def buscar(request):
-
-    query = request.GET.get('q', '')
-    resultados = []
+    from .services.tmdb import (
+        buscar_filme_por_titulo, 
+        buscar_pessoa_por_nome, 
+        buscar_filmes_por_pessoa,
+        buscar_generos,
+        buscar_filmes_por_genero,
+        buscar_serie_por_titulo
+    )
+    
+    query = request.GET.get('q', '').strip()
+    tipo_busca = request.GET.get('tipo', 'titulo')  # titulo, pessoa, genero
+    resultados_filmes = []
+    resultados_pessoas = []
+    generos = []
+    
+    try:
+        # Buscar gêneros para o filtro
+        generos = buscar_generos()
+    except:
+        generos = []
 
     if query:
         try:
-            resultados = buscar_filme_por_titulo(query)
-        except:
-            resultados = []
+            if tipo_busca == 'titulo':
+                 # Busca por título (filmes e séries)
+                filmes = buscar_filme_por_titulo(query)
+                series = buscar_serie_por_titulo(query)
+                
+                # Adicionar tipo para diferenciação
+                for filme in filmes:
+                    filme['tipo'] = 'filme'
+                for serie in series:
+                    serie['tipo'] = 'serie'
+                
+                resultados_filmes = filmes + series
+            elif tipo_busca == 'pessoa':
+                # Busca por pessoa (ator/diretor)
+                pessoas = buscar_pessoa_por_nome(query)
+                resultados_pessoas = pessoas[:5]  # Limitar a 5 pessoas
+                
+                # Se encontrou pessoas, buscar filmes da primeira pessoa
+                if pessoas:
+                    primeira_pessoa = pessoas[0]
+                    resultados_filmes = buscar_filmes_por_pessoa(primeira_pessoa.get('id'))
+            elif tipo_busca == 'genero':
+                # Buscar gênero pelo nome
+                genero_encontrado = None
+                for genero in generos:
+                    if query.lower() in genero.get('name', '').lower():
+                        genero_encontrado = genero
+                        break
+                
+                if genero_encontrado:
+                    resultados_filmes = buscar_filmes_por_genero(genero_encontrado.get('id'))
+            else:
+                # Busca geral (título + pessoa)
+                resultados_filmes = buscar_filme_por_titulo(query)
+                
+        except Exception as e:
+            print(f"Erro na busca: {e}")
+            resultados_filmes = []
+            resultados_pessoas = []
 
     context = {
         'query': query,
-        'resultados': resultados,
+        'tipo_busca': tipo_busca,
+        'resultados_filmes': resultados_filmes,
+        'resultados_pessoas': resultados_pessoas,
+        'generos': generos,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
-    return render(request, "backstage/busca.html", context)
+    return render(request, "backstage/busca_resultado.html", context)
+
+def busca_ajax(request):
+    """API endpoint para busca em tempo real"""
+    query = request.GET.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    try:
+        from .services.tmdb import buscar_filme_por_titulo, buscar_serie_por_titulo
+        
+        # Buscar filmes e séries (limitado a 5 cada)
+        filmes = buscar_filme_por_titulo(query)[:5]
+        series = buscar_serie_por_titulo(query)[:5]
+        
+        # Formatar resultados
+        resultados = []
+        
+        for filme in filmes:
+            resultados.append({
+                'id': filme['tmdb_id'],
+                'titulo': filme['titulo'],
+                'ano': filme['ano_lancamento'],
+                'poster': f"{settings.TMDB_IMAGE_BASE_URL}w200{filme['poster_path']}" if filme['poster_path'] else None,
+                'tipo': 'filme',
+                'url': f"/filmes/{filme['tmdb_id']}/"
+            })
+        
+        for serie in series:
+            resultados.append({
+                'id': serie['tmdb_id'],
+                'titulo': serie['titulo'],
+                'ano': serie['ano_lancamento'],
+                'poster': f"{settings.TMDB_IMAGE_BASE_URL}w200{serie['poster_path']}" if serie['poster_path'] else None,
+                'tipo': 'serie',
+                'url': f"/series/{serie['tmdb_id']}/"
+            })
+        
+        return JsonResponse({'results': resultados})
+        
+    except Exception as e:
+        return JsonResponse({'results': [], 'error': str(e)})
+
 
 def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
@@ -368,6 +480,7 @@ def filmes_home(request):
         recommended = obter_recomendados(limit=12)
         em_cartaz = obter_em_cartaz(limit=12)
         classicos = obter_classicos(limit=12)
+        
 
         # Adicionar URL base para imagens
         tmdb_image_base = settings.TMDB_IMAGE_BASE_URL
@@ -505,13 +618,16 @@ def buscar_ou_criar_lista_watch_later(request):
 @api_login_required
 def buscar_listas_usuario(request):
     try:
+        # Obtém o tipo de conteúdo (filme ou serie) dos parâmetros da query
+        tipo = request.GET.get('tipo', 'filme')
+
         listas = Lista.objects.filter(usuario=request.user).order_by('-atualizada_em')
         listas_data = [{
             'id': lista.id,
             'nome': lista.nome,
             'descricao': lista.descricao,
             'publica': lista.publica,
-            'count': lista.itens.count()
+            'count': lista.itens_serie.count() if tipo == 'serie' else lista.itens.count()
         } for lista in listas]
 
         return JsonResponse({
@@ -731,12 +847,9 @@ def remover_serie_da_lista(request, lista_id, tmdb_id):
 
 def detalhes_serie(request, tmdb_id):
     """View para mostrar detalhes de uma série"""
-    
-    try:
-        # Buscar dados da API
-        dados_serie = buscar_detalhes_serie(tmdb_id)
-    except:
-        return render(request, '404.html', {'erro': 'Série não encontrada'})
+
+    # Buscar dados da API
+    dados_serie = buscar_detalhes_serie(tmdb_id)
     
     # Criar ou buscar série no banco local
     serie_local, created = Serie.objects.get_or_create(

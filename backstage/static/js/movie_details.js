@@ -1,14 +1,9 @@
 // ===== Movie Details Interactive Functionality =====
+// Todas as chamadas à API do TMDb são feitas pelo backend Django
 
-// ===== Get API Configuration from main.js =====
-function getApiConfig() {
-  return {
-    apiKey: window.TMDB_API_KEY || 'e2bf84876d17e898ef5fc63655cd5040',
-    baseUrl: window.TMDB_BASE_URL || 'https://api.themoviedb.org/3',
-    imageBaseUrl: window.TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500',
-    originalImageUrl: window.TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/original'
-  };
-}
+// URLs base do TMDb (usadas apenas para montagem de URLs de imagens)
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+const TMDB_BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original';
 
 // Global variables for movie data
 let currentMovieData = null;
@@ -35,83 +30,6 @@ function getCurrentMovieTMDbId() {
 
   return tmdbId;
 }
-
-// ===== TMDb API Functions =====
-async function fetchMovieDetails(movieId) {
-  console.log('Fetching movie details for TMDb ID:', movieId);
-  try {
-    const config = getApiConfig();
-    const url = `${config.baseUrl}/movie/${movieId}?api_key=${config.apiKey}&language=pt-BR`;
-    console.log('Movie details URL:', url);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}: Movie not found`);
-    const data = await response.json();
-    console.log('Movie details fetched:', data.title);
-    return data;
-  } catch (error) {
-    console.error('Error fetching movie details:', error);
-    return null;
-  }
-}
-
-async function fetchMovieCredits(movieId) {
-  console.log('Fetching movie credits for TMDb ID:', movieId);
-  try {
-    const config = getApiConfig();
-    const url = `${config.baseUrl}/movie/${movieId}/credits?api_key=${config.apiKey}`;
-    console.log('Movie credits URL:', url);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}: Credits not found`);
-    const data = await response.json();
-    console.log('Movie credits fetched:', {
-      castCount: data.cast?.length || 0,
-      crewCount: data.crew?.length || 0
-    });
-    return data;
-  } catch (error) {
-    console.error('Error fetching movie credits:', error);
-    return null;
-  }
-}
-
-async function fetchSimilarMovies(movieId) {
-  try {
-    const config = getApiConfig();
-    const response = await fetch(`${config.baseUrl}/movie/${movieId}/similar?api_key=${config.apiKey}&language=pt-BR&page=1`);
-    if (!response.ok) throw new Error('Similar movies not found');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching similar movies:', error);
-    return null;
-  }
-}
-
-async function fetchMovieImages(movieId) {
-  try {
-    const config = getApiConfig();
-    const response = await fetch(`${config.baseUrl}/movie/${movieId}/images?api_key=${config.apiKey}`);
-    if (!response.ok) throw new Error('Images not found');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching movie images:', error);
-    return null;
-  }
-}
-
-async function fetchMovieVideos(movieId) {
-  try {
-    const config = getApiConfig();
-    const response = await fetch(`${config.baseUrl}/movie/${movieId}/videos?api_key=${config.apiKey}&language=pt-BR`);
-    if (!response.ok) throw new Error('Videos not found');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching movie videos:', error);
-    return null;
-  }
-}
-
-// ===== Movie Database no longer needed =====
-// Using direct TMDb API calls based on URL instead
 
 // ===== Tab System =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -217,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }, 2000);
 });
 
-// ===== Load Movie Data from TMDb API =====
+// ===== Load Movie Data from Backend Django API =====
 async function loadMovieData() {
   const tmdbMovieId = getCurrentMovieTMDbId();
 
@@ -231,41 +149,34 @@ async function loadMovieData() {
   showLoadingState();
 
   try {
-    // Fetch all movie data in parallel using TMDb ID
-    const [movieDetails, movieCredits, similarMovies] = await Promise.all([
-      fetchMovieDetails(tmdbMovieId),
-      fetchMovieCredits(tmdbMovieId),
-      fetchSimilarMovies(tmdbMovieId)
-    ]);
+    // Ler dados que vieram do Django via window
+    const crewData = window.movieCrewData || [];
+    const castData = window.movieCastData || [];
 
-    // Store data globally
-    currentMovieData = movieDetails;
-    currentMovieCredits = movieCredits;
-    currentSimilarMovies = similarMovies;
+    console.log('Movie details page loaded via Django backend');
+    console.log('TMDb ID:', tmdbMovieId);
+    console.log('Crew data loaded:', crewData.length, 'members');
+    console.log('Cast data loaded:', castData.length, 'members');
 
-    console.log('Movie data loaded:', {
-      title: movieDetails?.title,
-      director: movieCredits?.crew?.find(c => c.job === 'Director')?.name,
-      tmdbId: tmdbMovieId,
-      creditsAvailable: !!movieCredits,
-      crewCount: movieCredits?.crew?.length || 0
-    });
+    // Criar estrutura de creditsData
+    currentMovieCredits = {
+      crew: crewData,
+      cast: castData
+    };
 
-    // Update ALL page content with API data - this will overwrite static HTML
-    if (movieDetails) {
-      console.log('Updating movie details...');
-      updateCompleteMovieDetails(movieDetails);
-      updateOverviewContentFromAPI(movieDetails, movieCredits);
+    // Carregar seções se houver dados
+    if (crewData && crewData.length > 0) {
+      console.log('Loading crew section...');
+      loadOverviewCrewSection(currentMovieCredits);
+    } else {
+      console.warn('No crew data available');
     }
 
-    // Load crew section with real API data (this will replace static crew)
-    if (movieCredits) {
-      console.log('Loading overview crew section...');
-      loadOverviewCrewSection(movieCredits);
-      console.log('Loading overview cast...');
+    if (castData && castData.length > 0) {
+      console.log('Loading cast overview...');
       loadOverviewCast();
     } else {
-      console.error('No movieCredits available for crew loading');
+      console.warn('No cast data available');
     }
 
     // Hide loading states
@@ -292,7 +203,23 @@ function showLoadingState() {
 }
 
 function hideLoadingState() {
-  // Remove loading states (handled by content update)
+  // Remover spinners de loading se ainda estiverem presentes
+  const crewGrid = document.querySelector('.crew-grid');
+  const castGrid = document.getElementById('overview-cast-grid');
+
+  if (crewGrid) {
+    const loadingSpinner = crewGrid.querySelector('.loading-spinner');
+    if (loadingSpinner) {
+      crewGrid.innerHTML = ''; // Limpar apenas se ainda tiver o spinner
+    }
+  }
+
+  if (castGrid) {
+    const loadingSpinner = castGrid.querySelector('.loading-spinner');
+    if (loadingSpinner) {
+      castGrid.innerHTML = ''; // Limpar apenas se ainda tiver o spinner
+    }
+  }
 }
 
 function showErrorState() {
@@ -304,164 +231,6 @@ function showErrorState() {
   const castGrid = document.getElementById('overview-cast-grid');
   if (castGrid) {
     castGrid.innerHTML = '<div class="error-message">Erro ao carregar dados do elenco.</div>';
-  }
-}
-
-// ===== Update ALL Movie Details with API Data (overwrites static HTML) =====
-function updateCompleteMovieDetails(movieData) {
-  // Update page title
-  document.title = `${movieData.title} — Backstage`;
-
-  // Update movie title and original title
-  const titleElement = document.querySelector('.movie-title');
-  if (titleElement) {
-    titleElement.textContent = movieData.title;
-  }
-
-  const originalTitleElement = document.querySelector('.movie-original-title');
-  if (originalTitleElement) {
-    originalTitleElement.textContent = movieData.original_title || movieData.title;
-    originalTitleElement.style.display = movieData.original_title !== movieData.title ? 'block' : 'none';
-  }
-
-  // Update year
-  const yearElement = document.querySelector('.movie-year');
-  if (yearElement && movieData.release_date) {
-    yearElement.textContent = new Date(movieData.release_date).getFullYear();
-  }
-
-  // Update runtime
-  const durationElement = document.querySelector('.movie-duration');
-  if (durationElement && movieData.runtime) {
-    const hours = Math.floor(movieData.runtime / 60);
-    const minutes = movieData.runtime % 60;
-    durationElement.textContent = `${hours}h ${minutes}min`;
-  }
-
-  // Update genres
-  const genresContainer = document.querySelector('.movie-genres');
-  if (genresContainer && movieData.genres) {
-    genresContainer.innerHTML = movieData.genres.map(genre =>
-      `<span class="genre-tag">${genre.name}</span>`
-    ).join('');
-  }
-
-  // Update movie synopsis with API data
-  const synopsisElement = document.querySelector('.movie-synopsis p');
-  if (synopsisElement && movieData.overview) {
-    synopsisElement.textContent = movieData.overview;
-  }
-
-  // Update poster with higher quality image
-  const posterElement = document.querySelector('.movie-poster');
-  if (posterElement && movieData.poster_path) {
-    const config = getApiConfig();
-    posterElement.src = `${config.imageBaseUrl}${movieData.poster_path}`;
-    posterElement.alt = movieData.title;
-  }
-
-  // Update backdrop with API data
-  const backdropElement = document.querySelector('.movie-backdrop img');
-  if (backdropElement && movieData.backdrop_path) {
-    const config = getApiConfig();
-    backdropElement.src = `${config.originalImageUrl}${movieData.backdrop_path}`;
-    backdropElement.alt = `${movieData.title} backdrop`;
-  }
-
-  // Update ratings with API data
-  updateRatingsFromAPI(movieData);
-
-  // Update facts section
-  updateFactsFromAPI(movieData);
-}
-
-// ===== Update Ratings from API =====
-function updateRatingsFromAPI(movieData) {
-  // Update IMDb rating (using TMDb rating as approximation)
-  const imdbRating = document.querySelector('.rating-box.imdb .rating-value strong');
-  if (imdbRating) {
-    imdbRating.textContent = movieData.vote_average ? movieData.vote_average.toFixed(1) : 'N/A';
-  }
-
-  const imdbCount = document.querySelector('.rating-box.imdb .rating-count');
-  if (imdbCount) {
-    imdbCount.textContent = movieData.vote_count ? `${(movieData.vote_count / 1000).toFixed(1)}K votos` : 'N/A';
-  }
-
-  // Update Backstage rating (convert from 10-scale to 5-scale)
-  const backstageRating = document.querySelector('.rating-box.backstage .rating-value strong');
-  if (backstageRating) {
-    const ratingOutOf5 = (movieData.vote_average / 2).toFixed(1);
-    backstageRating.textContent = ratingOutOf5;
-  }
-}
-
-// ===== Update Facts Section from API =====
-function updateFactsFromAPI(movieData) {
-  // Update budget
-  if (movieData.budget) {
-    const budgetDt = Array.from(document.querySelectorAll('.facts-list dt')).find(dt => dt.textContent === 'Orçamento');
-    if (budgetDt) {
-      const budgetDd = budgetDt.nextElementSibling;
-      budgetDd.textContent = `$${(movieData.budget / 1000000).toFixed(0)}.000.000`;
-    }
-  }
-
-  // Update revenue
-  if (movieData.revenue) {
-    const revenueDt = Array.from(document.querySelectorAll('.facts-list dt')).find(dt => dt.textContent === 'Receita');
-    if (revenueDt) {
-      const revenueDd = revenueDt.nextElementSibling;
-      revenueDd.textContent = `$${(movieData.revenue / 1000000).toFixed(0)}.000.000`;
-    }
-  }
-
-  // Update language
-  const languageDt = Array.from(document.querySelectorAll('.facts-list dt')).find(dt => dt.textContent === 'Idioma Original');
-  if (languageDt && movieData.original_language) {
-    const languageNames = {
-      'en': 'Inglês',
-      'pt': 'Português',
-      'es': 'Espanhol',
-      'fr': 'Francês',
-      'de': 'Alemão',
-      'it': 'Italiano',
-      'ja': 'Japonês',
-      'ko': 'Coreano',
-      'zh': 'Chinês'
-    };
-    const languageDd = languageDt.nextElementSibling;
-    languageDd.textContent = languageNames[movieData.original_language] || movieData.original_language.toUpperCase();
-  }
-}
-
-function updateOverviewContentFromAPI(movieData, creditsData) {
-  // Update crew section with real API data
-  if (creditsData) {
-    loadOverviewCrewSection(creditsData);
-  }
-
-  // Update production info
-  if (movieData.production_companies && movieData.production_companies.length > 0) {
-    // Could update production company info if we had that section
-  }
-
-  // Update language info
-  const languageDt = Array.from(document.querySelectorAll('.facts-list dt')).find(dt => dt.textContent === 'Idioma Original');
-  if (languageDt && movieData.original_language) {
-    const languageNames = {
-      'en': 'Inglês',
-      'pt': 'Português',
-      'es': 'Espanhol',
-      'fr': 'Francês',
-      'de': 'Alemão',
-      'it': 'Italiano',
-      'ja': 'Japonês',
-      'ko': 'Coreano',
-      'zh': 'Chinês'
-    };
-    const languageDd = languageDt.nextElementSibling;
-    languageDd.textContent = languageNames[movieData.original_language] || movieData.original_language.toUpperCase();
   }
 }
 
@@ -838,17 +607,23 @@ function loadOverviewCast() {
 
   // Show only first 4 cast members in overview
   const topCast = currentMovieCredits.cast.slice(0, 4);
-  
-  const config = getApiConfig();
-  overviewCastGrid.innerHTML = topCast.map(member => `
-    <div class="cast-card">
-      <img src="${member.profile_path ? config.imageBaseUrl + member.profile_path : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=150&background=667eea&color=fff`}" alt="${member.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=150&background=667eea&color=fff'" />
-      <div class="cast-info">
-        <span class="actor-name">${member.name}</span>
-        <span class="character-name">${member.character}</span>
+
+  overviewCastGrid.innerHTML = topCast.map(member => {
+    // Suportar ambos os formatos: pt-BR ("nome", "personagem") e en ("name", "character")
+    const actorName = member.nome || member.name;
+    const characterName = member.personagem || member.character;
+    const photoPath = member.foto_path || member.profile_path;
+
+    return `
+      <div class="cast-card">
+        <img src="${photoPath ? TMDB_IMAGE_BASE_URL + photoPath : `https://ui-avatars.com/api/?name=${encodeURIComponent(actorName)}&size=150&background=667eea&color=fff`}" alt="${actorName}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(actorName)}&size=150&background=667eea&color=fff'" />
+        <div class="cast-info">
+          <span class="actor-name">${actorName}</span>
+          <span class="character-name">${characterName}</span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // ===== Content Loading Functions =====
@@ -890,86 +665,35 @@ function loadFullCast() {
   // Show all cast members (limit to 20 for performance)
   const cast = currentMovieCredits.cast.slice(0, 20);
 
-  const config = getApiConfig();
-  castGrid.innerHTML = cast.map(member => `
-    <div class="cast-card">
-      <img src="${member.profile_path ? config.imageBaseUrl + member.profile_path : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=150&background=667eea&color=fff`}" alt="${member.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=150&background=667eea&color=fff'" />
-      <div class="cast-info">
-        <span class="actor-name">${member.name}</span>
-        <span class="character-name">${member.character}</span>
+  castGrid.innerHTML = cast.map(member => {
+    // Suportar ambos os formatos: pt-BR ("nome", "personagem") e en ("name", "character")
+    const actorName = member.nome || member.name;
+    const characterName = member.personagem || member.character;
+    const photoPath = member.foto_path || member.profile_path;
+
+    return `
+      <div class="cast-card">
+        <img src="${photoPath ? TMDB_IMAGE_BASE_URL + photoPath : `https://ui-avatars.com/api/?name=${encodeURIComponent(actorName)}&size=150&background=667eea&color=fff`}" alt="${actorName}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(actorName)}&size=150&background=667eea&color=fff'" />
+        <div class="cast-info">
+          <span class="actor-name">${actorName}</span>
+          <span class="character-name">${characterName}</span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function loadFullReviews() {
   const reviewsList = document.querySelector('.reviews-list-full');
   if (!reviewsList) return;
 
-  const reviews = [
-    {
-      id: 1,
-      author: 'Carlos Mendes',
-      avatar: 'Carlos',
-      rating: 5,
-      date: 'há 2 dias',
-      text: 'Uma obra-prima cinematográfica que desafia nossa percepção da realidade. Nolan criou um universo complexo e fascinante que mantém você pensando muito depois dos créditos finais. A trilha sonora de Hans Zimmer é absolutamente épica.',
-      likes: 127,
-      comments: 8
-    },
-    {
-      id: 2,
-      author: 'Ana Silva',
-      avatar: 'Ana',
-      rating: 4,
-      date: 'há 1 semana',
-      text: 'Visualmente impressionante e intelectualmente estimulante. Único defeito é que pode ser um pouco confuso na primeira vez que você assiste, mas isso só adiciona ao valor de rewatchability.',
-      likes: 89,
-      comments: 5
-    },
-    {
-      id: 3,
-      author: 'Pedro Santos',
-      avatar: 'Pedro',
-      rating: 5,
-      date: 'há 2 semanas',
-      text: 'Christopher Nolan no seu melhor. A construção dos níveis de sonho é genial e a cinematografia é de tirar o fôlego. Leonardo DiCaprio entrega uma performance excepcional.',
-      likes: 156,
-      comments: 12
-    },
-    {
-      id: 4,
-      author: 'Maria Oliveira',
-      avatar: 'Maria',
-      rating: 4,
-      date: 'há 3 semanas',
-      text: 'Filme que requer atenção total, mas recompensa o espectador com uma experiência cinematográfica única. Os efeitos práticos são impressionantes e a história é bem construída.',
-      likes: 73,
-      comments: 6
-    }
-  ];
-
-  const reviewsHTML = reviews.map(review => `
-    <article class="review-card">
-      <div class="review-header">
-        <img src="https://ui-avatars.com/api/?name=${review.avatar}&background=667eea&color=fff" alt="${review.author}" class="reviewer-avatar" />
-        <div class="reviewer-info">
-          <span class="reviewer-name">${review.author}</span>
-          <div class="review-meta">
-            <span class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
-            <span class="review-date">${review.date}</span>
-          </div>
-        </div>
-      </div>
-      <p class="review-text">${review.text}</p>
-      <div class="review-actions">
-        <button class="review-action">👍 ${review.likes}</button>
-        <button class="review-action">💬 ${review.comments}</button>
-      </div>
-    </article>
-  `).join('');
-
-  reviewsList.innerHTML = reviewsHTML;
+  // Reviews serão carregadas do backend Django (modelo Critica)
+  // Por enquanto, mostrar mensagem de que não há reviews
+  reviewsList.innerHTML = `
+    <div class="no-reviews-message" style="text-align: center; padding: 3rem; color: #64748b;">
+      <p>Nenhuma avaliação ainda. Seja o primeiro a avaliar este filme!</p>
+    </div>
+  `;
 }
 
 async function loadMediaContent(mediaType) {
@@ -1002,52 +726,13 @@ async function loadMediaContent(mediaType) {
 }
 
 async function generatePhotosContent() {
-  const tmdbMovieId = getCurrentMovieTMDbId();
-  const images = await fetchMovieImages(tmdbMovieId);
-
-  if (!images || !images.backdrops || images.backdrops.length === 0) {
-    return '<div class="no-media-message"><p>Fotos não disponíveis.</p></div>';
-  }
-
-  // Show first 12 backdrop images
-  const photos = images.backdrops.slice(0, 12);
-
-  const config = getApiConfig();
-  return photos.map(photo => `
-    <div class="media-item">
-      <img src="${config.imageBaseUrl}${photo.file_path}" alt="Foto do filme" loading="lazy" />
-      <div class="media-overlay">
-        <button class="media-expand" onclick="expandImage('${config.originalImageUrl}${photo.file_path}')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `).join('');
+  // Mídia de fotos: funcionalidade futura - requer implementação de endpoint no backend
+  return '<div class="no-media-message"><p>Fotos em breve! (Requer endpoint backend)</p></div>';
 }
 
 async function generateVideosContent() {
-  const tmdbMovieId = getCurrentMovieTMDbId();
-  const videos = await fetchMovieVideos(tmdbMovieId);
-
-  if (!videos || !videos.results || videos.results.length === 0) {
-    return '<div class="no-media-message"><p>Vídeos não disponíveis.</p></div>';
-  }
-
-  return videos.results.slice(0, 8).map(video => `
-    <div class="media-item video-item" onclick="playVideo('${video.key}')">
-      <img src="https://img.youtube.com/vi/${video.key}/maxresdefault.jpg" alt="${video.name}" loading="lazy" />
-      <div class="media-overlay">
-        <button class="play-button">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </button>
-      </div>
-      <div class="video-title">${video.name}</div>
-    </div>
-  `).join('');
+  // Mídia de vídeos: funcionalidade futura - requer implementação de endpoint no backend
+  return '<div class="no-media-message"><p>Vídeos em breve! (Requer endpoint backend)</p></div>';
 }
 
 // Play YouTube video
@@ -1056,29 +741,8 @@ function playVideo(videoKey) {
 }
 
 async function generatePostersContent() {
-  const tmdbMovieId = getCurrentMovieTMDbId();
-  const images = await fetchMovieImages(tmdbMovieId);
-
-  if (!images || !images.posters || images.posters.length === 0) {
-    return '<div class="no-media-message"><p>Posters não disponíveis.</p></div>';
-  }
-
-  // Show first 12 poster images
-  const posters = images.posters.slice(0, 12);
-
-  const config = getApiConfig();
-  return posters.map(poster => `
-    <div class="media-item poster-item">
-      <img src="${config.imageBaseUrl}${poster.file_path}" alt="Poster do filme" loading="lazy" />
-      <div class="media-overlay">
-        <button class="media-expand" onclick="expandImage('${config.originalImageUrl}${poster.file_path}')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `).join('');
+  // Mídia de posters: funcionalidade futura - requer implementação de endpoint no backend
+  return '<div class="no-media-message"><p>Posters em breve! (Requer endpoint backend)</p></div>';
 }
 
 function loadSimilarMovies() {
@@ -1100,7 +764,7 @@ function loadSimilarMovies() {
   similarGrid.innerHTML = movies.map(movie => `
     <div class="movie-card similar-movie-card" onclick="navigateToMovie(${movie.id})">
       <div class="movie-poster">
-        <img src="${movie.poster_path ? getApiConfig().imageBaseUrl + movie.poster_path : 'https://via.placeholder.com/300x450?text=No+Image'}" alt="${movie.title}" loading="lazy" />
+        <img src="${movie.poster_path ? TMDB_IMAGE_BASE_URL + movie.poster_path : 'https://via.placeholder.com/300x450?text=No+Image'}" alt="${movie.title}" loading="lazy" />
         <div class="movie-overlay">
           <div class="movie-rating">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">

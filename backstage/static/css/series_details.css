@@ -4,36 +4,6 @@
 /* Reaproveita todos os estilos de movie_details.css */
 @import url('movie_details.css');
 
-/* Ensure inline rating+review layout applies on series pages as well */
-.user-rating {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 12px !important;
-}
-
-.user-rating .star-rating {
-  display: flex !important;
-  gap: 6px !important;
-  flex-shrink: 0 !important;
-}
-
-.user-rating .review-input-group {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 8px !important;
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-}
-
-.user-rating .movie-review-text {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  max-height: 84px !important;
-  resize: none !important;
-}
-
 /* ===== Estilos espec�ficos para S�ries ===== */
 
 .series-seasons,
@@ -206,6 +176,7 @@
   margin-bottom: 0.75rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

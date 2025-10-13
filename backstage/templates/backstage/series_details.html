@@ -60,7 +60,7 @@
 
           <div class="user-menu">
             <button class="user-avatar">
-              <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Avatar" />
+              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" />
             </button>
           </div>
         </div>
@@ -165,35 +165,102 @@
           
           <div class="user-rating">
             <span class="rating-label">Sua avaliação:</span>
-            <div class="star-rating">
-              <button class="star" data-rating="1">★</button>
-              <button class="star" data-rating="2">★</button>
-              <button class="star" data-rating="3">★</button>
-              <button class="star" data-rating="4">★</button>
-              <button class="star" data-rating="5">★</button>
-            </div>
             <form class="review-input-group" method="POST" action="{% url 'backstage:salvar_critica_serie' %}">
               {% csrf_token %}
               <input type="hidden" name="serie_id" value="{{ serie.tmdb_id }}">
               <input type="hidden" name="nota" id="rating-value" value="">
-              <textarea 
-                class="movie-review-text" 
-                placeholder="Escreva sua crítica aqui..."
-                name="texto"
-                required
-              ></textarea>
-              <div class="spoiler-checkbox-container">
-                <label class="spoiler-checkbox-label">
-                  <input type="checkbox" name="tem_spoiler" id="spoiler-checkbox">
-                  <span>🚨 SPOILER</span>
-                </label>
+
+              <div class="textarea-wrapper">
+                <div class="star-rating">
+                  <button type="button" class="star" data-rating="1">★</button>
+                  <button type="button" class="star" data-rating="2">★</button>
+                  <button type="button" class="star" data-rating="3">★</button>
+                  <button type="button" class="star" data-rating="4">★</button>
+                  <button type="button" class="star" data-rating="5">★</button>
+                </div>
+
+                <textarea
+                  class="movie-review-text"
+                  placeholder="Escreva sua crítica aqui..."
+                  name="texto"
+                  required
+                  id="review-textarea"
+                ></textarea>
+
+                <div class="textarea-controls">
+                  <div class="spoiler-checkbox-container">
+                    <label class="spoiler-checkbox-label">
+                      <input type="checkbox" name="tem_spoiler" id="spoiler-checkbox">
+                      <span>SPOILER</span>
+                    </label>
+                  </div>
+
+                  <div class="textarea-controls-right">
+                    <button type="button" class="expand-review-btn" onclick="openReviewModal()" title="Expandir">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                      </svg>
+                    </button>
+
+                    <button type="submit" class="send-review-btn" id="inline-submit-btn">
+                      Enviar
+                    </button>
+                  </div>
+                </div>
               </div>
-              <button type="submit" class="send-review-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                </svg>
-              </button>
             </form>
+          </div>
+
+          <!-- Modal de Resenha Expandida -->
+          <div class="review-modal-overlay" id="reviewModalOverlay">
+            <div class="review-modal">
+              <div class="review-modal-header">
+                <h3>Escreva sua Crítica</h3>
+                <button type="button" class="close-review-modal" onclick="closeReviewModal()">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="review-modal-body">
+                <h2 class="modal-movie-title">{{ serie.titulo }}</h2>
+
+                <div class="modal-star-rating">
+                  <span class="modal-rating-label">Sua avaliação:</span>
+                  <div class="star-rating" id="modal-star-rating">
+                    <button type="button" class="star" data-rating="1">★</button>
+                    <button type="button" class="star" data-rating="2">★</button>
+                    <button type="button" class="star" data-rating="3">★</button>
+                    <button type="button" class="star" data-rating="4">★</button>
+                    <button type="button" class="star" data-rating="5">★</button>
+                  </div>
+                </div>
+
+                <div class="modal-textarea-wrapper">
+                  <textarea
+                    class="modal-review-text"
+                    placeholder="Escreva sua crítica aqui..."
+                    id="modal-review-textarea"
+                  ></textarea>
+                </div>
+
+                <div class="modal-footer">
+                  <div class="modal-spoiler-checkbox">
+                    <label class="spoiler-checkbox-label">
+                      <input type="checkbox" id="modal-spoiler-checkbox">
+                      <span>SPOILER</span>
+                    </label>
+                  </div>
+
+                  <button type="button" class="modal-submit-btn" onclick="submitFromModal()">
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
       </div>
@@ -211,14 +278,14 @@
       <!-- Opções principais -->
       <div class="popup-content" id="popupOptions">
         <!-- Lista de listas existentes -->
-        <div id="existingLists" style="margin-bottom: 1rem;">
-          <div id="loadingLists" style="color: #888; text-align: center; padding: 1rem;">
+        <div id="existingLists">
+          <div id="loadingLists">
             Carregando suas listas...
           </div>
           <div id="listsContainer" style="display: none;">
             <!-- As listas serão carregadas aqui via JavaScript -->
           </div>
-          <div id="noLists" style="display: none; color: #888; text-align: center; padding: 1rem;">
+          <div id="noLists" style="display: none;">
             Você ainda não criou nenhuma lista
           </div>
         </div>
@@ -491,19 +558,9 @@
       <div class="footer-content">
         <div class="footer-section">
           <div class="brand">
-            <span class="logo">
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <circle cx="12" cy="12" r="10" fill="url(#footer-gradient)" opacity="0.9"/>
-                <path d="M9 8v8l7-4z" fill="white"/>
-                <defs>
-                  <linearGradient id="footer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#667eea"/>
-                    <stop offset="100%" style="stop-color:#764ba2"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </span>
-            <span class="brand-text">&nbsp;</span>
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="40" height="40">
           </div>
           <p class="footer-description">
             Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
@@ -529,13 +586,14 @@
   </footer>
 
   <!-- Dados da série para JavaScript -->
-  <script>
-    window.serieData = {
-      tmdbId: {{ serie.tmdb_id }},
-      temporadas: {{ temporadas_json|safe }},
-      videos: {{ videos_json|safe }}
-    };
-  </script>
+ <script>
+  window.serieData = {
+    tmdbId: "{{ serie.tmdb_id }}",
+    temporadas: JSON.parse('{{ temporadas_json|escapejs }}'),
+    videos: JSON.parse('{{ videos_json|escapejs }}')
+  };
+</script>
+
 
   <!-- JavaScript para Modal de Listas -->
   <script>
@@ -609,7 +667,7 @@
         containerEl.style.display = 'none';
         noListsEl.style.display = 'none';
 
-        fetch('/api/buscar-listas/', {
+        fetch('/api/buscar-listas/?tipo=serie', {
           method: 'GET',
           headers: {
             'X-CSRFToken': getCookie('csrftoken')
@@ -631,7 +689,7 @@
               <div class="list-item">
                 <div class="list-item-info">
                   <div class="list-item-name">${lista.nome}</div>
-                  <div class="list-item-meta">${lista.count} item${lista.count !== 1 ? 's' : ''}</div>
+                  <div class="list-item-meta">${lista.count} série${lista.count !== 1 ? 's' : ''}</div>
                 </div>
                 <button class="list-item-add" onclick="addSerieToList(${lista.id}, '${lista.nome}')">
                   Adicionar
@@ -675,6 +733,7 @@
           if (!data) return;
           if (data.success) {
             alert(`Série adicionada à lista "${listaNome}"!`);
+            loadUserLists(); // Recarrega listas para atualizar contadores
             hideListPopup();
           } else {
             alert(`Erro: ${data.message}`);
@@ -726,6 +785,7 @@
         .then(data => {
           if (data.success) {
             alert('Série adicionada à "Assistir Mais Tarde"!');
+            loadUserLists(); // Recarrega listas para atualizar contadores
             hideListPopup();
           } else {
             alert(`Erro: ${data.message}`);
@@ -751,6 +811,149 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       initListPopup();
+    });
+  </script>
+
+  <!-- Script para Modal de Resenha -->
+  <script>
+    // Sincronizar avaliação por estrelas entre inline e modal
+    let currentRating = 0;
+
+    function syncStarRating() {
+      const inlineStars = document.querySelectorAll('.review-input-group .star');
+      const modalStars = document.querySelectorAll('#modal-star-rating .star');
+
+      // Função para atualizar estrelas
+      function updateStars(stars, rating) {
+        stars.forEach((star, index) => {
+          if (index < rating) {
+            star.classList.add('active');
+          } else {
+            star.classList.remove('active');
+          }
+        });
+      }
+
+      // Event listeners para estrelas inline
+      inlineStars.forEach(star => {
+        star.addEventListener('click', function() {
+          currentRating = parseInt(this.dataset.rating);
+          document.getElementById('rating-value').value = currentRating;
+          updateStars(inlineStars, currentRating);
+          updateStars(modalStars, currentRating);
+        });
+      });
+
+      // Event listeners para estrelas do modal
+      modalStars.forEach(star => {
+        star.addEventListener('click', function() {
+          currentRating = parseInt(this.dataset.rating);
+          document.getElementById('rating-value').value = currentRating;
+          updateStars(inlineStars, currentRating);
+          updateStars(modalStars, currentRating);
+        });
+      });
+    }
+
+    // Abrir modal
+    function openReviewModal() {
+      const overlay = document.getElementById('reviewModalOverlay');
+      const inlineTextarea = document.getElementById('review-textarea');
+      const modalTextarea = document.getElementById('modal-review-textarea');
+      const inlineCheckbox = document.getElementById('spoiler-checkbox');
+      const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+
+      // Sincronizar conteúdo
+      modalTextarea.value = inlineTextarea.value;
+      modalCheckbox.checked = inlineCheckbox.checked;
+
+      // Mostrar modal
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+
+      // Focus no textarea do modal
+      setTimeout(() => modalTextarea.focus(), 100);
+    }
+
+    // Fechar modal
+    function closeReviewModal() {
+      const overlay = document.getElementById('reviewModalOverlay');
+      const inlineTextarea = document.getElementById('review-textarea');
+      const modalTextarea = document.getElementById('modal-review-textarea');
+      const inlineCheckbox = document.getElementById('spoiler-checkbox');
+      const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+
+      // Sincronizar conteúdo de volta
+      inlineTextarea.value = modalTextarea.value;
+      inlineCheckbox.checked = modalCheckbox.checked;
+
+      // Fechar modal
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    // Enviar do modal
+    function submitFromModal() {
+      const inlineTextarea = document.getElementById('review-textarea');
+      const modalTextarea = document.getElementById('modal-review-textarea');
+      const inlineCheckbox = document.getElementById('spoiler-checkbox');
+      const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+      const form = document.querySelector('.review-input-group');
+
+      // Sincronizar valores
+      inlineTextarea.value = modalTextarea.value;
+      inlineCheckbox.checked = modalCheckbox.checked;
+
+      // Validar
+      if (!currentRating) {
+        alert('Por favor, selecione uma avaliação (estrelas)');
+        return;
+      }
+
+      if (!inlineTextarea.value.trim()) {
+        alert('Por favor, escreva sua crítica');
+        return;
+      }
+
+      // Fechar modal e submeter form
+      closeReviewModal();
+      form.submit();
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('reviewModalOverlay')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeReviewModal();
+      }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const overlay = document.getElementById('reviewModalOverlay');
+        if (overlay && overlay.classList.contains('show')) {
+          closeReviewModal();
+        }
+      }
+    });
+
+    // Sincronizar textareas em tempo real
+    document.addEventListener('DOMContentLoaded', function() {
+      const inlineTextarea = document.getElementById('review-textarea');
+      const modalTextarea = document.getElementById('modal-review-textarea');
+
+      if (inlineTextarea && modalTextarea) {
+        inlineTextarea.addEventListener('input', function() {
+          modalTextarea.value = this.value;
+        });
+
+        modalTextarea.addEventListener('input', function() {
+          inlineTextarea.value = this.value;
+        });
+      }
+
+      // Inicializar sistema de estrelas
+      syncStarRating();
     });
   </script>
 

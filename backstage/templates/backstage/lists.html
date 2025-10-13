@@ -60,7 +60,7 @@
 
           <div class="user-menu">
             <button class="user-avatar" id="userMenuBtn">
-              <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Avatar" />
+              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" />
             </button>
             <!-- Dropdown Menu -->
             <div class="user-dropdown" id="userDropdown">
@@ -116,38 +116,38 @@
         <div class="lists-section" data-section="my-lists">
           {% for lista in minhas_listas %}
             <div class="list-card" data-list-id="{{ lista.id }}">
-              <div class="list-header">
-                <h3 class="list-title">{{ lista.nome }}</h3>
-                <div class="list-header-actions">
-                  <span class="list-privacy">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
-                  <div class="list-actions">
-                    <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    </button>
-                    <button class="action-btn edit-btn" title="Editar lista" onclick="editList({{ lista.id }})">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    <button class="action-btn delete-btn" title="Deletar lista" onclick="deleteList({{ lista.id }}, '{{ lista.nome|escapejs }}')">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3,6 5,6 21,6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        <line x1="10" y1="11" x2="10" y2="17"/>
-                        <line x1="14" y1="11" x2="14" y2="17"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <span class="list-badge">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+
+              <h3 class="list-title">{{ lista.nome }}</h3>
+
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
+
               <div class="list-meta">
                 <span class="list-count">{{ lista.num_filmes }} filme{{ lista.num_filmes|pluralize }} • {{ lista.num_series }} série{{ lista.num_series|pluralize }}</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
+              </div>
+
+              <div class="list-actions">
+                <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <button class="action-btn edit-btn" title="Editar lista" onclick="editList({{ lista.id }})">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="action-btn delete-btn" title="Deletar lista" onclick="deleteList({{ lista.id }}, '{{ lista.nome|escapejs }}')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </button>
               </div>
             </div>
           {% empty %}
@@ -159,28 +159,27 @@
         <div class="lists-section hidden" data-section="public">
           {% for lista in listas_publicas %}
             <div class="list-card" data-list-id="{{ lista.id }}">
-              <div class="list-header">
-                <h3 class="list-title">{{ lista.nome }}</h3>
-                <div class="list-header-actions">
-                  <span class="list-author">por {{ lista.usuario.username }}</span>
-                  <div class="list-actions">
-                    <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <span class="list-badge">{{ lista.usuario.username }}</span>
+
+              <h3 class="list-title">{{ lista.nome }}</h3>
+
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
+
               <div class="list-meta">
                 <span class="list-count">{{ lista.num_filmes }} filme{{ lista.num_filmes|pluralize }} • {{ lista.num_series }} série{{ lista.num_series|pluralize }}</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
               </div>
+
+              <div class="list-actions">
+                <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           {% empty %}
-            <p class="empty-state">Nenhuma lista pública encontrada.</p>
           {% endfor %}
         </div>
       </div>
@@ -315,19 +314,9 @@
       <div class="footer-content">
         <div class="footer-section">
           <div class="brand">
-            <span class="logo">
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <circle cx="12" cy="12" r="10" fill="url(#footer-gradient)" opacity="0.9"/>
-                <path d="M9 8v8l7-4z" fill="white"/>
-                <defs>
-                  <linearGradient id="footer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#667eea"/>
-                    <stop offset="100%" style="stop-color:#764ba2"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </span>
-            <span class="brand-text">Back</span>
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="40" height="40">
           </div>
           <p class="footer-description">
             Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.

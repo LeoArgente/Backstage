@@ -1,10 +1,6 @@
-// ===== TMDb API Configuration =====
-const TMDB_API_KEY = 'e2bf84876d17e898ef5fc63655cd5040';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-
-// ===== Movie Database =====
-// MovieDatabase removed - movies page now uses API data from TMDb via Django backend
+// ===== Movies Page JavaScript =====
+// Todos os dados de filmes são fornecidos pelo backend Django
+// Este arquivo apenas adiciona interatividade à página
 
 // ===== DOM Elements =====
 const moviesGrid = document.getElementById('movies-grid');
@@ -145,3 +141,113 @@ function initNewsDropdown() {
     </a>
   `).join('');
 }
+
+
+// ===== Search Functionality =====
+let searchTimeout;
+let searchResults = null;
+
+function initializeSearch() {
+  const searchInput = document.querySelector('.search-input');
+  const searchContainer = document.querySelector('.search-container');
+  
+  if (!searchInput || !searchContainer) return;
+
+  // Create search results dropdown
+  const searchResults = document.createElement('div');
+  searchResults.className = 'search-results-dropdown';
+  searchResults.style.cssText = `
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    margin-top: 5px;
+  `;
+  searchContainer.style.position = 'relative';
+  searchContainer.appendChild(searchResults);
+
+  // Handle input
+  searchInput.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    clearTimeout(searchTimeout);
+    
+    if (query.length < 2) {
+      searchResults.style.display = 'none';
+      return;
+    }
+
+    searchTimeout = setTimeout(() => {
+      performSearch(query, searchResults);
+    }, 300);
+  });
+
+  // Hide results when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!searchContainer.contains(e.target)) {
+      searchResults.style.display = 'none';
+    }
+  });
+
+  // Show results when focusing on input
+  searchInput.addEventListener('focus', function() {
+    if (searchResults.innerHTML) {
+      searchResults.style.display = 'block';
+    }
+  });
+}
+
+async function performSearch(query, resultsContainer) {
+  try {
+    const response = await fetch(`/api/busca/?q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      displaySearchResults(data.results, resultsContainer);
+      resultsContainer.style.display = 'block';
+    } else {
+      resultsContainer.innerHTML = '<div style="padding: 15px; color: #666; text-align: center;">Nenhum resultado encontrado</div>';
+      resultsContainer.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Erro na busca:', error);
+    resultsContainer.style.display = 'none';
+  }
+}
+
+function displaySearchResults(results, container) {
+  container.innerHTML = results.map(item => `
+    <a href="${item.url}" class="search-result-item" style="
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      text-decoration: none;
+      color: inherit;
+      border-bottom: 1px solid #333;
+    ">
+      <img src="${item.poster || '/static/images/no-image.png'}" alt="${item.titulo}" style="
+        width: 40px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 12px;
+      ">
+      <div style="flex: 1;">
+        <h4 style="margin: 0 0 4px; font-size: 14px;">${item.titulo}</h4>
+        <p style="margin: 0; font-size: 12px; color: #888;">
+          ${item.ano} • ${item.tipo.toUpperCase()}
+        </p>
+      </div>
+    </a>
+  `).join('');
+}
+
+// Initialize search when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeSearch);

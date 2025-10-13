@@ -21,6 +21,7 @@ urlpatterns = [
     path('salvar-critica/', views.salvar_critica, name='salvar_critica'),
     path('filmes/<int:tmdb_id>/', views.detalhes_filme, name='detalhes_filme'),
     path('buscar/', views.buscar, name='buscar'),########################################################
+    path('api/busca/', views.busca_ajax, name='busca_ajax'),
     path("pesquisar/", views.barra_buscar, name="barra_buscar"),
     path("filmes/<int:tmdb_id>/relatorio/", views.relatorio, name="relatorio"),
     path('api/filmes-home/', views.filmes_home, name='filmes_home'),

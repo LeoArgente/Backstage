@@ -45,6 +45,50 @@ document.addEventListener('DOMContentLoaded', function() {
     editCancelBtn.addEventListener('click', closeEditModal);
     viewCloseModal.addEventListener('click', closeViewModal);
 
+    // Save button for edit modal
+    const saveEditBtn = document.getElementById('save-edit');
+    if (saveEditBtn) {
+        saveEditBtn.addEventListener('click', function() {
+            const listId = document.getElementById('edit-list-id').value;
+            const data = {
+                nome: document.getElementById('edit-list-name').value,
+                descricao: document.getElementById('edit-list-description').value,
+                publica: document.getElementById('edit-list-public').checked
+            };
+
+            fetch(`/api/lista/${listId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/login/';
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data) return;
+
+                if (data.success) {
+                    alert('Lista atualizada com sucesso!');
+                    closeEditModal();
+                    location.reload();
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao editar lista');
+            });
+        });
+    }
+
     // Close modals on outside click
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
@@ -192,8 +236,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Global functions called by template buttons
 window.editList = function(listId) {
-    // Fetch list data and populate edit form
-    fetch(`/api/lista/${listId}/`, {
+    // Fetch list data with movies and series
+    fetch(`/api/lista/${listId}/visualizar/`, {
         method: 'GET',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')
@@ -212,10 +256,73 @@ window.editList = function(listId) {
 
         if (data.success) {
             const lista = data.lista;
+
+            // Update title in header
+            document.getElementById('edit-list-title-display').textContent = lista.nome;
+
+            // Fill form fields
             document.getElementById('edit-list-id').value = lista.id;
             document.getElementById('edit-list-name').value = lista.nome;
             document.getElementById('edit-list-description').value = lista.descricao || '';
             document.getElementById('edit-list-public').checked = lista.publica;
+
+            // Separar filmes e séries
+            const filmes = lista.itens.filter(item => item.tipo === 'filme');
+            const series = lista.itens.filter(item => item.tipo === 'serie');
+
+            // Update tab counts
+            document.getElementById('edit-movies-tab').innerHTML = `Filmes (${filmes.length})`;
+            document.getElementById('edit-series-tab').innerHTML = `Séries (${series.length})`;
+
+            // Populate movies grid with trash icon
+            const editMoviesGrid = document.getElementById('edit-movies-grid');
+            if (filmes.length === 0) {
+                editMoviesGrid.innerHTML = '<p class="empty-message">Nenhum filme nesta lista.</p>';
+            } else {
+                editMoviesGrid.innerHTML = filmes.map(item => {
+                    return `
+                        <div class="movie-item">
+                            <div class="movie-info">
+                                <h4 class="movie-title">${item.titulo}</h4>
+                                <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
+                            </div>
+                            <button class="delete-item-btn" onclick="removeItemFromList(${lista.id}, ${item.tmdb_id}, 'filme')" title="Remover filme">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Populate series grid with trash icon
+            const editSeriesGrid = document.getElementById('edit-series-grid');
+            if (series.length === 0) {
+                editSeriesGrid.innerHTML = '<p class="empty-message">Nenhuma série nesta lista.</p>';
+            } else {
+                editSeriesGrid.innerHTML = series.map(item => {
+                    return `
+                        <div class="movie-item">
+                            <div class="movie-info">
+                                <h4 class="movie-title">${item.titulo}</h4>
+                                <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
+                            </div>
+                            <button class="delete-item-btn" onclick="removeItemFromList(${lista.id}, ${item.tmdb_id}, 'serie')" title="Remover série">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
 
             document.getElementById('edit-list-modal').classList.add('active');
         } else {
@@ -289,33 +396,51 @@ window.viewList = function(listId) {
 
             // Populate view modal
             document.getElementById('view-list-title').textContent = lista.nome;
+            document.getElementById('view-list-description').textContent = lista.descricao || 'Sem descrição';
             document.getElementById('view-list-privacy').textContent = lista.publica ? 'Pública' : 'Privada';
             document.getElementById('view-list-author').textContent = `por ${lista.usuario}`;
             document.getElementById('view-list-date').textContent = `Criada em ${lista.criada_em}`;
-            document.getElementById('view-list-description').textContent = lista.descricao || 'Sem descrição';
-            document.getElementById('view-list-count').textContent = `${lista.total_filmes + lista.total_series} (${lista.total_filmes} filme${lista.total_filmes !== 1 ? 's' : ''}, ${lista.total_series} série${lista.total_series !== 1 ? 's' : ''})`;
 
-            // Populate items grid (movies and series)
-            const moviesGrid = document.getElementById('view-movies-grid');
-            if (lista.itens.length === 0) {
-                moviesGrid.innerHTML = '<p class="empty-message">Esta lista não possui itens ainda.</p>';
+            // Separar filmes e séries
+            const filmes = lista.itens.filter(item => item.tipo === 'filme');
+            const series = lista.itens.filter(item => item.tipo === 'serie');
+
+            // Update tab counts
+            document.getElementById('movies-tab').innerHTML = `Filmes (${filmes.length})`;
+            document.getElementById('series-tab').innerHTML = `Séries (${series.length})`;
+
+            // Populate movies grid
+            const moviesGrid = document.getElementById('movies-grid');
+            if (filmes.length === 0) {
+                moviesGrid.innerHTML = '<p class="empty-message">Nenhum filme nesta lista.</p>';
             } else {
-                moviesGrid.innerHTML = lista.itens.map(item => {
-                    const detailsUrl = item.tipo === 'filme' ? `/filmes/${item.tmdb_id}/` : `/series/${item.tmdb_id}/`;
-                    const tipoLabel = item.tipo === 'filme' ? 'Filme' : 'Série';
-
+                moviesGrid.innerHTML = filmes.map(item => {
+                    const detailsUrl = `/filmes/${item.tmdb_id}/`;
                     return `
-                        <div class="movie-item">
+                        <a href="${detailsUrl}" class="movie-item">
                             <div class="movie-info">
-                                <h4 class="movie-title">${item.titulo} <span style="font-size: 0.8em; color: #888;">(${tipoLabel})</span></h4>
+                                <h4 class="movie-title">${item.titulo}</h4>
                                 <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
                             </div>
-                            <div class="movie-actions">
-                                <button class="btn btn-small btn-primary" onclick="window.location.href='${detailsUrl}'">
-                                    Ver Detalhes
-                                </button>
+                        </a>
+                    `;
+                }).join('');
+            }
+
+            // Populate series grid
+            const seriesGrid = document.getElementById('series-grid');
+            if (series.length === 0) {
+                seriesGrid.innerHTML = '<p class="empty-message">Nenhuma série nesta lista.</p>';
+            } else {
+                seriesGrid.innerHTML = series.map(item => {
+                    const detailsUrl = `/series/${item.tmdb_id}/`;
+                    return `
+                        <a href="${detailsUrl}" class="movie-item">
+                            <div class="movie-info">
+                                <h4 class="movie-title">${item.titulo}</h4>
+                                <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
                             </div>
-                        </div>
+                        </a>
                     `;
                 }).join('');
             }
@@ -329,6 +454,78 @@ window.viewList = function(listId) {
         console.error('Erro:', error);
         alert('Erro ao visualizar lista');
     });
+}
+
+// Tab switching function for view modal
+window.switchContentTab = function(tabName) {
+    // Remove active class from all tabs
+    document.querySelectorAll('#view-list-modal .content-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Remove active class from all content
+    document.querySelectorAll('#view-list-modal .content-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Add active class to clicked tab and corresponding content
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    document.getElementById(`${tabName}-content`).classList.add('active');
+}
+
+// Tab switching function for edit modal
+window.switchEditTab = function(tabName) {
+    // Remove active class from all tabs
+    document.querySelectorAll('#edit-list-modal .content-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Remove active class from all content
+    document.querySelectorAll('#edit-list-modal .content-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Add active class to clicked tab and corresponding content
+    document.getElementById(`edit-${tabName}-tab`).classList.add('active');
+    document.getElementById(`edit-${tabName}-content`).classList.add('active');
+}
+
+// Remove item from list
+window.removeItemFromList = function(listId, tmdbId, tipo) {
+    if (confirm(`Tem certeza que deseja remover este ${tipo === 'filme' ? 'filme' : 'série'} da lista?`)) {
+        fetch(`/api/lista/${listId}/remover-item/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                tmdb_id: tmdbId,
+                tipo: tipo
+            })
+        })
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login/';
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+
+            if (data.success) {
+                // Reload the edit modal to show updated list
+                editList(listId);
+            } else {
+                alert('Erro ao remover item: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao remover item da lista');
+        });
+    }
 }
 
 // Helper function to get CSRF token (also used by global functions)

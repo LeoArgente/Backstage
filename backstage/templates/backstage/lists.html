@@ -237,72 +237,110 @@
 
   <!-- Edit List Modal -->
   <div class="modal-overlay" id="edit-list-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Editar Lista</h2>
-        <button class="modal-close" id="edit-modal-close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+    <div class="modal modal-large">
+      <!-- Header com título e botão fechar -->
+      <div class="popup-header">
+        <h3 class="list-view-title" id="edit-list-title-display"></h3>
+        <button class="close-popup" id="edit-modal-close">×</button>
       </div>
 
-      <form class="modal-form" id="edit-list-form">
-        <input type="hidden" id="edit-list-id">
-        <div class="form-group">
-          <label for="edit-list-name">Nome da Lista</label>
-          <input type="text" id="edit-list-name" name="name" required>
+      <!-- Conteúdo principal -->
+      <div class="popup-content">
+        <form id="edit-list-form">
+          <input type="hidden" id="edit-list-id">
+
+          <div class="edit-form-group">
+            <label for="edit-list-name">Nome da Lista</label>
+            <input type="text" id="edit-list-name" name="name" required>
+          </div>
+
+          <div class="edit-form-group">
+            <label for="edit-list-description">Descrição</label>
+            <textarea id="edit-list-description" name="description" rows="3"></textarea>
+          </div>
+
+          <div class="edit-form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="edit-list-public" name="public">
+              <span class="checkbox-custom"></span>
+              Lista pública (outros usuários podem ver)
+            </label>
+          </div>
+        </form>
+
+        <!-- Tabs -->
+        <div class="content-tabs" style="margin-top: 32px;">
+          <button class="content-tab active" id="edit-movies-tab" onclick="switchEditTab('movies')">
+            Filmes (0)
+          </button>
+          <button class="content-tab" id="edit-series-tab" onclick="switchEditTab('series')">
+            Séries (0)
+          </button>
         </div>
 
-        <div class="form-group">
-          <label for="edit-list-description">Descrição</label>
-          <textarea id="edit-list-description" name="description" rows="4"></textarea>
+        <!-- Movies Content -->
+        <div class="content-tab-content active" id="edit-movies-content">
+          <div class="movies-grid" id="edit-movies-grid">
+            <!-- Movies will be loaded here -->
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="edit-list-public" name="public">
-            <span class="checkbox-custom"></span>
-            Lista pública (outros usuários podem ver)
-          </label>
+        <!-- Series Content -->
+        <div class="content-tab-content" id="edit-series-content">
+          <div class="movies-grid" id="edit-series-grid">
+            <!-- Series will be loaded here -->
+          </div>
         </div>
 
-        <div class="form-actions">
+        <!-- Action Buttons at Bottom Left -->
+        <div class="edit-modal-actions">
           <button type="button" class="btn btn-secondary" id="cancel-edit">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          <button type="button" class="btn btn-primary" id="save-edit">Salvar Alterações</button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
   <!-- View List Modal -->
   <div class="modal-overlay" id="view-list-modal">
     <div class="modal modal-large">
-      <div class="modal-header">
-        <h2 id="view-list-title"></h2>
-        <button class="modal-close" id="view-modal-close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+      <!-- Header com título e botão fechar -->
+      <div class="popup-header">
+        <h3 class="list-view-title" id="view-list-title"></h3>
+        <button class="close-popup" id="view-modal-close">×</button>
       </div>
 
-      <div class="modal-content">
-        <div class="list-info">
-          <div class="list-meta-info">
-            <span id="view-list-privacy"></span>
-            <span id="view-list-author"></span>
-            <span id="view-list-date"></span>
-          </div>
-          <p id="view-list-description"></p>
+      <!-- Conteúdo principal -->
+      <div class="popup-content">
+        <!-- Descrição -->
+        <p class="list-view-description" id="view-list-description"></p>
+        <div class="list-view-meta">
+          <span id="view-list-privacy"></span>
+          <span id="view-list-author"></span>
+          <span id="view-list-date"></span>
         </div>
 
-        <div class="list-movies">
-          <h3>Itens na Lista (<span id="view-list-count">0</span>)</h3>
-          <div class="movies-grid" id="view-movies-grid">
-            <!-- Movies and series will be loaded here -->
+        <!-- Tabs -->
+        <div class="content-tabs">
+          <button class="content-tab active" id="movies-tab" onclick="switchContentTab('movies')">
+            Filmes (0)
+          </button>
+          <button class="content-tab" id="series-tab" onclick="switchContentTab('series')">
+            Séries (0)
+          </button>
+        </div>
+
+        <!-- Movies Content -->
+        <div class="content-tab-content active" id="movies-content">
+          <div id="movies-grid">
+            <!-- Movies will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Series Content -->
+        <div class="content-tab-content" id="series-content">
+          <div id="series-grid">
+            <!-- Series will be loaded here -->
           </div>
         </div>
       </div>
@@ -513,6 +551,6 @@
   </script>
 
   <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/lists.js' %}?v=1.2" defer></script>
+  <script src="{% static 'js/lists.js' %}?v=2.6" defer></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from urllib3 import request
 from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie
 from django.contrib import messages
 import json
@@ -677,6 +676,7 @@ def adicionar_filme_lista(request, lista_id, tmdb_id):
         return JsonResponse({'success': False, 'message': str(e)})
 
 @api_login_required
+@require_http_methods(["GET", "PUT"])
 def editar_lista(request, lista_id):
     try:
         lista = Lista.objects.get(id=lista_id, usuario=request.user)
@@ -730,6 +730,7 @@ def deletar_lista(request, lista_id):
         return JsonResponse({'success': False, 'message': str(e)})
 
 @api_login_required
+@require_http_methods(["GET"])
 def visualizar_lista(request, lista_id):
     try:
         # Buscar lista do usuário ou lista pública
@@ -855,6 +856,47 @@ def remover_serie_da_lista(request, lista_id, tmdb_id):
 
     except (Lista.DoesNotExist, Serie.DoesNotExist, ItemListaSerie.DoesNotExist):
         return JsonResponse({'success': False, 'message': 'Item não encontrado!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
+@require_http_methods(["POST"])
+def remover_item_lista(request, lista_id):
+    """Remove filme ou série da lista"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        tipo = data.get('tipo')
+
+        if not tmdb_id or not tipo:
+            return JsonResponse({'success': False, 'message': 'Dados incompletos'})
+
+        lista = Lista.objects.get(id=lista_id, usuario=request.user)
+
+        if tipo == 'filme':
+            filme = Filme.objects.get(tmdb_id=tmdb_id)
+            item = ItemLista.objects.get(lista=lista, filme=filme)
+            item.delete()
+            mensagem = 'Filme removido da lista com sucesso!'
+        elif tipo == 'serie':
+            serie = Serie.objects.get(tmdb_id=tmdb_id)
+            item = ItemListaSerie.objects.get(lista=lista, serie=serie)
+            item.delete()
+            mensagem = 'Série removida da lista com sucesso!'
+        else:
+            return JsonResponse({'success': False, 'message': 'Tipo inválido'})
+
+        return JsonResponse({
+            'success': True,
+            'message': mensagem
+        })
+
+    except Lista.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Lista não encontrada!'})
+    except (Filme.DoesNotExist, Serie.DoesNotExist):
+        return JsonResponse({'success': False, 'message': 'Item não encontrado no banco!'})
+    except (ItemLista.DoesNotExist, ItemListaSerie.DoesNotExist):
+        return JsonResponse({'success': False, 'message': 'Item não está na lista!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 

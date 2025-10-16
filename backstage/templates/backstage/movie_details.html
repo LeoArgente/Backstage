@@ -715,10 +715,26 @@
   </footer>
 
   <!-- Passar dados do Django para o JavaScript -->
+  <script id="movie-data" type="application/json">
+    {
+      "crew": {{ crew_data_json|safe }},
+      "cast": {{ cast_data_json|safe }}
+    }
+  </script>
   <script>
-    // Dados de crew e cast vindos do backend Django
-    window.movieCrewData = {{ crew_data_json|safe }};
-    window.movieCastData = {{ cast_data_json|safe }};
+    // Carregar dados do JSON inline
+    (function() {
+      try {
+        const dataScript = document.getElementById('movie-data');
+        const movieData = JSON.parse(dataScript.textContent);
+        window.movieCrewData = movieData.crew;
+        window.movieCastData = movieData.cast;
+      } catch (error) {
+        console.error('Erro ao carregar dados do filme:', error);
+        window.movieCrewData = [];
+        window.movieCastData = [];
+      }
+    })();
   </script>
 
   <script src="{% static 'js/main.js' %}" defer></script>

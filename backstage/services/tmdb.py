@@ -190,33 +190,42 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
     creditos = buscar_creditos(id_tmdb)
     provs = buscar_plataformas(id_tmdb, region)
 
-    elenco = creditos.get("cast", []) or []
+    # Garantir que creditos sempre tenha os campos necessários, mesmo que vazios
+    elenco = creditos.get("cast") if creditos else []
+    if not elenco:
+        elenco = []
     elenco_ordenado = sorted(elenco, key=lambda c: c.get("order", 999))[:10]
 
-    # Extrair equipe (crew) principal
-    equipe = creditos.get("crew", []) or []
+    # Extrair equipe (crew) principal - garantir que seja sempre uma lista
+    equipe = creditos.get("crew") if creditos else []
+    if not equipe:
+        equipe = []
 
     plataformas = []
-    for tipo in ("flatrate", "rent", "buy", "ads", "free"):
-        for p in provs.get(tipo, []) or []:
-            plataformas.append({
-                "nome": p.get("provider_name"),
-                "logo_path": p.get("logo_path"),
-                "tipo": tipo
-            })
-    # Retorna com campos padronizados
+    if provs:
+        for tipo in ("flatrate", "rent", "buy", "ads", "free"):
+            items = provs.get(tipo, [])
+            if items:
+                for p in items:
+                    plataformas.append({
+                        "nome": p.get("provider_name"),
+                        "logo_path": p.get("logo_path"),
+                        "tipo": tipo
+                    })
+
+    # Retorna com campos padronizados - garantir que listas sejam sempre listas vazias, nunca None
     return {
         "tmdb_id": id_tmdb,
-        "titulo": detalhes.get("title"),
-        "titulo_original": detalhes.get("original_title"),
-        "sinopse": detalhes.get("overview"),
+        "titulo": detalhes.get("title") or "Título não disponível",
+        "titulo_original": detalhes.get("original_title") or "",
+        "sinopse": detalhes.get("overview") or "",
         "poster_path": detalhes.get("poster_path"),
         "backdrop_path": detalhes.get("backdrop_path"),
         "ano_lancamento": detalhes.get("release_date", "")[:4] if detalhes.get("release_date") else "",
         "data_lancamento": detalhes.get("release_date"),
         "nota_tmdb": detalhes.get("vote_average"),
         "duracao_min": detalhes.get("runtime"),
-        "generos": [genero.get("name") for genero in detalhes.get("genres", [])],
+        "generos": [genero.get("name") for genero in detalhes.get("genres", [])] if detalhes.get("genres") else [],
         "status": detalhes.get("status"),  # "Released", "Post Production", etc
         "idioma_original": detalhes.get("original_language"),  # "en", "pt", etc
         "orcamento": detalhes.get("budget", 0),
@@ -224,13 +233,13 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
         "palavras_chave": [],  # Será preenchido com keywords da API se necessário
         "elenco_principal": [
             {
-                "nome": p.get("name"),
-                "personagem": p.get("character"),
+                "nome": p.get("name") or "Nome não disponível",
+                "personagem": p.get("character") or "Personagem não disponível",
                 "foto_path": p.get("profile_path")
             }
             for p in elenco_ordenado
         ],
-        "equipe": equipe,  # Incluir crew completa para o JavaScript processar
+        "equipe": equipe,  # Incluir crew completa para o JavaScript processar - sempre uma lista
         "plataformas": plataformas
     }
 

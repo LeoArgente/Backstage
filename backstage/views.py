@@ -344,13 +344,26 @@ def detalhes_filme(request, tmdb_id):
     criticas = Critica.objects.filter(filme=filme_local)
 
     # Passar dados de crew e cast para o JavaScript via JSON
+    # Garantir que sempre sejam listas válidas, mesmo que vazias
+    equipe = dados_filme.get('equipe', []) or []
+    elenco_principal = dados_filme.get('elenco_principal', []) or []
+
+    # Log de depuração
+    print(f"[DEBUG] TMDb ID: {tmdb_id}")
+    print(f"[DEBUG] Equipe encontrada: {len(equipe)} membros")
+    print(f"[DEBUG] Elenco encontrado: {len(elenco_principal)} membros")
+    if equipe:
+        print(f"[DEBUG] Exemplo de membro da equipe: {equipe[0]}")
+    if elenco_principal:
+        print(f"[DEBUG] Exemplo de membro do elenco: {elenco_principal[0]}")
+
     context = {
         'filme': dados_filme,
         'filme_local': filme_local,
         'criticas': criticas,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
-        'crew_data_json': json.dumps(dados_filme.get('equipe', [])),
-        'cast_data_json': json.dumps(dados_filme.get('elenco_principal', []))
+        'crew_data_json': json.dumps(equipe),
+        'cast_data_json': json.dumps(elenco_principal)
     }
     return render(request, "backstage/movie_details.html", context)
 

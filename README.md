@@ -115,6 +115,36 @@ Permite que o usuário seja avisado sobre possíveis spoilers em resenhas alheia
 
 ![Historia3](print)
 
+## Backlog no Jira
+![backlog2](print)
+
+## Quadro no jira
+![quadro2](print)
+
+## Screencasts
+Nessa entrega, realizamos os screencasts de CI/CD com build e deployment automatizado, Testes de Sistema (E2E) Automatizados e do deployment das novas histórias.
+
+[CI/CD](link)
+[E2E](link)
+[Deployment](link)
+
+## Bugtracker
+Uma nova secção foi adicionada ao bugtracker, para o controle de bugs desta entrega.
+
+Open:
+PRINT DO BUG TRACKER
+
+Closed:
+PRINT DO BUG TRACKER
+
+## Programação em Par
+A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre o esse processo.
+
+
+
+
+
+
 
 </details>
 

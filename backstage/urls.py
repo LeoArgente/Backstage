@@ -39,14 +39,5 @@ urlpatterns = [
     path('api/series/<int:tmdb_id>/temporada/<int:numero_temporada>/', views.buscar_temporada_api, name='buscar_temporada'),
     path('api/lista/<int:lista_id>/adicionar-serie/<int:tmdb_id>/', views.adicionar_serie_lista, name='adicionar_serie_lista'),
     path('api/lista/<int:lista_id>/remover-serie/<int:tmdb_id>/', views.remover_serie_da_lista, name='remover_serie_lista'),
-    path('comunidade/', views.comunidade, name='comunidade'),
-    path('comunidade/<int:comunidade_id>/', views.detalhes_comunidade, name='detalhes_comunidade'),
-    path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
-    path('api/criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
-    path('api/entrar-comunidade/<int:comunidade_id>/', views.entrar_comunidade, name='entrar_comunidade'),
-    path('api/sair-comunidade/<int:comunidade_id>/', views.sair_comunidade, name='sair_comunidade'),
-    path('api/buscar-comunidades/', views.buscar_comunidades, name='buscar_comunidades'),
-    path('api/comunidade/<int:comunidade_id>/posts/', views.posts_comunidade, name='posts_comunidade'),
-    path('api/comunidade/<int:comunidade_id>/criar-post/', views.criar_post_comunidade, name='criar_post_comunidade'),
-
+    
 ]

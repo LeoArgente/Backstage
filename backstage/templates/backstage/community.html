@@ -71,20 +71,15 @@
   <div class="page-header">
     <div class="container">
       <div class="page-header-content">
-        <div class="page-header-left">
-          <h1 class="page-title">Comunidade</h1>
-          <p class="page-description">Conecte-se com outros amantes do cinema e compartilhe suas paixões cinematográficas</p>
-        </div>
-        <div class="page-header-actions">
-          <button class="btn btn-primary" id="create-community-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            Criar Comunidade
-          </button>
-        </div>
+        <h1 class="page-title">Comunidade</h1>
+        <p class="page-description">Conecte-se com outros amantes do cinema e compartilhe suas paixões cinematográficas</p>
+
+        <button class="btn btn-primary create-community-btn" id="create-community-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Criar Comunidade
+        </button>
       </div>
     </div>
   </div>
@@ -227,48 +222,29 @@
   <div class="modal-overlay" id="create-community-modal">
     <div class="modal">
       <div class="modal-header">
-        <h2>Criar Nova Comunidade</h2>
-        <button class="modal-close" id="close-community-modal">
+        <h2>Nova Comunidade</h2>
+        <button class="modal-close" id="community-modal-close">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
-      
+
       <form class="modal-form" id="create-community-form">
-        {% csrf_token %}
-        
         <div class="form-group">
-          <label for="community-name">Nome da Comunidade</label>
-          <input type="text" 
-                 id="community-name" 
-                 name="nome" 
-                 placeholder="Ex: Cinéfilos do Terror" 
-                 maxlength="100" 
-                 required>
+          <label for="community-name">Nome</label>
+          <input type="text" id="community-name" name="name" placeholder="Ex: Amantes de Ficção Científica" required>
         </div>
 
         <div class="form-group">
           <label for="community-description">Descrição</label>
-          <textarea id="community-description" 
-                    name="descricao" 
-                    placeholder="Descreva o propósito da sua comunidade..."
-                    rows="4"
-                    maxlength="500"></textarea>
+          <textarea id="community-description" name="description" placeholder="Descreva o propósito da sua comunidade..." rows="4" required></textarea>
         </div>
 
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" name="publica" checked>
-            <span class="checkbox-custom"></span>
-            Comunidade pública (outros usuários podem encontrar)
-          </label>
-        </div>
-        
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="cancel-community">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Criar Comunidade</button>
+          <button type="submit" class="btn btn-primary">Criar</button>
         </div>
       </form>
     </div>

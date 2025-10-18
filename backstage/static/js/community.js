@@ -41,16 +41,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Abrir modal de criar comunidade
     if (criarComunidadeBtn) {
         criarComunidadeBtn.addEventListener('click', function() {
-            modalCriarComunidade.style.display = 'flex';
+            modalCriarComunidade.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     }
-    
+
     // Botão da empty state
     const criarPrimeiraComunidade = document.getElementById('criar-primeira-comunidade');
     if (criarPrimeiraComunidade) {
         criarPrimeiraComunidade.addEventListener('click', function() {
-            modalCriarComunidade.style.display = 'flex';
+            modalCriarComunidade.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     }
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fechar modal
     function closeModal() {
         if (modalCriarComunidade) {
-            modalCriarComunidade.style.display = 'none';
+            modalCriarComunidade.classList.remove('active');
             document.body.style.overflow = 'auto';
             if (formCriarComunidade) {
                 formCriarComunidade.reset();
@@ -344,337 +344,327 @@ style.textContent = `
             opacity: 1;
         }
     }
-    
-    /* Estilos para modal */
-    .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-    
-    .modal-content {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        max-width: 500px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-    }
-    
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    
-    .modal-header h2 {
-        margin: 0;
-        color: #333;
-    }
-    
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #666;
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .modal-close:hover {
-        color: #000;
-    }
-    
-    .form-group {
-        margin-bottom: 16px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 500;
-        color: #333;
-    }
-    
-    .form-input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: border-color 0.3s;
-    }
-    
-    .form-input:focus {
-        outline: none;
-        border-color: #007bff;
-    }
-    
-    .checkbox-label {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-    
-    .checkbox-label input[type="checkbox"] {
-        margin-right: 8px;
-    }
-    
-    .modal-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-        margin-top: 24px;
-    }
-    
-    .btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .btn-primary {
-        background: #007bff;
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        background: #0056b3;
-    }
-    
-    .btn-outline {
-        background: transparent;
-        color: #007bff;
-        border: 1px solid #007bff;
-    }
-    
-    .btn-outline:hover {
-        background: #007bff;
-        color: white;
-    }
-    
-    .btn-danger {
-        background: #dc3545;
-        color: white;
-    }
-    
-    .btn-danger:hover {
-        background: #c82333;
-    }
-    
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-    }
-    
-    .btn-secondary:hover {
-        background: #545b62;
-    }
 `;
 document.head.appendChild(style);
 
-// ===== Create Community Modal Management =====
-const createCommunityBtn = document.getElementById('create-community-btn');
-const createCommunityModal = document.getElementById('create-community-modal');
-const closeCommunityModal = document.getElementById('close-community-modal');
-const cancelCommunityBtn = document.getElementById('cancel-community');
-const createCommunityForm = document.getElementById('create-community-form');
+// ===== Popup de Criar Comunidade =====
+document.addEventListener('DOMContentLoaded', function() {
+    const createCommunityBtn = document.getElementById('create-community-btn');
+    const createCommunityModal = document.getElementById('create-community-modal');
+    const closeCommunityModal = document.getElementById('community-modal-close');
+    const cancelCommunityBtn = document.getElementById('cancel-community');
+    const createCommunityForm = document.getElementById('create-community-form');
 
-// Função para mostrar alertas
-function showAlert(message, type = 'success') {
-    // Remove alertas existentes
-    const existingAlerts = document.querySelectorAll('.custom-alert');
-    existingAlerts.forEach(alert => alert.remove());
-    
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `custom-alert alert-${type}`;
-    alertDiv.innerHTML = `
-        <div class="alert-content">
-            <span class="alert-icon">${type === 'success' ? '✅' : '❌'}</span>
-            <span class="alert-message">${message}</span>
-            <button class="alert-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-    `;
-    
-    // Adicionar estilos inline para o alerta
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        background: ${type === 'success' ? '#28a745' : '#dc3545'};
-        animation: slideInRight 0.3s ease;
-    `;
-    
-    document.body.appendChild(alertDiv);
-    
-    // Auto-remover após 5 segundos
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
-
-// Abrir modal de criar comunidade
-if (createCommunityBtn) {
-    createCommunityBtn.addEventListener('click', () => {
-        createCommunityModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    });
-}
-
-// Fechar modal
-function closeCreateCommunityModal() {
-    if (createCommunityModal) {
-        createCommunityModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-        if (createCommunityForm) {
-            createCommunityForm.reset();
+    // Função para abrir o popup
+    function openCreateCommunityPopup() {
+        if (createCommunityModal) {
+            createCommunityModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
     }
-}
 
-if (closeCommunityModal) {
-    closeCommunityModal.addEventListener('click', closeCreateCommunityModal);
-}
+    // Função para fechar o popup
+    function closeCreateCommunityPopup() {
+        if (createCommunityModal) {
+            createCommunityModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            if (createCommunityForm) {
+                createCommunityForm.reset();
+            }
+        }
+    }
 
-if (cancelCommunityBtn) {
-    cancelCommunityBtn.addEventListener('click', closeCreateCommunityModal);
-}
+    // Abrir popup ao clicar no botão
+    if (createCommunityBtn) {
+        createCommunityBtn.addEventListener('click', openCreateCommunityPopup);
+    }
 
-// Fechar modal ao clicar fora
-window.addEventListener('click', (e) => {
-    if (e.target === createCommunityModal) {
-        closeCreateCommunityModal();
+    // Fechar popup com botão X
+    if (closeCommunityModal) {
+        closeCommunityModal.addEventListener('click', closeCreateCommunityPopup);
+    }
+
+    // Fechar popup com botão Cancelar
+    if (cancelCommunityBtn) {
+        cancelCommunityBtn.addEventListener('click', closeCreateCommunityPopup);
+    }
+
+    // Fechar popup ao clicar fora (no overlay)
+    if (createCommunityModal) {
+        createCommunityModal.addEventListener('click', function(e) {
+            if (e.target === createCommunityModal) {
+                closeCreateCommunityPopup();
+            }
+        });
+    }
+
+    // Fechar popup com tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && createCommunityModal && createCommunityModal.classList.contains('active')) {
+            closeCreateCommunityPopup();
+        }
+    });
+
+    // Submeter formulário de criar comunidade
+    if (createCommunityForm) {
+        createCommunityForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = createCommunityForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            try {
+                // Desabilitar botão e mostrar loading
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Criando...';
+
+                // Preparar dados do formulário
+                const formData = new FormData(createCommunityForm);
+
+                // Fazer requisição (você vai implementar a rota no backend)
+                const response = await fetch('/backstage/criar-comunidade/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Mostrar mensagem de sucesso
+                    if (window.showNotification) {
+                        window.showNotification('Comunidade criada com sucesso!', 'success');
+                    }
+                    closeCreateCommunityPopup();
+
+                    // Redirecionar ou recarregar
+                    setTimeout(() => {
+                        if (result.comunidade_url) {
+                            window.location.href = result.comunidade_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    }, 1500);
+                } else {
+                    // Mostrar mensagem de erro
+                    if (window.showNotification) {
+                        window.showNotification(result.error || 'Erro ao criar comunidade', 'error');
+                    } else {
+                        alert(result.error || 'Erro ao criar comunidade');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Erro ao criar comunidade:', error);
+                if (window.showNotification) {
+                    window.showNotification('Erro de conexão. Tente novamente.', 'error');
+                } else {
+                    alert('Erro de conexão. Tente novamente.');
+                }
+            } finally {
+                // Restaurar botão
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+
+    // ===== Modal de Criar Post =====
+    const createPostBtn = document.getElementById('create-post-btn');
+    const createPostModal = document.getElementById('create-post-modal');
+    const closeModalBtn = document.getElementById('modal-close');
+    const cancelPostBtn = document.getElementById('cancel-post');
+    const createPostForm = document.getElementById('create-post-form');
+    const postType = document.getElementById('post-type');
+    const movieSelector = document.getElementById('movie-selector');
+    const ratingSelector = document.getElementById('rating-selector');
+
+    // Função para abrir modal de criar post
+    function openCreatePostModal() {
+        if (createPostModal) {
+            createPostModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // Função para fechar modal de criar post
+    function closeCreatePostModal() {
+        if (createPostModal) {
+            createPostModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            if (createPostForm) {
+                createPostForm.reset();
+                // Resetar seletores específicos
+                if (movieSelector) movieSelector.style.display = 'none';
+                if (ratingSelector) ratingSelector.style.display = 'none';
+            }
+        }
+    }
+
+    // Abrir modal ao clicar no botão
+    if (createPostBtn) {
+        createPostBtn.addEventListener('click', openCreatePostModal);
+    }
+
+    // Abrir modal ao clicar nos botões de ação rápida
+    const postActionBtns = document.querySelectorAll('.post-action-btn');
+    postActionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            openCreatePostModal();
+            if (postType) {
+                postType.value = type;
+                // Trigger change event para mostrar campos relevantes
+                postType.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // Fechar modal com botão X
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeCreatePostModal);
+    }
+
+    // Fechar modal com botão Cancelar
+    if (cancelPostBtn) {
+        cancelPostBtn.addEventListener('click', closeCreatePostModal);
+    }
+
+    // Fechar modal ao clicar fora
+    if (createPostModal) {
+        createPostModal.addEventListener('click', function(e) {
+            if (e.target === createPostModal) {
+                closeCreatePostModal();
+            }
+        });
+    }
+
+    // Fechar modais com tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (createPostModal && createPostModal.classList.contains('active')) {
+                closeCreatePostModal();
+            }
+            if (createCommunityModal && createCommunityModal.classList.contains('active')) {
+                closeCreateCommunityPopup();
+            }
+        }
+    });
+
+    // Mostrar/ocultar campos baseado no tipo de post
+    if (postType) {
+        postType.addEventListener('change', function() {
+            const selectedType = this.value;
+
+            if (selectedType === 'review' || selectedType === 'recommendation') {
+                if (movieSelector) movieSelector.style.display = 'block';
+                if (selectedType === 'review' && ratingSelector) {
+                    ratingSelector.style.display = 'block';
+                } else if (ratingSelector) {
+                    ratingSelector.style.display = 'none';
+                }
+            } else {
+                if (movieSelector) movieSelector.style.display = 'none';
+                if (ratingSelector) ratingSelector.style.display = 'none';
+            }
+        });
+    }
+
+    // Star rating interativo
+    const stars = document.querySelectorAll('.star-rating .star');
+    let selectedRating = 0;
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = this.getAttribute('data-rating');
+            updateStarRating(selectedRating);
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const rating = this.getAttribute('data-rating');
+            updateStarRating(rating);
+        });
+    });
+
+    if (stars.length > 0) {
+        const starRatingContainer = document.getElementById('star-rating');
+        if (starRatingContainer) {
+            starRatingContainer.addEventListener('mouseleave', function() {
+                updateStarRating(selectedRating);
+            });
+        }
+    }
+
+    function updateStarRating(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    // Submeter formulário de criar post
+    if (createPostForm) {
+        createPostForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = createPostForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Publicando...';
+
+                const formData = new FormData(createPostForm);
+
+                // Adicionar rating se foi selecionado
+                if (selectedRating > 0) {
+                    formData.append('rating', selectedRating);
+                }
+
+                const response = await fetch('/backstage/criar-post/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (window.showNotification) {
+                        window.showNotification('Post criado com sucesso!', 'success');
+                    }
+                    closeCreatePostModal();
+                    selectedRating = 0;
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    if (window.showNotification) {
+                        window.showNotification(result.error || 'Erro ao criar post', 'error');
+                    } else {
+                        alert(result.error || 'Erro ao criar post');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Erro ao criar post:', error);
+                if (window.showNotification) {
+                    window.showNotification('Erro de conexão. Tente novamente.', 'error');
+                } else {
+                    alert('Erro de conexão. Tente novamente.');
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
     }
 });
-
-// Submeter formulário de criar comunidade
-if (createCommunityForm) {
-    createCommunityForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const submitBtn = createCommunityForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        try {
-            // Desabilitar botão e mostrar loading
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin">
-                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                </svg>
-                Criando...
-            `;
-            
-            // Preparar dados do formulário
-            const formData = new FormData(createCommunityForm);
-            
-            // Fazer requisição
-            const response = await fetch('/criar-comunidade/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showAlert(result.message, 'success');
-                closeCreateCommunityModal();
-                
-                // Redirecionar para a nova comunidade após um breve delay
-                setTimeout(() => {
-                    if (result.comunidade_slug) {
-                        window.location.href = `/comunidade/${result.comunidade_slug}/`;
-                    } else {
-                        window.location.reload();
-                    }
-                }, 1500);
-            } else {
-                showAlert(result.error || 'Erro ao criar comunidade', 'error');
-            }
-            
-        } catch (error) {
-            console.error('Erro ao criar comunidade:', error);
-            showAlert('Erro de conexão. Tente novamente.', 'error');
-        } finally {
-            // Restaurar botão
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        }
-    });
-}
-
-// Adicionar estilos para animação do alerta
-const alertStyles = document.createElement('style');
-alertStyles.textContent = `
-    @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    
-    .animate-spin {
-        animation: spin 1s linear infinite;
-    }
-    
-    .custom-alert {
-        transition: opacity 0.3s ease;
-    }
-    
-    .custom-alert:hover {
-        opacity: 0.9;
-    }
-    
-    .alert-content {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .alert-close {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 18px;
-        padding: 0;
-        margin-left: 10px;
-    }
-`;
-document.head.appendChild(alertStyles);

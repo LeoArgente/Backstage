@@ -545,7 +545,7 @@ function showAlert(message, type = 'success') {
 // Abrir modal de criar comunidade
 if (createCommunityBtn) {
     createCommunityBtn.addEventListener('click', () => {
-        createCommunityModal.style.display = 'flex';
+        createCommunityModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
 }
@@ -553,7 +553,7 @@ if (createCommunityBtn) {
 // Fechar modal
 function closeCreateCommunityModal() {
     if (createCommunityModal) {
-        createCommunityModal.style.display = 'none';
+        createCommunityModal.classList.remove('active');
         document.body.style.overflow = 'auto';
         if (createCommunityForm) {
             createCommunityForm.reset();

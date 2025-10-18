@@ -155,13 +155,13 @@ A implementação das histórias foi feita por meio da programação em par. Nes
   
 - Leonardo Argente
 
-- Louise Pessoas Araújo Medeiros de Souza
+- Louise Pessoa Araújo Medeiros de Souza
 
 - Luis Antônio Godoy Idrissi
 
 - Marília Liz Alves de Lima
 
-- Rafael Pimenta Borba
+- Rafael Pimentel Borba
 
 - Victor Martins Tomaz de Melo
   </details>

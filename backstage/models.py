@@ -91,3 +91,68 @@ class ItemListaSerie(models.Model):
 
     def __str__(self):
         return f"{self.serie.titulo} em {self.lista.nome}"
+
+
+class Comunidade(models.Model):
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    criador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comunidades_criadas')
+    membros = models.ManyToManyField(settings.AUTH_USER_MODEL, through='MembroComunidade', related_name='comunidades')
+    publica = models.BooleanField(default=True)
+    imagem_capa = models.URLField(blank=True, null=True)
+    criada_em = models.DateTimeField(auto_now_add=True)
+    atualizada_em = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-criada_em']
+    
+    def __str__(self):
+        return self.nome
+    
+    @property
+    def num_membros(self):
+        return self.membros.count()
+
+class MembroComunidade(models.Model):
+    ROLES = [
+        ('admin', 'Administrador'),
+        ('moderador', 'Moderador'),
+        ('membro', 'Membro'),
+    ]
+    
+    comunidade = models.ForeignKey(Comunidade, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLES, default='membro')
+    data_entrada = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('comunidade', 'usuario')
+    
+    def __str__(self):
+        return f"{self.usuario.username} - {self.comunidade.nome} ({self.role})"
+
+class PostComunidade(models.Model):
+    TIPOS = [
+        ('discussao', 'Discussão'),
+        ('avaliacao', 'Avaliação'),
+        ('recomendacao', 'Recomendação'),
+        ('lista', 'Lista'),
+    ]
+    
+    comunidade = models.ForeignKey(Comunidade, on_delete=models.CASCADE, related_name='posts')
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=TIPOS, default='discussao')
+    titulo = models.CharField(max_length=200)
+    conteudo = models.TextField()
+    filme = models.ForeignKey(Filme, on_delete=models.CASCADE, null=True, blank=True)
+    serie = models.ForeignKey(Serie, on_delete=models.CASCADE, null=True, blank=True)
+    lista = models.ForeignKey(Lista, on_delete=models.CASCADE, null=True, blank=True)
+    nota = models.IntegerField(null=True, blank=True, choices=[(i, f"{i} ⭐") for i in range(1, 6)])
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-criado_em']
+    
+    def __str__(self):
+        return f"{self.titulo} - {self.comunidade.nome}"
+

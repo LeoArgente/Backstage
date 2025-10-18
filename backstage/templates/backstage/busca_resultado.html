@@ -345,6 +345,20 @@
           }
         });
       }
+
+      // Funcionalidade de busca
+      const searchInput = document.querySelector('.search-input');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+              window.location.href = `{% url 'backstage:buscar' %}?q=${encodeURIComponent(searchTerm)}&tipo=titulo`;
+            }
+          }
+        });
+      }
     });
   </script>
 

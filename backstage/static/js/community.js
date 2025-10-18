@@ -493,3 +493,188 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ===== Create Community Modal Management =====
+const createCommunityBtn = document.getElementById('create-community-btn');
+const createCommunityModal = document.getElementById('create-community-modal');
+const closeCommunityModal = document.getElementById('close-community-modal');
+const cancelCommunityBtn = document.getElementById('cancel-community');
+const createCommunityForm = document.getElementById('create-community-form');
+
+// Função para mostrar alertas
+function showAlert(message, type = 'success') {
+    // Remove alertas existentes
+    const existingAlerts = document.querySelectorAll('.custom-alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert alert-${type}`;
+    alertDiv.innerHTML = `
+        <div class="alert-content">
+            <span class="alert-icon">${type === 'success' ? '✅' : '❌'}</span>
+            <span class="alert-message">${message}</span>
+            <button class="alert-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    // Adicionar estilos inline para o alerta
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remover após 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Abrir modal de criar comunidade
+if (createCommunityBtn) {
+    createCommunityBtn.addEventListener('click', () => {
+        createCommunityModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    });
+}
+
+// Fechar modal
+function closeCreateCommunityModal() {
+    if (createCommunityModal) {
+        createCommunityModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        if (createCommunityForm) {
+            createCommunityForm.reset();
+        }
+    }
+}
+
+if (closeCommunityModal) {
+    closeCommunityModal.addEventListener('click', closeCreateCommunityModal);
+}
+
+if (cancelCommunityBtn) {
+    cancelCommunityBtn.addEventListener('click', closeCreateCommunityModal);
+}
+
+// Fechar modal ao clicar fora
+window.addEventListener('click', (e) => {
+    if (e.target === createCommunityModal) {
+        closeCreateCommunityModal();
+    }
+});
+
+// Submeter formulário de criar comunidade
+if (createCommunityForm) {
+    createCommunityForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = createCommunityForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        try {
+            // Desabilitar botão e mostrar loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                Criando...
+            `;
+            
+            // Preparar dados do formulário
+            const formData = new FormData(createCommunityForm);
+            
+            // Fazer requisição
+            const response = await fetch('/criar-comunidade/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert(result.message, 'success');
+                closeCreateCommunityModal();
+                
+                // Redirecionar para a nova comunidade após um breve delay
+                setTimeout(() => {
+                    if (result.comunidade_slug) {
+                        window.location.href = `/comunidade/${result.comunidade_slug}/`;
+                    } else {
+                        window.location.reload();
+                    }
+                }, 1500);
+            } else {
+                showAlert(result.error || 'Erro ao criar comunidade', 'error');
+            }
+            
+        } catch (error) {
+            console.error('Erro ao criar comunidade:', error);
+            showAlert('Erro de conexão. Tente novamente.', 'error');
+        } finally {
+            // Restaurar botão
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+}
+
+// Adicionar estilos para animação do alerta
+const alertStyles = document.createElement('style');
+alertStyles.textContent = `
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    .custom-alert {
+        transition: opacity 0.3s ease;
+    }
+    
+    .custom-alert:hover {
+        opacity: 0.9;
+    }
+    
+    .alert-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .alert-close {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 0;
+        margin-left: 10px;
+    }
+`;
+document.head.appendChild(alertStyles);

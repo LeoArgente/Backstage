@@ -105,6 +105,16 @@ Permite que o usuário pesquise filmes por título, gênero ou autor, facilitand
 ![Hitoria1](print)
 ![Hitoria1](print)
 
+## HISTÓRIA 2:
+Permite que o usuário veja os principais detalhes de uma serie (elenco, duração, classificação...) ao clicar nela.
+
+![Hitoria2](print)
+
+## HISTÓRIA 3:
+Permite que o usuário seja avisado sobre possíveis spoilers em resenhas alheias.
+
+![Historia3](print)
+
 
 </details>
 

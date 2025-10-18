@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils.text import slugify
+import string
+import random
 
 class Filme(models.Model):
     tmdb_id = models.IntegerField(unique=True, null=True, blank=True)
@@ -92,4 +95,77 @@ class ItemListaSerie(models.Model):
     def __str__(self):
         return f"{self.serie.titulo} em {self.lista.nome}"
 
+
+
+
+
+class Comunidade(models.Model):
+    nome = models.CharField(max_length=100, verbose_name="Nome da Comunidade")
+    slug = models.SlugField(max_length=120, unique=True, blank=True)
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    publica = models.BooleanField(default=True, verbose_name="Comunidade pública")
+    codigo_convite = models.CharField(max_length=8, unique=True, blank=True)
+    criador = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='comunidades_criadas'
+    )
+    membros = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, 
+        through='MembroComunidade', 
+        related_name='comunidades'
+    )
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Comunidade"
+        verbose_name_plural = "Comunidades"
+        ordering = ['-data_criacao']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nome)
+            # Garantir que o slug seja único
+            original_slug = self.slug
+            counter = 1
+            while Comunidade.objects.filter(slug=self.slug).exists():
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+        
+        if not self.codigo_convite:
+            self.codigo_convite = self.gerar_codigo_convite()
+        
+        super().save(*args, **kwargs)
+
+    def gerar_codigo_convite(self):
+        """Gera um código de convite único de 8 caracteres"""
+        while True:
+            codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            if not Comunidade.objects.filter(codigo_convite=codigo).exists():
+                return codigo
+
+    def __str__(self):
+        return self.nome
+
+
+class MembroComunidade(models.Model):
+    ROLES = [
+        ('admin', 'Administrador'),
+        ('mod', 'Moderador'),
+        ('member', 'Membro'),
+    ]
+    
+    comunidade = models.ForeignKey(Comunidade, on_delete=models.CASCADE, related_name='membros_detalhes')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLES, default='member')
+    data_entrada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('comunidade', 'usuario')
+        verbose_name = "Membro da Comunidade"
+        verbose_name_plural = "Membros da Comunidade"
+
+    def __str__(self):
+        return f"{self.usuario.username} em {self.comunidade.nome} ({self.get_role_display()})"
 

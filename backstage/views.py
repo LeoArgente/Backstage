@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -256,7 +256,232 @@ def registrar(request):
 
 @login_required(login_url='backstage:login')
 def comunidade(request):
-    return render(request, "backstage/community.html")
+    # Buscar comunidades do usuário
+    minhas_comunidades = MembroComunidade.objects.filter(
+        usuario=request.user
+    ).select_related('comunidade').order_by('-data_entrada')
+    
+    context = {
+        'minhas_comunidades': minhas_comunidades,
+    }
+    return render(request, "backstage/community.html", context)
+
+@login_required(login_url='backstage:login')
+def minhas_comunidades(request):
+    """Página com todas as comunidades do usuário"""
+    comunidades = MembroComunidade.objects.filter(
+        usuario=request.user
+    ).select_related('comunidade').order_by('-data_entrada')
+    
+    context = {
+        'comunidades': comunidades,
+    }
+    return render(request, "backstage/minhas_comunidades.html", context)
+
+@login_required(login_url='backstage:login')
+def detalhes_comunidade(request, slug):
+    """Página de detalhes de uma comunidade específica"""
+    comunidade = get_object_or_404(Comunidade, slug=slug)
+    
+    # Verificar se o usuário é membro
+    try:
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+        meu_papel = membro.role
+    except MembroComunidade.DoesNotExist:
+        # Se não é membro e a comunidade é privada, negar acesso
+        if not comunidade.publica:
+            messages.error(request, 'Você não tem acesso a esta comunidade.')
+            return redirect('backstage:comunidade')
+        meu_papel = None
+    
+    # Buscar membros da comunidade
+    membros = MembroComunidade.objects.filter(
+        comunidade=comunidade
+    ).select_related('usuario').order_by('role', '-data_entrada')
+    
+    # Buscar atividades recentes (implementar depois se necessário)
+    atividades = []
+    
+    context = {
+        'comunidade': comunidade,
+        'meu_papel': meu_papel,
+        'membros': membros,
+        'atividades': atividades,
+    }
+    return render(request, "backstage/community_details.html", context)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def criar_comunidade(request):
+    """API para criar nova comunidade"""
+    try:
+        nome = request.POST.get('nome')
+        descricao = request.POST.get('descricao', '')
+        publica = request.POST.get('publica') == 'on'
+        
+        if not nome:
+            return JsonResponse({'success': False, 'error': 'Nome é obrigatório'})
+        
+        # Criar a comunidade
+        comunidade = Comunidade.objects.create(
+            nome=nome,
+            descricao=descricao,
+            publica=publica,
+            criador=request.user
+        )
+        
+        # Adicionar o criador como admin
+        MembroComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Comunidade criada com sucesso!',
+            'comunidade_slug': comunidade.slug
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def entrar_comunidade(request):
+    """API para entrar em uma comunidade pública"""
+    try:
+        slug = request.POST.get('slug')
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        if not comunidade.publica:
+            return JsonResponse({'success': False, 'error': 'Esta comunidade é privada'})
+        
+        # Verificar se já é membro
+        if MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você já é membro desta comunidade'})
+        
+        # Adicionar como membro
+        MembroComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='member'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Você entrou na comunidade {comunidade.nome}!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def sair_comunidade(request):
+    """API para sair de uma comunidade"""
+    try:
+        data = json.loads(request.body)
+        slug = data.get('slug')
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se é membro
+        membro = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario=request.user)
+        
+        # Admins não podem sair se são os únicos admins
+        if membro.role == 'admin':
+            admins_count = MembroComunidade.objects.filter(
+                comunidade=comunidade, role='admin'
+            ).count()
+            if admins_count <= 1:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Você é o único admin. Promova outro membro antes de sair.'
+                })
+        
+        membro.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Você saiu da comunidade {comunidade.nome}'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def convidar_amigo(request):
+    """API para convidar amigo via email"""
+    try:
+        data = json.loads(request.body)
+        email = data.get('email')
+        slug = data.get('slug')
+        
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é admin ou moderador
+        membro = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario=request.user)
+        if membro.role not in ['admin', 'mod']:
+            return JsonResponse({'success': False, 'error': 'Apenas admins e moderadores podem convidar'})
+        
+        # Verificar se o usuário existe
+        try:
+            usuario_convidado = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Usuário não encontrado com este email'})
+        
+        # Verificar se já é membro
+        if MembroComunidade.objects.filter(comunidade=comunidade, usuario=usuario_convidado).exists():
+            return JsonResponse({'success': False, 'error': 'Este usuário já é membro da comunidade'})
+        
+        # Aqui você pode implementar envio de email ou notificação
+        # Por enquanto, vamos apenas adicionar diretamente
+        MembroComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=usuario_convidado,
+            role='member'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{usuario_convidado.username} foi adicionado à comunidade!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+def entrar_por_convite(request, codigo):
+    """Entrar em comunidade usando código de convite"""
+    try:
+        comunidade = get_object_or_404(Comunidade, codigo_convite=codigo)
+        
+        # Verificar se já é membro
+        if MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            messages.info(request, f'Você já é membro da comunidade {comunidade.nome}')
+            return redirect('backstage:detalhes_comunidade', slug=comunidade.slug)
+        
+        if request.method == 'POST':
+            # Adicionar como membro
+            MembroComunidade.objects.create(
+                comunidade=comunidade,
+                usuario=request.user,
+                role='member'
+            )
+            
+            messages.success(request, f'Você entrou na comunidade {comunidade.nome}!')
+            return JsonResponse({'success': True, 'redirect': f'/comunidade/{comunidade.slug}/'})
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Você foi convidado para a comunidade {comunidade.nome}'
+        })
+        
+    except Comunidade.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Código de convite inválido'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 def filmes(request):
     return render(request, "backstage/movie_details.html")

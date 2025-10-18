@@ -95,6 +95,20 @@ A implementação das histórias foi feita por meio da programação em par. Nes
 </details>
 
 <details>
+<summary> 📥 ENTREGA 3</summary>
+O objetivo dessa Sprint foi expandir o Backstage com a continuação da implementação das histórias.
+
+## HISTÓRIA 1:
+Permite que o usuário pesquise filmes por título, gênero ou autor, facilitando a sua navegação.
+
+![Hitoria1](print)
+![Hitoria1](print)
+![Hitoria1](print)
+
+
+</details>
+
+<details>
 <summary> 🚀 INTEGRANTES  </summary>
   
 - Henrique Antunes Calado 

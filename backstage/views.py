@@ -161,7 +161,7 @@ def index(request):
 
 def sair(request):
     logout(request)
-    return redirect('backstage:login')
+    return redirect('backstage:index')
 
 def registrar_ajax(request):
     if request.method == 'POST':

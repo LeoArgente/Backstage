@@ -946,6 +946,20 @@ button {
   box-shadow: var(--shadow-red);
 }
 
+.btn-login {
+  padding: 8px 20px;
+  background: var(--red);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.3px;
+}
+
 .btn-secondary {
   background: var(--surface);
   color: var(--text-primary);

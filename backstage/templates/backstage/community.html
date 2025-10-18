@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Comunidade — Backstage</title>
+  <title>Comunidades - Backstage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
-                <a class="brand" href="{% url 'backstage:index' %}">
+        <a class="brand" href="{% url 'backstage:index' %}">
             <img src="{% static 'images/Logo_Backstage_branca.png' %}"
                  alt="Backstage Logo"
                  width="250">
@@ -59,220 +59,193 @@
           </button>
 
           <div class="user-menu">
-            <button class="user-avatar">
-              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" />
+            <button class="user-menu-btn" id="user-menu-btn">
+              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-avatar" />
+              <svg class="chevron-down" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </button>
+            
+            <div class="user-dropdown" id="user-dropdown">
+              <div class="user-info">
+                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="dropdown-avatar">
+                <div class="user-details">
+                  <span class="user-name">{{ user.username }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a href="{% url 'backstage:lists' %}" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="2"/>
+                  <rect x="9" y="3" width="6" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Minhas listas
+              </a>
+              <a href="#" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Perfil
+              </a>
+              <a href="#" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Configurações
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="{% url 'backstage:sair' %}" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2"/>
+                  <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2"/>
+                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Sair
+              </a>
+            </div>
           </div>
         </div>
       </nav>
     </div>
   </header>
 
-  <div class="page-header">
-    <div class="container">
-      <div class="page-header-content">
-        <h1 class="page-title">Comunidade</h1>
-        <p class="page-description">Conecte-se com outros amantes do cinema e compartilhe suas paixões cinematográficas</p>
-      </div>
-    </div>
-  </div>
-
-  <main class="container">
-    <div class="community-layout">
-    
-      <aside class="community-sidebar">
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">Atividade Recente</h3>
-          <div class="activity-feed" id="activity-feed">
-            <!-- Activity items will be populated by JavaScript -->
-          </div>
+  <main class="main-content">
+    <div class="community-container">
+      <div class="community-header">
+        <div class="header-content">
+          <h1 class="community-title">
+            <span class="title-icon">🎭</span>
+            Comunidades Cinematográficas
+          </h1>
+          <p class="community-subtitle">Conecte-se, compartilhe e descubra filmes incríveis com seus amigos</p>
         </div>
-
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">Membros Ativos</h3>
-          <div class="active-members" id="active-members">
-            <!-- Active members will be populated by JavaScript -->
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Feed -->
-      <div class="community-main">
-        <!-- Post Creation -->
-        <div class="create-post-card">
-          <div class="create-post-header">
-            <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Seu avatar" class="user-avatar-img" />
-            <button class="create-post-btn" id="create-post-btn">
-              O que você está assistindo?
-            </button>
-          </div>
-          
-          <div class="create-post-actions">
-            <button class="post-action-btn" data-type="review">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              Avaliar
-            </button>
-            <button class="post-action-btn" data-type="list">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                <rect x="9" y="3" width="6" height="4" rx="2"/>
-              </svg>
-              Lista
-            </button>
-            <button class="post-action-btn" data-type="recommendation">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Recomendar
-            </button>
-          </div>
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="feed-filters">
-          <button class="filter-tab active" data-filter="all">Todos os Posts</button>
-          <button class="filter-tab" data-filter="reviews">Avaliações</button>
-          <button class="filter-tab" data-filter="discussions">Discussões</button>
-          <button class="filter-tab" data-filter="recommendations">Recomendações</button>
-          <button class="filter-tab" data-filter="lists">Listas</button>
-        </div>
-
-        <!-- Posts Feed -->
-        <div class="posts-feed" id="posts-feed">
-          <!-- Posts will be populated by JavaScript -->
-        </div>
-
-        <div class="load-more-section">
-          <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
-            Carregar mais posts
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12h14"/>
+        <div class="header-actions">
+          <button id="criar-comunidade-btn" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
+            Criar Comunidade
           </button>
+          <div class="stats-badge">
+            <span class="stats-number">{{ minhas_comunidades.count }}</span>
+            <span class="stats-label">{{ minhas_comunidades.count|pluralize:"Comunidade,Comunidades" }}</span>
+          </div>
         </div>
       </div>
 
+      <!-- Seção das minhas comunidades -->
+      <div class="communities-section">
+        <h2>Suas Comunidades</h2>
+        {% if minhas_comunidades %}
+          <div class="communities-grid">
+            {% for membro in minhas_comunidades %}
+              <div class="community-card" onclick="window.location.href='{% url 'detalhes_comunidade' membro.comunidade.slug %}'">
+                <div class="community-header-card">
+                  <div class="community-avatar">
+                    {{ membro.comunidade.nome|first|upper }}
+                  </div>
+                  <div class="community-status {{ membro.papel }}">{{ membro.get_papel_display }}</div>
+                </div>
+                <div class="community-info">
+                  <h3>{{ membro.comunidade.nome }}</h3>
+                  <p class="community-description">{{ membro.comunidade.descricao|default:"Uma comunidade incrível para amantes do cinema" }}</p>
+                  <div class="community-meta">
+                    <div class="community-stats">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5"/>
+                      </svg>
+                      {{ membro.comunidade.membros.count }} membro{{ membro.comunidade.membros.count|pluralize }}
+                    </div>
+                    <div class="community-created">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                        <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="1.5"/>
+                      </svg>
+                      {{ membro.comunidade.criado_em|date:"M Y" }}
+                    </div>
+                  </div>
+                </div>
+                <div class="community-actions">
+                  <button onclick="event.stopPropagation(); window.location.href='{% url 'detalhes_comunidade' membro.comunidade.slug %}'" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Ver Detalhes
+                  </button>
+                  {% if membro.role == 'member' %}
+                    <button class="btn btn-danger sair-comunidade" data-slug="{{ membro.comunidade.slug }}">Sair</button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🎭</div>
+            <h3>Sua jornada cinematográfica em comunidade começa aqui!</h3>
+            <p>Crie sua primeira comunidade ou entre em uma existente para compartilhar suas paixões cinematográficas com outros entusiastas.</p>
+            <button id="criar-primeira-comunidade" class="btn btn-primary" style="margin-top: 20px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              Criar Minha Primeira Comunidade
+            </button>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Seção de entrada por convite -->
+      <div class="invite-section">
+        <h2>Tem um código de convite?</h2>
+        <div class="invite-form">
+          <input type="text" id="codigo-convite" placeholder="Digite o código de convite" class="form-input">
+          <button id="entrar-por-convite" class="btn btn-secondary">Entrar na Comunidade</button>
+        </div>
+      </div>
     </div>
   </main>
 
-  <!-- Create Post Modal -->
-  <div class="modal-overlay" id="create-post-modal">
-    <div class="modal large-modal">
+  <!-- Modal para criar comunidade -->
+  <div id="modal-criar-comunidade" class="modal" style="display: none;">
+    <div class="modal-content">
       <div class="modal-header">
-        <h2>Criar Post</h2>
-        <button class="modal-close" id="modal-close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+        <h2>Criar Nova Comunidade</h2>
+        <button class="modal-close">&times;</button>
       </div>
-      
-      <form class="modal-form" id="create-post-form">
+      <form id="form-criar-comunidade">
+        {% csrf_token %}
         <div class="form-group">
-          <label for="post-type">Tipo de Post</label>
-          <select id="post-type" name="type" required>
-            <option value="discussion">Discussão</option>
-            <option value="review">Avaliação</option>
-            <option value="recommendation">Recomendação</option>
-            <option value="list">Lista</option>
-          </select>
+          <label for="nome-comunidade">Nome da Comunidade</label>
+          <input type="text" id="nome-comunidade" name="nome" required class="form-input">
         </div>
-        
         <div class="form-group">
-          <label for="post-content">Conteúdo</label>
-          <textarea id="post-content" name="content" placeholder="Compartilhe seus pensamentos..." rows="6" required></textarea>
+          <label for="descricao-comunidade">Descrição</label>
+          <textarea id="descricao-comunidade" name="descricao" rows="3" class="form-input"></textarea>
         </div>
-        
-        <div class="form-group movie-selector" id="movie-selector" style="display: none;">
-          <label for="selected-movie">Filme/Série</label>
-          <input type="text" id="selected-movie" placeholder="Buscar filme ou série..." />
-          <div class="movie-suggestions" id="movie-suggestions"></div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="publica-comunidade" name="publica">
+            <span class="checkmark"></span>
+            Comunidade pública (qualquer um pode encontrar)
+          </label>
         </div>
-        
-        <div class="form-group rating-selector" id="rating-selector" style="display: none;">
-          <label>Avaliação</label>
-          <div class="star-rating" id="star-rating">
-            <button type="button" class="star" data-rating="1">★</button>
-            <button type="button" class="star" data-rating="2">★</button>
-            <button type="button" class="star" data-rating="3">★</button>
-            <button type="button" class="star" data-rating="4">★</button>
-            <button type="button" class="star" data-rating="5">★</button>
-          </div>
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="cancel-post">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Publicar</button>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline modal-cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar Comunidade</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <div class="brand">
-            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
-                 alt="Backstage Logo"
-                 width="40" height="40">
-          </div>
-          <p class="footer-description">
-            Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
-          </p>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Explorar</h3>
-          <ul class="footer-links">
-            <li><a href="{% url 'backstage:index' %}">Início</a></li>
-            <li><a href="{% url 'backstage:movies' %}">Filmes</a></li>
-            <li><a href="{% url 'backstage:series' %}">Séries</a></li>
-            <li><a href="{% url 'backstage:lists' %}">Listas</a></li>
-            <li><a href="{% url 'backstage:comunidade' %}">Comunidade</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Suporte</h3>
-          <ul class="footer-links">
-            <li><a href="#">Ajuda</a></li>
-            <li><a href="#">Contato</a></li>
-            <li><a href="#">Política de Privacidade</a></li>
-            <li><a href="#">Termos de Uso</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Conecte-se</h3>
-          <div class="social-links">
-            <a href="#" class="social-link" aria-label="Twitter">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="Instagram">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/community.js' %}" defer></script>
+  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/community.js' %}"></script>
 </body>
 </html>

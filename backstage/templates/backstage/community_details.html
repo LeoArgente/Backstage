@@ -1,0 +1,165 @@
+{% extends "backstage/index.html" %}
+{% load static %}
+
+{% block title %}{{ comunidade.nome }} - Backstage{% endblock %}
+
+{% block main_content %}
+<div class="community-details-container">
+  <!-- Header da Comunidade -->
+  <div class="community-header">
+    <div class="community-info">
+      <h1>{{ comunidade.nome }}</h1>
+      <p class="community-description">{{ comunidade.descricao|default:"Esta comunidade ainda não tem descrição." }}</p>
+      <div class="community-meta">
+        <span class="member-count">{{ comunidade.membros.count }} membros</span>
+        <span class="community-type">
+          {% if comunidade.publica %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Pública
+          {% else %}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Privada
+          {% endif %}
+        </span>
+        <span class="created-date">Criada em {{ comunidade.data_criacao|date:"d/m/Y" }}</span>
+      </div>
+    </div>
+    
+    <div class="community-actions">
+      {% if meu_papel == 'admin' %}
+        <button id="convidar-amigo-btn" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Convidar Amigo
+        </button>
+        
+        <button id="copiar-codigo-btn" class="btn btn-outline" data-codigo="{{ comunidade.codigo_convite }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Copiar Código
+        </button>
+      {% endif %}
+      
+      {% if meu_papel == 'member' %}
+        <button class="btn btn-danger sair-comunidade" data-slug="{{ comunidade.slug }}">
+          Sair da Comunidade
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="community-content">
+    <!-- Membros da Comunidade -->
+    <div class="members-section">
+      <h2>Membros da Comunidade</h2>
+      <div class="members-grid">
+        {% for membro in membros %}
+          <div class="member-card">
+            <div class="member-avatar">
+              <img src="https://ui-avatars.com/api/?name={{ membro.usuario.first_name|default:membro.usuario.username }}&background=667eea&color=fff&bold=true" 
+                   alt="{{ membro.usuario.username }}" />
+            </div>
+            <div class="member-info">
+              <h3>{{ membro.usuario.first_name|default:membro.usuario.username }}</h3>
+              <span class="member-role">
+                {% if membro.role == 'admin' %}
+                  <span class="role-badge admin">Administrador</span>
+                {% elif membro.role == 'mod' %}
+                  <span class="role-badge mod">Moderador</span>
+                {% else %}
+                  <span class="role-badge member">Membro</span>
+                {% endif %}
+              </span>
+              <p class="join-date">Membro desde {{ membro.data_entrada|date:"d/m/Y" }}</p>
+            </div>
+            
+            {% if meu_papel == 'admin' and membro.role != 'admin' %}
+              <div class="member-actions">
+                <button class="btn-icon" title="Promover a moderador" onclick="promoverMembro('{{ membro.usuario.id }}', 'mod')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+                <button class="btn-icon btn-danger" title="Remover da comunidade" onclick="removerMembro('{{ membro.usuario.id }}')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Código de Convite (apenas para admins) -->
+    {% if meu_papel == 'admin' %}
+      <div class="invite-section">
+        <h2>Código de Convite</h2>
+        <div class="invite-code-box">
+          <code id="codigo-convite-display">{{ comunidade.codigo_convite }}</code>
+          <button class="btn btn-outline" onclick="copiarCodigo('{{ comunidade.codigo_convite }}')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Copiar
+          </button>
+        </div>
+        <p class="invite-help">Compartilhe este código com seus amigos para eles entrarem na comunidade.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Funções específicas da página de detalhes
+function promoverMembro(userId, role) {
+    if (confirm('Tem certeza que deseja promover este membro?')) {
+        // Implementar chamada AJAX para promover membro
+        console.log('Promover usuário', userId, 'para', role);
+    }
+}
+
+function removerMembro(userId) {
+    if (confirm('Tem certeza que deseja remover este membro da comunidade?')) {
+        // Implementar chamada AJAX para remover membro
+        console.log('Remover usuário', userId);
+    }
+}
+
+function copiarCodigo(codigo) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(codigo).then(() => {
+            // Assumindo que a função showNotification está disponível globalmente
+            if (typeof showNotification !== 'undefined') {
+                showNotification('Código copiado para a área de transferência!', 'success');
+            } else {
+                alert('Código copiado!');
+            }
+        });
+    } else {
+        // Fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = codigo;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Código copiado!');
+    }
+}
+</script>
+
+<script src="{% static 'js/community.js' %}"></script>
+{% endblock %}

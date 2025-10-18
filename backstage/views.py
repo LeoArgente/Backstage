@@ -163,19 +163,31 @@ def sair(request):
     logout(request)
     return redirect('backstage:index')
 
-def registrar_ajax(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            username = data.get('username', '').strip()
-            email = data.get('email', '').strip()
-            password1 = data.get('password1', '')
-            password2 = data.get('password2', '')
+def registrar(request): #suporta tanto forms tradicional quanto AJAX
+    # Se já está logado, redireciona
+    if request.user.is_authenticated:
+        return redirect('backstage:index')
 
-            # Validações
+    if request.method == 'POST':
+        # Detectar se é requisição AJAX (JSON) ou form tradicional
+        is_ajax = request.content_type == 'application/json'
+        
+        try:
+            if is_ajax:
+                data = json.loads(request.body)
+                username = data.get('username', '').strip()
+                email = data.get('email', '').strip()
+                password1 = data.get('password1', '')
+                password2 = data.get('password2', '')
+            else:
+                username = request.POST.get('username', '').strip()
+                email = request.POST.get('email', '').strip()
+                password1 = request.POST.get('password1', '')
+                password2 = request.POST.get('password2', '')
+
             errors = {}
 
-            # Validar username
+            # Validações
             if not username:
                 errors['username'] = 'Nome de usuário é obrigatório'
             elif len(username) < 3:
@@ -183,73 +195,65 @@ def registrar_ajax(request):
             elif User.objects.filter(username=username).exists():
                 errors['username'] = 'Este nome de usuário já existe'
 
-            # Validar email
             if not email:
                 errors['email'] = 'Email é obrigatório'
             elif User.objects.filter(email=email).exists():
                 errors['email'] = 'Este email já está cadastrado'
 
-            # Validar senhas
             if not password1:
                 errors['password1'] = 'Senha é obrigatória'
             elif len(password1) < 8:
                 errors['password1'] = 'Senha deve ter pelo menos 8 caracteres'
 
-            if not password2:
-                errors['password2'] = 'Confirmação de senha é obrigatória'
-            elif password1 != password2:
+            if password1 != password2:
                 errors['password2'] = 'As senhas não coincidem'
 
             if errors:
-                return JsonResponse({
-                    'success': False,
-                    'errors': errors
-                })
+                if is_ajax:
+                    return JsonResponse({
+                        'success': False,
+                        'errors': errors
+                    })
+                else:
+                    return render(request, 'backstage/register.html', {
+                        'errors': errors,
+                        'username': username,
+                        'email': email
+                    })
 
             # Criar usuário
-            user = User.objects.create_user(
+            usuario = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password1
             )
-
-            # Fazer login automático
-            login(request, user)
-
-            return JsonResponse({
-                'success': True,
-                'message': 'Conta criada com sucesso!'
-            })
-
+            login(request, usuario)
+            
+            if is_ajax:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Conta criada com sucesso!'
+                })
+            else:
+                return redirect('backstage:index')
+                
         except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
                 'errors': {'general': 'Dados inválidos'}
             })
         except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'errors': {'general': 'Erro interno do servidor'}
-            })
-
-    return JsonResponse({
-        'success': False,
-        'errors': {'general': 'Método não permitido'}
-    })
-
-def registrar(request):
-    if request.user.is_authenticated:
-        return redirect('backstage:index')
-
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            usuario = form.save()
-            login(request, usuario)
-            return redirect('backstage:index')
-    else:
-        form = UserCreationForm()
-    return render(request, 'backstage/register.html', {'form': form})
+            if is_ajax:
+                return JsonResponse({
+                    'success': False,
+                    'errors': {'general': 'Erro interno do servidor'}
+                })
+            else:
+                return render(request, 'backstage/register.html', {
+                    'errors': {'general': 'Erro ao criar conta. Tente novamente.'}
+                })
+    
+    return render(request, 'backstage/register.html')
 
 # chamadas das urls das páginas #################################################################################################
 # front nononha e liz + back leo e lou

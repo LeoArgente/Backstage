@@ -6,6 +6,7 @@ import django
 
 # Configura o Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'setup.settings')
+os.environ.setdefault('TARGET_ENV', 'development')
 django.setup()
 
 from django.contrib.auth.models import User

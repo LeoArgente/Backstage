@@ -26,47 +26,43 @@ O protótipo de baixa fidelidade foi desenvolvido no Figma e apresentado em um [
 
 Link paras as histórias: [Histórias](https://docs.google.com/document/d/1aqIHFkvABIIP391eOZYChAOS2tJbzDw3llCjle1GSi0/edit?usp=sharing)
 
-
 ![Figma 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/figma1_correto.PNG)
 ![Sprint 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Backlog1.PNG)
 ![Quadro 1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/Primeiro_Quadro.PNG)
-
 
 </details>
 
 <details>
 <summary> 📥 ENTREGA 2</summary>
 
-
-
 O objetivo desta segunda sprint é dar início ao desenvolvimento do projeto, colocando em prática a implementação das primeiras histórias de usuário.
 
 ## HISTÓRIA 1:
 Permite que o usuário veja os detalhes de um filme (elenco, duração, classificação...) ao clicar nele.
 
-![Hitoria1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes1.PNG)
-![Hitoria1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes2.PNG)
-![Hitoria1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes3.PNG)
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes1.PNG)
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes2.PNG)
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/detalhes3.PNG)
 
 ## HISTÓRIA 2:
-Permite que o usuário salve um filme para assistir mais tarde
+Permite que o usuário salve um filme para assistir mais tarde.
 
-![Hitoria2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/assistirmaistarde.PNG)
+![História2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/assistirmaistarde.PNG)
 
 ## HISTÓRIA 3:
 Permite que o usuário deixa uma resenha sobre o filme.
 
-![Historia3](imagens/critica.png)
+![História3](imagens/critica.png)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Screencast
 Você pode acessar ([AQUI](https://youtu.be/MOOjIxs7I2w)) o vídeo explicativo do nosso projeto já desenvolvido em Django, com as três histórias implementadas.
 
 ## Backlog no Jira
-![backlog2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/backlog2.PNG)
+![Backlog2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/backlog2.PNG)
 
 ## Quadro no jira
-![quadro2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/quadro2.PNG)
+![Quadro2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/quadro2.PNG)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,25 +97,25 @@ O objetivo dessa Sprint foi expandir o Backstage com a continuação da implemen
 ## HISTÓRIA 1:
 Permite que o usuário pesquise filmes por título, gênero ou autor, facilitando a sua navegação.
 
-![Hitoria1](print)
-![Hitoria1](print)
-![Hitoria1](print)
+![História1](print)
+![História1](print)
+![História1](print)
 
 ## HISTÓRIA 2:
-Permite que o usuário veja os principais detalhes de uma serie (elenco, duração, classificação...) ao clicar nela.
+Permite que o usuário veja os principais detalhes de uma série (elenco, duração, classificação...) ao clicar nela.
 
-![Hitoria2](print)
+![História2](print)
 
 ## HISTÓRIA 3:
-Permite que o usuário seja avisado sobre possíveis spoilers em resenhas alheias.
+Permite que o usuário seja avisado sobre possíveis spoilers em resenhas alheias e que possa avisar se sua própria resenha tem spoilers.
 
-![Historia3](print)
+![História3](print)
 
 ## Backlog no Jira
-![backlog2](print)
+![Backlog2](print)
 
 ## Quadro no jira
-![quadro2](print)
+![Quadro2](print)
 
 ## Screencasts
 Nessa entrega, realizamos os screencasts de CI/CD com build e deployment automatizado, Testes de Sistema (E2E) Automatizados e do deployment das novas histórias.
@@ -138,7 +134,7 @@ Closed:
 PRINT DO BUG TRACKER
 
 ## Programação em Par
-A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre o esse processo.
+A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.
 
 
 

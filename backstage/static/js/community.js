@@ -22,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Elementos DOM
-    const criarComunidadeBtn = document.getElementById('criar-comunidade-btn');
-    const modalCriarComunidade = document.getElementById('modal-criar-comunidade');
-    const formCriarComunidade = document.getElementById('form-criar-comunidade');
-    const modalClose = document.querySelector('.modal-close');
-    const modalCancel = document.querySelector('.modal-cancel');
+    const criarComunidadeBtn = document.getElementById('create-community-btn');
+    const modalCriarComunidade = document.getElementById('create-community-modal');
+    const formCriarComunidade = document.getElementById('create-community-form');
+    const modalClose = document.getElementById('community-modal-close');
+    const modalCancel = document.getElementById('cancel-community');
     const entrarPorConviteBtn = document.getElementById('entrar-por-convite');
     const codigoConviteInput = document.getElementById('codigo-convite');
 
@@ -57,7 +57,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para obter CSRF token
     function getCsrfToken() {
         const token = document.querySelector('[name=csrfmiddlewaretoken]');
-        return token ? token.value : '';
+        if (!token) {
+            console.warn('CSRF token não encontrado! Verificando cookies...');
+            // Fallback: tentar pegar do cookie
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            return cookieValue || '';
+        }
+        return token.value;
     }
 
     // Abrir modal de criar comunidade
@@ -110,12 +119,34 @@ document.addEventListener('DOMContentLoaded', function() {
         formCriarComunidade.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(formCriarComunidade);
+            const nome = document.getElementById('community-name').value.trim();
+            const descricao = document.getElementById('community-description').value.trim();
+            
+            // Validação básica
+            if (!nome) {
+                showNotification('O nome da comunidade é obrigatório', 'error');
+                return;
+            }
+            
+            if (!descricao) {
+                showNotification('A descrição da comunidade é obrigatória', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('nome', nome);
+            formData.append('descricao', descricao);
+            formData.append('publica', 'on'); // Por padrão, comunidades são públicas
+            
             const submitBtn = formCriarComunidade.querySelector('button[type="submit"]');
             
             // Desabilitar botão durante envio
             submitBtn.disabled = true;
             submitBtn.textContent = 'Criando...';
+            
+            console.log('Enviando requisição para criar comunidade...');
+            console.log('Nome:', nome);
+            console.log('Descrição:', descricao);
             
             try {
                 const response = await fetch('/criar-comunidade/', {
@@ -126,7 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 
+                console.log('Status da resposta:', response.status);
                 const data = await response.json();
+                console.log('Dados recebidos:', data);
                 
                 if (data.success) {
                     showNotification('Comunidade criada com sucesso!', 'success');
@@ -139,10 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     showNotification(data.error || 'Erro ao criar comunidade', 'error');
                 }
             } catch (error) {
+                console.error('Erro ao criar comunidade:', error);
                 showNotification('Erro de conexão. Tente novamente.', 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Criar Comunidade';
+                submitBtn.textContent = 'Criar';
             }
         });
     }

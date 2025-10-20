@@ -316,17 +316,23 @@ def detalhes_comunidade(request, slug):
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
 def criar_comunidade(request):
     """API para criar nova comunidade"""
     try:
-        nome = request.POST.get('nome')
-        descricao = request.POST.get('descricao', '')
+        nome = request.POST.get('nome', '').strip()
+        descricao = request.POST.get('descricao', '').strip()
         publica = request.POST.get('publica') == 'on'
         
+        # Validações
         if not nome:
-            return JsonResponse({'success': False, 'error': 'Nome é obrigatório'})
+            return JsonResponse({'success': False, 'error': 'Nome é obrigatório'}, status=400)
         
-        # Criar a comunidade
+        if len(nome) > 100:
+            return JsonResponse({'success': False, 'error': 'Nome deve ter no máximo 100 caracteres'}, status=400)
+        
+        # Criar a comunidade (será salva automaticamente no banco)
         comunidade = Comunidade.objects.create(
             nome=nome,
             descricao=descricao,
@@ -344,11 +350,18 @@ def criar_comunidade(request):
         return JsonResponse({
             'success': True,
             'message': 'Comunidade criada com sucesso!',
-            'comunidade_slug': comunidade.slug
+            'comunidade_slug': comunidade.slug,
+            'comunidade_id': comunidade.id,
+            'codigo_convite': comunidade.codigo_convite
         })
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        import traceback
+        traceback.print_exc()  # Para debug no console do servidor
+        return JsonResponse({
+            'success': False, 
+            'error': f'Erro ao criar comunidade: {str(e)}'
+        }, status=500)
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])

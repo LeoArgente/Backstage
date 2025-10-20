@@ -9,7 +9,7 @@ on:
 env:
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '18'
-  AZURE_WEBAPP_NAME: 'backstage-app'
+  AZURE_WEBAPP_NAME: 'backstage-fds'
 
 jobs:
   # ========== JOB 1: TESTES UNITÁRIOS ==========

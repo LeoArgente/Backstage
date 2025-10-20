@@ -1096,13 +1096,33 @@ button {
 .filter-controls {
   display: flex;
   gap: 12px;
+  align-items: center; /* vertically align controls with header icons/search */
+}
+
+/* Header-specific filter controls (align with nav-actions height) */
+.header-filter-controls {
+  margin: 0; /* remove any top margin placed inline */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-filter-controls .filter-btn {
+  height: var(--search-height, 40px);
+  padding: 0 10px;
+  border-radius: var(--search-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-select {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
+  border-radius: var(--search-radius);
+  /* match the search bar height and vertical padding */
+  height: var(--search-height, 40px);
+  padding: 0 12px;
   color: var(--text-primary);
   min-width: 150px;
   transition: all var(--transition-base);
@@ -1114,16 +1134,19 @@ button {
 }
 
 .filter-btn {
-  padding: 10px 20px;
+  /* Make filter button match search/input and icon sizing for consistent header */
+  height: var(--search-height, 40px);
+  padding: 0 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--search-radius);
   color: var(--text-primary);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   font-weight: 500;
   transition: all var(--transition-base);
+  box-sizing: border-box;
 }
 
 .filter-btn:hover {

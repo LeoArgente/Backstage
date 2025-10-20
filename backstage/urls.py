@@ -39,6 +39,9 @@ urlpatterns = [
     path('api/lista/<int:lista_id>/adicionar-serie/<int:tmdb_id>/', views.adicionar_serie_lista, name='adicionar_serie_lista'),
     path('api/lista/<int:lista_id>/remover-serie/<int:tmdb_id>/', views.remover_serie_da_lista, name='remover_serie_lista'),
     
+    # API de sugestões de busca
+    path('api/sugestoes/', views.buscar_sugestoes, name='buscar_sugestoes'),
+    
     # URLs para comunidades
     path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
     path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),

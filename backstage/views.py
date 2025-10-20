@@ -1224,3 +1224,70 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
             'success': False,
             'error': str(e)
             }, status=500)
+
+def buscar_sugestoes(request):
+    """API para sugestões de busca em tempo real"""
+    query = request.GET.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'sugestoes': []})
+    
+    try:
+        import requests
+        from django.conf import settings
+        
+        # Buscar filmes
+        url_filmes = f"https://api.themoviedb.org/3/search/movie"
+        params_filmes = {
+            'api_key': settings.TMDB_API_KEY,
+            'language': 'pt-BR',
+            'query': query,
+            'page': 1
+        }
+        response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
+        filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
+        
+        # Buscar séries
+        url_series = f"https://api.themoviedb.org/3/search/tv"
+        params_series = {
+            'api_key': settings.TMDB_API_KEY,
+            'language': 'pt-BR',
+            'query': query,
+            'page': 1
+        }
+        response_series = requests.get(url_series, params=params_series, timeout=5)
+        series = response_series.json().get('results', [])[:5]  # Limitar a 5 resultados
+        
+        # Formatar resultados
+        sugestoes = []
+        
+        # Adicionar filmes
+        for filme in filmes:
+            sugestoes.append({
+                'id': filme.get('id'),
+                'tipo': 'filme',
+                'titulo': filme.get('title', 'Sem título'),
+                'poster': f"https://image.tmdb.org/t/p/w92{filme.get('poster_path')}" if filme.get('poster_path') else None,
+                'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                'descricao': filme.get('overview', 'Sem descrição disponível')[:150] + '...' if filme.get('overview') else 'Sem descrição disponível',
+                'nota': round(filme.get('vote_average', 0), 1),
+                'url': f"/filmes/{filme.get('id')}/"
+            })
+        
+        # Adicionar séries
+        for serie in series:
+            sugestoes.append({
+                'id': serie.get('id'),
+                'tipo': 'serie',
+                'titulo': serie.get('name', 'Sem título'),
+                'poster': f"https://image.tmdb.org/t/p/w92{serie.get('poster_path')}" if serie.get('poster_path') else None,
+                'ano': serie.get('first_air_date', '')[:4] if serie.get('first_air_date') else '',
+                'descricao': serie.get('overview', 'Sem descrição disponível')[:150] + '...' if serie.get('overview') else 'Sem descrição disponível',
+                'nota': round(serie.get('vote_average', 0), 1),
+                'url': f"/series/{serie.get('id')}/"
+            })
+        
+        return JsonResponse({'sugestoes': sugestoes})
+        
+    except Exception as e:
+        return JsonResponse({'sugestoes': [], 'erro': str(e)})

@@ -1,4 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== Join Communities Functionality =====
+    const joinButtons = document.querySelectorAll('.btn-join');
+    
+    joinButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent card click
+            
+            if (this.classList.contains('joined')) {
+                // Leave community
+                this.classList.remove('joined');
+                this.textContent = 'Entrar';
+                showNotification('Você saiu da comunidade', 'info');
+            } else {
+                // Join community
+                this.classList.add('joined');
+                this.textContent = 'Membro';
+                const communityName = this.closest('.community-card').querySelector('.community-name').textContent;
+                showNotification(`Você entrou em ${communityName}!`, 'success');
+            }
+        });
+    });
+
     // Elementos DOM
     const criarComunidadeBtn = document.getElementById('criar-comunidade-btn');
     const modalCriarComunidade = document.getElementById('modal-criar-comunidade');

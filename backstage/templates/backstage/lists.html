@@ -10,16 +10,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/lists.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movies.css' %}">
 </head>
 <body>
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
                 <a class="brand" href="{% url 'backstage:index' %}">
-            <img src="https://cdn.discordapp.com/attachments/1415050107870642196/1421225992751681566/Texto_do_seu_paragrafo__3_-removebg-preview.png?ex=68d84359&is=68d6f1d9&hm=dd50ff3e95e75faf0fe3ee81785c91f7d45acbf65dc0bb58ff66db91cd8131e7&" 
-            alt="Backstage Logo" 
-            width="40" height="40">
-      <span class="brand-text">Backstage</span>
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
         </a>
 
         <div class="nav-menu">
@@ -43,12 +43,58 @@
         </div>
 
         <div class="nav-actions">
-          <div class="search-container">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
             <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <input type="search" class="search-input" placeholder="Buscar listas..." />
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
+
+          <div class="filter-controls header-filter-controls">
+            <button type="button" class="filter-btn" id="filterBtn" aria-label="Filtros">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+
+            <div class="filter-popup" id="filterPopup">
+              <div class="filter-content">
+                <h3>Filtros de busca</h3>
+                <form method="get" action="{% url 'backstage:buscar' %}">
+                  <select name="tipo" id="tipoSelect">
+                    <option value="">Escolha o tipo de filtro</option>
+                    <option value="titulo">Título</option>
+                    <option value="genero">Gênero</option>
+                    <option value="ano">Ano</option>
+                  </select>
+                  <div id="filtroAno" style="display:none;">
+                    <label for="anoInput">Ano:</label>
+                    <input type="number" name="ano" placeholder="Ex: 2024" id="anoInput">
+                  </div>
+                  <div id="filtroGenero" style="display:none;">
+                    <label for="generoSelect">Gênero:</label>
+                    <select name="genero" id="generoSelect">
+                      <option value="">Selecione um gênero</option>
+                      <option value="Ação">Ação</option>
+                      <option value="Aventura">Aventura</option>
+                      <option value="Comédia">Comédia</option>
+                      <option value="Drama">Drama</option>
+                      <option value="Fantasia">Fantasia</option>
+                      <option value="Ficção Científica">Ficção Científica</option>
+                      <option value="Romance">Romance</option>
+                      <option value="Suspense">Suspense</option>
+                      <option value="Terror">Terror</option>
+                      <option value="Animação">Animação</option>
+                      <option value="Documentário">Documentário</option>
+                    </select>
+                  </div>
+                  <button type="submit">Aplicar filtros</button>
+                </form>
+              </div>
+            </div>
           </div>
 
           <button class="icon-btn notification-btn" aria-label="Notificações">
@@ -59,11 +105,107 @@
             <span class="notification-badge">3</span>
           </button>
 
+          {% if user.is_authenticated %}
           <div class="user-menu">
-            <button class="user-avatar">
-              <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Avatar" />
+            <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
+              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
             </button>
+            
+            <!-- Letterboxd-Style Dropdown Menu -->
+            <div class="user-dropdown" id="userDropdown" role="menu">
+              <div class="user-dropdown-header">
+                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
+                <div class="user-dropdown-info">
+                  <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
+                  <p class="user-dropdown-email">{{ user.email|default:"visitante@backstage.com" }}</p>
+                </div>
+              </div>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Perfil
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Meu Diário
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Reviews
+              </a>
+              
+              <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Listas
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Watchlist
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Favoritos
+              </a>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Configurações
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Ajuda
+              </a>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:sair' %}" class="user-dropdown-item logout-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Sair
+              </a>
+            </div>
           </div>
+          {% else %}
+          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
+          {% endif %}
         </div>
       </nav>
     </div>
@@ -99,38 +241,38 @@
         <div class="lists-section" data-section="my-lists">
           {% for lista in minhas_listas %}
             <div class="list-card" data-list-id="{{ lista.id }}">
-              <div class="list-header">
-                <h3 class="list-title">{{ lista.nome }}</h3>
-                <div class="list-header-actions">
-                  <span class="list-privacy">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
-                  <div class="list-actions">
-                    <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    </button>
-                    <button class="action-btn edit-btn" title="Editar lista" onclick="editList({{ lista.id }})">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    <button class="action-btn delete-btn" title="Deletar lista" onclick="deleteList({{ lista.id }}, '{{ lista.nome|escapejs }}')">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3,6 5,6 21,6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        <line x1="10" y1="11" x2="10" y2="17"/>
-                        <line x1="14" y1="11" x2="14" y2="17"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <span class="list-badge">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+
+              <h3 class="list-title">{{ lista.nome }}</h3>
+
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
+
               <div class="list-meta">
-                <span class="list-count">{{ lista.itens.count }} filme{{ lista.itens.count|pluralize }}</span>
+                <span class="list-count">{{ lista.num_filmes }} filme{{ lista.num_filmes|pluralize }} • {{ lista.num_series }} série{{ lista.num_series|pluralize }}</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
+              </div>
+
+              <div class="list-actions">
+                <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <button class="action-btn edit-btn" title="Editar lista" onclick="editList({{ lista.id }})">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="action-btn delete-btn" title="Deletar lista" onclick="deleteList({{ lista.id }}, '{{ lista.nome|escapejs }}')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </button>
               </div>
             </div>
           {% empty %}
@@ -142,28 +284,27 @@
         <div class="lists-section hidden" data-section="public">
           {% for lista in listas_publicas %}
             <div class="list-card" data-list-id="{{ lista.id }}">
-              <div class="list-header">
-                <h3 class="list-title">{{ lista.nome }}</h3>
-                <div class="list-header-actions">
-                  <span class="list-author">por {{ lista.usuario.username }}</span>
-                  <div class="list-actions">
-                    <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <span class="list-badge">{{ lista.usuario.username }}</span>
+
+              <h3 class="list-title">{{ lista.nome }}</h3>
+
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
+
               <div class="list-meta">
-                <span class="list-count">{{ lista.itens.count }} filme{{ lista.itens.count|pluralize }}</span>
+                <span class="list-count">{{ lista.num_filmes }} filme{{ lista.num_filmes|pluralize }} • {{ lista.num_series }} série{{ lista.num_series|pluralize }}</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
+              </div>
+
+              <div class="list-actions">
+                <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList({{ lista.id }})">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
               </div>
             </div>
           {% empty %}
-            <p class="empty-state">Nenhuma lista pública encontrada.</p>
           {% endfor %}
         </div>
       </div>
@@ -221,72 +362,110 @@
 
   <!-- Edit List Modal -->
   <div class="modal-overlay" id="edit-list-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Editar Lista</h2>
-        <button class="modal-close" id="edit-modal-close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+    <div class="modal modal-large">
+      <!-- Header com título e botão fechar -->
+      <div class="popup-header">
+        <h3 class="list-view-title" id="edit-list-title-display"></h3>
+        <button class="close-popup" id="edit-modal-close">×</button>
       </div>
 
-      <form class="modal-form" id="edit-list-form">
-        <input type="hidden" id="edit-list-id">
-        <div class="form-group">
-          <label for="edit-list-name">Nome da Lista</label>
-          <input type="text" id="edit-list-name" name="name" required>
+      <!-- Conteúdo principal -->
+      <div class="popup-content">
+        <form id="edit-list-form">
+          <input type="hidden" id="edit-list-id">
+
+          <div class="edit-form-group">
+            <label for="edit-list-name">Nome da Lista</label>
+            <input type="text" id="edit-list-name" name="name" required>
+          </div>
+
+          <div class="edit-form-group">
+            <label for="edit-list-description">Descrição</label>
+            <textarea id="edit-list-description" name="description" rows="3"></textarea>
+          </div>
+
+          <div class="edit-form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="edit-list-public" name="public">
+              <span class="checkbox-custom"></span>
+              Lista pública (outros usuários podem ver)
+            </label>
+          </div>
+        </form>
+
+        <!-- Tabs -->
+        <div class="content-tabs" style="margin-top: 32px;">
+          <button class="content-tab active" id="edit-movies-tab" onclick="switchEditTab('movies')">
+            Filmes (0)
+          </button>
+          <button class="content-tab" id="edit-series-tab" onclick="switchEditTab('series')">
+            Séries (0)
+          </button>
         </div>
 
-        <div class="form-group">
-          <label for="edit-list-description">Descrição</label>
-          <textarea id="edit-list-description" name="description" rows="4"></textarea>
+        <!-- Movies Content -->
+        <div class="content-tab-content active" id="edit-movies-content">
+          <div class="movies-grid" id="edit-movies-grid">
+            <!-- Movies will be loaded here -->
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="edit-list-public" name="public">
-            <span class="checkbox-custom"></span>
-            Lista pública (outros usuários podem ver)
-          </label>
+        <!-- Series Content -->
+        <div class="content-tab-content" id="edit-series-content">
+          <div class="movies-grid" id="edit-series-grid">
+            <!-- Series will be loaded here -->
+          </div>
         </div>
 
-        <div class="form-actions">
+        <!-- Action Buttons at Bottom Left -->
+        <div class="edit-modal-actions">
           <button type="button" class="btn btn-secondary" id="cancel-edit">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          <button type="button" class="btn btn-primary" id="save-edit">Salvar Alterações</button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
   <!-- View List Modal -->
   <div class="modal-overlay" id="view-list-modal">
     <div class="modal modal-large">
-      <div class="modal-header">
-        <h2 id="view-list-title"></h2>
-        <button class="modal-close" id="view-modal-close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+      <!-- Header com título e botão fechar -->
+      <div class="popup-header">
+        <h3 class="list-view-title" id="view-list-title"></h3>
+        <button class="close-popup" id="view-modal-close">×</button>
       </div>
 
-      <div class="modal-content">
-        <div class="list-info">
-          <div class="list-meta-info">
-            <span id="view-list-privacy"></span>
-            <span id="view-list-author"></span>
-            <span id="view-list-date"></span>
-          </div>
-          <p id="view-list-description"></p>
+      <!-- Conteúdo principal -->
+      <div class="popup-content">
+        <!-- Descrição -->
+        <p class="list-view-description" id="view-list-description"></p>
+        <div class="list-view-meta">
+          <span id="view-list-privacy"></span>
+          <span id="view-list-author"></span>
+          <span id="view-list-date"></span>
         </div>
 
-        <div class="list-movies">
-          <h3>Filmes na Lista (<span id="view-list-count">0</span>)</h3>
-          <div class="movies-grid" id="view-movies-grid">
+        <!-- Tabs -->
+        <div class="content-tabs">
+          <button class="content-tab active" id="movies-tab" onclick="switchContentTab('movies')">
+            Filmes (0)
+          </button>
+          <button class="content-tab" id="series-tab" onclick="switchContentTab('series')">
+            Séries (0)
+          </button>
+        </div>
+
+        <!-- Movies Content -->
+        <div class="content-tab-content active" id="movies-content">
+          <div id="movies-grid">
             <!-- Movies will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Series Content -->
+        <div class="content-tab-content" id="series-content">
+          <div id="series-grid">
+            <!-- Series will be loaded here -->
           </div>
         </div>
       </div>
@@ -298,19 +477,9 @@
       <div class="footer-content">
         <div class="footer-section">
           <div class="brand">
-            <span class="logo">
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <circle cx="12" cy="12" r="10" fill="url(#footer-gradient)" opacity="0.9"/>
-                <path d="M9 8v8l7-4z" fill="white"/>
-                <defs>
-                  <linearGradient id="footer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#667eea"/>
-                    <stop offset="100%" style="stop-color:#764ba2"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </span>
-            <span class="brand-text">Backstage</span>
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="40" height="40">
           </div>
           <p class="footer-description">
             Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
@@ -363,7 +532,152 @@
     </div>
   </footer>
 
+  <!-- CSS para Menu de Usuário -->
+  <style>
+    .user-menu {
+      position: relative;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: none;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .user-avatar:hover {
+      border-color: var(--red);
+      transform: scale(1.05);
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: rgba(17, 24, 39, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      min-width: 220px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+
+    .user-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .user-dropdown-header {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .user-dropdown-name {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .user-dropdown-email {
+      color: #9ca3af;
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .user-dropdown-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 8px 0;
+    }
+
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #ffffff;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .user-dropdown-item:hover {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--red);
+    }
+
+    .user-dropdown-item svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    /* Seta do dropdown */
+    .user-dropdown::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: 12px;
+      width: 12px;
+      height: 12px;
+      background: rgba(17, 24, 39, 0.98);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      transform: rotate(45deg);
+    }
+  </style>
+
+  <!-- JavaScript para Toggle do Menu -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const userMenuBtn = document.getElementById('userMenuBtn');
+      const userDropdown = document.getElementById('userDropdown');
+
+      if (userMenuBtn && userDropdown) {
+        // Toggle dropdown ao clicar no avatar
+        userMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          userDropdown.classList.toggle('active');
+        });
+
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', function(e) {
+          if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+            userDropdown.classList.remove('active');
+          }
+        });
+
+        // Fechar dropdown ao pressionar ESC
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            userDropdown.classList.remove('active');
+          }
+        });
+      }
+    });
+  </script>
+
   <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/lists.js' %}?v=1.2" defer></script>
+  <script src="{% static 'js/lists.js' %}?v=2.6" defer></script>
+  <script src="{% static 'js/filter-popup.js' %}" defer></script>
+  <script src="{% static 'js/search-suggestions.js' %}" defer></script>
 </body>
 </html>

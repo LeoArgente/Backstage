@@ -319,21 +319,31 @@ button {
 }
 
 .nav-primary {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   padding: 16px 0;
   gap: 32px;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 700;
-  font-size: 24px;
-  letter-spacing: -0.5px;
-  transition: transform var(--transition-base);
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-weight: 700 !important;
+  font-size: 28px !important;
+  letter-spacing: -0.5px !important;
+  transition: transform var(--transition-base) !important;
+  margin-right: 80px !important;
+  margin-left: -50px !important;
+  flex-shrink: 0 !important;
+}
+
+.brand img {
+  max-width: none !important;
+  width: 250px !important;
+  height: auto !important;
+  display: block !important;
 }
 
 .brand:hover {
@@ -347,12 +357,16 @@ button {
   background-clip: text;
   font-weight: 800;
   position: relative;
+  color: transparent;
+  min-width: 120px !important;
+  height: 28px !important;
 }
 
 .brand-text::before {
   content: "Back";
   position: absolute;
-  top: 0;
+  top: 50%;
+  transform: translateY(-50%);
   left: 0;
   color: var(--blue-light);
   -webkit-text-fill-color: var(--blue-light);
@@ -362,8 +376,9 @@ button {
 .brand-text::after {
   content: "stage";
   position: absolute;
-  top: 0;
-  left: 2.2em;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 2.4em;
   color: var(--red);
   -webkit-text-fill-color: var(--red);
   z-index: 1;
@@ -373,8 +388,6 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  margin-left: 32px;
 }
 
 .nav-link {
@@ -532,7 +545,7 @@ button {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .search-container {

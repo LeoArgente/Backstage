@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
   {% load static %}
+  {% load humanize %}
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ filme.titulo }} — Backstage</title>
@@ -11,169 +12,14 @@
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
 </head>
-<style>
-  .list-popup-overlay { position: fixed;top: 0;left: 0;width: 100%;height: 100%;
-    background: rgba(0,0,0,0.8);display: flex;align-items: center;
-    justify-content: center;z-index: 1000;opacity: 0;visibility: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .list-popup-overlay.show {opacity: 1;visibility: visible;
-  }
-
-  .list-popup {background: #1a1a1a;border-radius: 12px;padding: 2rem;
-    max-width: 400px;width: 90%;border: 1px solid #333;
-  }
-
-  .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-  }
-
-  .popup-header h3 {
-      color: #fff;
-      margin: 0;
-  }
-
-  .close-popup {
-      background: none;
-      border: none;
-      color: #888;
-      font-size: 1.5rem;
-      cursor: pointer;
-  }
-
-  .popup-option {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      width: 100%;
-      padding: 1rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 8px;
-      color: #fff;
-      cursor: pointer;
-      margin-bottom: 1rem;
-      transition: all 0.2s ease;
-  }
-
-  .popup-option:hover {
-      background: #333;
-      border-color: #667eea;
-  }
-
-  .form-group {
-      margin-bottom: 1rem;
-  }
-
-  .form-group label {
-      display: block;
-      color: #fff;
-      margin-bottom: 0.5rem;
-  }
-
-  .form-group input {
-      width: 100%;
-      padding: 0.75rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 6px;
-      color: #fff;
-  }
-
-  .form-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: flex-end;
-  }
-
-  .form-actions button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-  }
-
-  .form-actions button[type="submit"] {
-      background: #667eea;
-      color: #fff;
-  }
-
-  .form-actions button[type="button"] {
-      background: #444;
-      color: #fff;
-  }
-
-  /* Estilos para listas existentes */
-  .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1rem;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-  }
-
-  .list-item:hover {
-      background: #333;
-      border-color: #667eea;
-  }
-
-  .list-item-info {
-      flex-grow: 1;
-  }
-
-  .list-item-name {
-      color: #fff;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-  }
-
-  .list-item-meta {
-      color: #888;
-      font-size: 0.8rem;
-  }
-
-  .list-item-add {
-      background: #667eea;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      transition: background 0.2s ease;
-  }
-
-  .list-item-add:hover {
-      background: #5a6fd8;
-  }
-
-  /* Estilo para quando não há críticas */
-  .no-reviews {
-      text-align: center;
-      padding: 2rem;
-      color: #888;
-      font-style: italic;
-  }
-  </style>
 <body>
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
                 <a class="brand" href="{% url 'backstage:index' %}">
-            <img src="https://cdn.discordapp.com/attachments/1415050107870642196/1421225992751681566/Texto_do_seu_paragrafo__3_-removebg-preview.png?ex=68d84359&is=68d6f1d9&hm=dd50ff3e95e75faf0fe3ee81785c91f7d45acbf65dc0bb58ff66db91cd8131e7&" 
-            alt="Backstage Logo" 
-            width="40" height="40">
-      <span class="brand-text">Backstage</span>
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
         </a>
 
         <div class="nav-menu">
@@ -197,13 +43,15 @@
         </div>
 
         <div class="nav-actions">
-          <div class="search-container">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
             <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <input type="search" class="search-input" placeholder="Buscar filmes, séries, pessoas..." />
-          </div>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
 
           <button class="icon-btn notification-btn" aria-label="Notificações">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -213,11 +61,107 @@
             <span class="notification-badge">3</span>
           </button>
 
+          {% if user.is_authenticated %}
           <div class="user-menu">
-            <button class="user-avatar">
-              <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff&bold=true" alt="Avatar" />
+            <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
+              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
             </button>
+            
+            <!-- Letterboxd-Style Dropdown Menu -->
+            <div class="user-dropdown" id="userDropdown" role="menu">
+              <div class="user-dropdown-header">
+                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
+                <div class="user-dropdown-info">
+                  <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
+                  <p class="user-dropdown-email">{{ user.email|default:"visitante@backstage.com" }}</p>
+                </div>
+              </div>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Perfil
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Meu Diário
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Reviews
+              </a>
+              
+              <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Listas
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Watchlist
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Favoritos
+              </a>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Configurações
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Ajuda
+              </a>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:sair' %}" class="user-dropdown-item logout-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Sair
+              </a>
+            </div>
           </div>
+          {% else %}
+          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
+          {% endif %}
         </div>
       </nav>
     </div>
@@ -343,14 +287,14 @@
           <!-- Opções principais -->
           <div class="popup-content" id="popupOptions">
               <!-- Lista de listas existentes -->
-              <div id="existingLists" style="margin-bottom: 1rem;">
-                  <div id="loadingLists" style="color: #888; text-align: center; padding: 1rem;">
+              <div id="existingLists">
+                  <div id="loadingLists">
                       Carregando suas listas...
                   </div>
                   <div id="listsContainer" style="display: none;">
                       <!-- As listas serão carregadas aqui via JavaScript -->
                   </div>
-                  <div id="noLists" style="display: none; color: #888; text-align: center; padding: 1rem;">
+                  <div id="noLists" style="display: none;">
                       Você ainda não criou nenhuma lista
                   </div>
               </div>
@@ -387,31 +331,102 @@
           
           <div class="user-rating">
             <span class="rating-label">Sua avaliação:</span>
-            <div class="star-rating">
-              <button class="star" data-rating="1">★</button>
-              <button class="star" data-rating="2">★</button>
-              <button class="star" data-rating="3">★</button>
-              <button class="star" data-rating="4">★</button>
-              <button class="star" data-rating="5">★</button>
-            </div>
-                <form class="review-input-group" method="POST" action="{% url 'backstage:salvar_critica' %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="filme_id" value="{{ filme.tmdb_id }}">
-                  <input type="hidden" name="nota" id="rating-value" value="">
-                  <textarea 
-                    class="movie-review-text" 
-                    placeholder="Escreva sua resenha aqui..."
-                    name="texto"
-                    required
-                  ></textarea>
-                  <button type="submit" class="send-review-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                    </svg>
-                  </button>
-                </form>
+            <form class="review-input-group" method="POST" action="{% url 'backstage:salvar_critica' %}">
+              {% csrf_token %}
+              <input type="hidden" name="filme_id" value="{{ filme.tmdb_id }}">
+              <input type="hidden" name="nota" id="rating-value" value="">
+
+              <div class="textarea-wrapper">
+                <div class="star-rating">
+                  <button type="button" class="star" data-rating="1">★</button>
+                  <button type="button" class="star" data-rating="2">★</button>
+                  <button type="button" class="star" data-rating="3">★</button>
+                  <button type="button" class="star" data-rating="4">★</button>
+                  <button type="button" class="star" data-rating="5">★</button>
+                </div>
+
+                <textarea
+                  class="movie-review-text"
+                  placeholder="Escreva sua resenha aqui..."
+                  name="texto"
+                  required
+                  id="review-textarea"
+                ></textarea>
+
+                <div class="textarea-controls">
+                  <div class="spoiler-checkbox-container">
+                    <label class="spoiler-checkbox-label">
+                      <input type="checkbox" name="tem_spoiler" id="spoiler-checkbox">
+                      <span>SPOILER</span>
+                    </label>
+                  </div>
+
+                  <div class="textarea-controls-right">
+                    <button type="button" class="expand-review-btn" onclick="openReviewModal()" title="Expandir">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                      </svg>
+                    </button>
+
+                    <button type="submit" class="send-review-btn" id="inline-submit-btn">
+                      Enviar
+                    </button>
+                  </div>
+                </div>
               </div>
-            
+            </form>
+          </div>
+
+          <!-- Modal de Resenha Expandida -->
+          <div class="review-modal-overlay" id="reviewModalOverlay">
+            <div class="review-modal">
+              <div class="review-modal-header">
+                <h3>Escreva sua Resenha</h3>
+                <button type="button" class="close-review-modal" onclick="closeReviewModal()">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="review-modal-body">
+                <h2 class="modal-movie-title">{{ filme.titulo }}</h2>
+
+                <div class="modal-star-rating">
+                  <span class="modal-rating-label">Sua avaliação:</span>
+                  <div class="star-rating" id="modal-star-rating">
+                    <button type="button" class="star" data-rating="1">★</button>
+                    <button type="button" class="star" data-rating="2">★</button>
+                    <button type="button" class="star" data-rating="3">★</button>
+                    <button type="button" class="star" data-rating="4">★</button>
+                    <button type="button" class="star" data-rating="5">★</button>
+                  </div>
+                </div>
+
+                <div class="modal-textarea-wrapper">
+                  <textarea
+                    class="modal-review-text"
+                    placeholder="Escreva sua resenha aqui..."
+                    id="modal-review-textarea"
+                  ></textarea>
+                </div>
+
+                <div class="modal-footer">
+                  <div class="modal-spoiler-checkbox">
+                    <label class="spoiler-checkbox-label">
+                      <input type="checkbox" id="modal-spoiler-checkbox">
+                      <span>SPOILER</span>
+                    </label>
+                  </div>
+
+                  <button type="button" class="modal-submit-btn" onclick="submitFromModal()">
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
       </div>
@@ -448,22 +463,22 @@
 
           <section class="cast-section">
             <h2 class="section-title">Elenco Principal</h2>
-            <div class="cast-grid" id="overview-cast-grid">
-              {% for ator in filme.elenco_principal %}
-              <div class="cast-member">
-                {% if ator.foto_path %}
-                <img src="{{ tmdb_image_base }}w185{{ ator.foto_path }}" alt="{{ ator.nome }}" class="cast-photo" />
-                {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ ator.nome }}&background=667eea&color=fff" alt="{{ ator.nome }}" class="cast-photo" />
-                {% endif %}
-                <div class="cast-info">
-                  <span class="cast-name">{{ ator.nome }}</span>
-                  <span class="cast-character">{{ ator.personagem }}</span>
+            <div class="cast-grid">
+                {% for ator in filme.elenco_principal %}
+                <div class="cast-member">
+                    <div class="cast-photo-container">
+                        {% if ator.foto_path %}
+                        <img src="{{ tmdb_image_base }}w185{{ ator.foto_path }}" alt="{{ ator.nome }}" class="cast-photo">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ ator.nome }}&background=667eea&color=fff" alt="{{ ator.nome }}" class="cast-photo">
+                        {% endif %}
+                    </div>
+                    <div class="cast-info">
+                        <span class="cast-name">{{ ator.nome }}</span>
+                        <span class="cast-character">{{ ator.personagem }}</span>
+                    </div>
                 </div>
-              </div>
-              {% empty %}
-              <p>Elenco não disponível</p>
-              {% endfor %}
+                {% endfor %}
             </div>
           </section>
 
@@ -487,10 +502,20 @@
                         {% endfor %}
                       </span>
                       <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
+                      {% if critica.tem_spoiler %}
+                      <span class="spoiler-badge">⚠️ SPOILER</span>
+                      {% endif %}
                     </div>
                   </div>
                 </div>
-                <p class="review-text">{{ critica.texto }}</p>
+                <p class="review-text {% if critica.tem_spoiler %}has-spoiler{% endif %}" data-original-text="{{ critica.texto }}">
+                  {% if critica.tem_spoiler %}
+                    <span class="spoiler-blur">{{ critica.texto }}</span>
+                    <button class="show-spoiler-btn" onclick="toggleSpoiler(this)">Clique para revelar spoiler</button>
+                  {% else %}
+                    {{ critica.texto }}
+                  {% endif %}
+                </p>
                 <div class="review-actions">
                   <button class="review-action">👍 0</button>
                   <button class="review-action">💬 0</button>
@@ -509,27 +534,58 @@
           <section class="movie-facts">
             <h3 class="sidebar-title">Informações</h3>
             <dl class="facts-list">
+              {% if filme.status %}
               <dt>Status</dt>
-              <dd>Lançado</dd>
-              
+              <dd>
+                {% if filme.status == "Released" %}Lançado
+                {% elif filme.status == "Post Production" %}Pós-produção
+                {% elif filme.status == "In Production" %}Em produção
+                {% elif filme.status == "Planned" %}Planejado
+                {% else %}{{ filme.status }}{% endif %}
+              </dd>
+              {% endif %}
+
+              {% if filme.data_lancamento_formatada %}
+              <dt>Data de Lançamento</dt>
+              <dd>{{ filme.data_lancamento_formatada }}</dd>
+              {% endif %}
+
+              {% if filme.idioma_original %}
               <dt>Idioma Original</dt>
-              <dd>Inglês</dd>
-              
+              <dd>
+                {% if filme.idioma_original == "en" %}Inglês
+                {% elif filme.idioma_original == "pt" %}Português
+                {% elif filme.idioma_original == "es" %}Espanhol
+                {% elif filme.idioma_original == "fr" %}Francês
+                {% elif filme.idioma_original == "de" %}Alemão
+                {% elif filme.idioma_original == "it" %}Italiano
+                {% elif filme.idioma_original == "ja" %}Japonês
+                {% elif filme.idioma_original == "ko" %}Coreano
+                {% elif filme.idioma_original == "zh" %}Chinês
+                {% else %}{{ filme.idioma_original|upper }}{% endif %}
+              </dd>
+              {% endif %}
+
+              {% if filme.orcamento and filme.orcamento > 0 %}
               <dt>Orçamento</dt>
-              <dd>$160.000.000</dd>
-              
+              <dd>${{ filme.orcamento|floatformat:0|intcomma }}</dd>
+              {% endif %}
+
+              {% if filme.receita and filme.receita > 0 %}
               <dt>Receita</dt>
-              <dd>$836.836.967</dd>
-              
+              <dd>${{ filme.receita|floatformat:0|intcomma }}</dd>
+              {% endif %}
+
+              {% if filme.palavras_chave %}
               <dt>Palavras-chave</dt>
               <dd>
                 <div class="keyword-tags">
-                  <span class="keyword-tag">sonhos</span>
-                  <span class="keyword-tag">mente</span>
-                  <span class="keyword-tag">labirinto</span>
-                  <span class="keyword-tag">espionagem</span>
+                  {% for palavra in filme.palavras_chave %}
+                  <span class="keyword-tag">{{ palavra }}</span>
+                  {% endfor %}
                 </div>
               </dd>
+              {% endif %}
             </dl>
           </section>
 
@@ -538,7 +594,13 @@
             <div class="streaming-list">
               {% for plataforma in filme.plataformas %}
               <a href="#" class="streaming-service">
-                <span class="service-name">{{ plataforma.nome }}</span>
+                {% if plataforma.logo_path %}
+                <img src="{{ tmdb_image_base }}original{{ plataforma.logo_path }}" 
+                     alt="{{ plataforma.nome }}" 
+                     class="service-logo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                {% endif %}
+                <span class="service-name" {% if plataforma.logo_path %}style="display:none;"{% endif %}>{{ plataforma.nome }}</span>
                 <span class="service-type">
                   {% if plataforma.tipo == "flatrate" %}Streaming
                   {% elif plataforma.tipo == "rent" %}Aluguel
@@ -683,19 +745,9 @@
       <div class="footer-content">
         <div class="footer-section">
           <div class="brand">
-            <span class="logo">
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <circle cx="12" cy="12" r="10" fill="url(#footer-gradient)" opacity="0.9"/>
-                <path d="M9 8v8l7-4z" fill="white"/>
-                <defs>
-                  <linearGradient id="footer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#667eea"/>
-                    <stop offset="100%" style="stop-color:#764ba2"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </span>
-            <span class="brand-text">Backstage</span>
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="40" height="40">
           </div>
           <p class="footer-description">
             Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
@@ -748,8 +800,32 @@
     </div>
   </footer>
 
+  <!-- Passar dados do Django para o JavaScript -->
+  <script id="movie-data" type="application/json">
+    {
+      "crew": {{ crew_data_json|safe }},
+      "cast": {{ cast_data_json|safe }}
+    }
+  </script>
+  <script>
+    // Carregar dados do JSON inline
+    (function() {
+      try {
+        const dataScript = document.getElementById('movie-data');
+        const movieData = JSON.parse(dataScript.textContent);
+        window.movieCrewData = movieData.crew;
+        window.movieCastData = movieData.cast;
+      } catch (error) {
+        console.error('Erro ao carregar dados do filme:', error);
+        window.movieCrewData = [];
+        window.movieCastData = [];
+      }
+    })();
+  </script>
+
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie_details.js' %}" defer></script>
+  <script src="{% static 'js/search-suggestions.js' %}" defer></script>
   <script>
   // Inicialização simples e direta
   document.addEventListener('DOMContentLoaded', function() {
@@ -822,8 +898,17 @@
                   },
                   body: JSON.stringify({nome: name, publica: false})
               })
-              .then(response => response.json())
+              .then(response => {
+                  // Verificar se usuário não está autenticado (status 401)
+                  if (response.status === 401) {
+                      window.location.href = '/login/';
+                      return;
+                  }
+                  return response.json();
+              })
               .then(data => {
+                  if (!data) return; // Se redirecionou, não processar
+
                   if (data.success) {
                       alert('Lista "${name}" criada!');
                       document.getElementById('listName').value = '';
@@ -847,14 +932,23 @@
           noListsEl.style.display = 'none';
 
           // Buscar listas do usuário
-          fetch('/api/buscar-listas/', {
+          fetch('/api/buscar-listas/?tipo=filme', {
               method: 'GET',
               headers: {
                   'X-CSRFToken': getCookie('csrftoken')
               }
           })
-          .then(response => response.json())
+          .then(response => {
+              // Verificar se usuário não está autenticado (status 401)
+              if (response.status === 401) {
+                  window.location.href = '/login/';
+                  return;
+              }
+              return response.json();
+          })
           .then(data => {
+              if (!data) return; // Se redirecionou, não processar
+
               loadingEl.style.display = 'none';
 
               if (data.success && data.listas.length > 0) {
@@ -885,7 +979,7 @@
       }
 
       // Função para adicionar filme a uma lista existente
-      function addMovieToList(listaId, listaNome) {
+      window.addMovieToList = function(listaId, listaNome) {
           const tmdbId = getCurrentMovieTMDbId();
 
           if (!tmdbId) {
@@ -899,10 +993,20 @@
                   'X-CSRFToken': getCookie('csrftoken')
               }
           })
-          .then(response => response.json())
+          .then(response => {
+              // Verificar se usuário não está autenticado (status 401)
+              if (response.status === 401) {
+                  window.location.href = '/login/';
+                  return;
+              }
+              return response.json();
+          })
           .then(data => {
+              if (!data) return; // Se redirecionou, não processar
+
               if (data.success) {
                   alert(`Filme adicionado à lista "${listaNome}"!`);
+                  loadUserLists(); // Recarrega listas para atualizar contadores
                   hideListPopup();
               } else {
                   alert(`Erro: ${data.message}`);
@@ -982,6 +1086,7 @@
           .then(data => {
               if (data.success) {
                   alert('Filme adicionado à "Assistir Mais Tarde"!');
+                  loadUserLists(); // Recarrega listas para atualizar contadores
                   hideListPopup();
               } else {
                   alert(`Erro: ${data.message}`);
@@ -994,6 +1099,292 @@
 document.addEventListener('DOMContentLoaded', function() {
     initListPopup();
 });
+</script>
+
+<!-- CSS para Menu de Usuário -->
+<style>
+  .user-menu {
+    position: relative;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: none;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .user-avatar:hover {
+    border-color: var(--red);
+    transform: scale(1.05);
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: rgba(17, 24, 39, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    min-width: 220px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+  }
+
+  .user-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .user-dropdown-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .user-dropdown-name {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+
+  .user-dropdown-email {
+    color: #9ca3af;
+    font-size: 12px;
+    margin: 0;
+  }
+
+  .user-dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 8px 0;
+  }
+
+  .user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 14px;
+  }
+
+  .user-dropdown-item:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--red);
+  }
+
+  .user-dropdown-item svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+
+  /* Seta do dropdown */
+  .user-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 12px;
+    width: 12px;
+    height: 12px;
+    background: rgba(17, 24, 39, 0.98);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+  }
+</style>
+
+<!-- JavaScript para Toggle do Menu -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userDropdown = document.getElementById('userDropdown');
+
+    if (userMenuBtn && userDropdown) {
+      // Toggle dropdown ao clicar no avatar
+      userMenuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        userDropdown.classList.toggle('active');
+      });
+
+      // Fechar dropdown ao clicar fora
+      document.addEventListener('click', function(e) {
+        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+          userDropdown.classList.remove('active');
+        }
+      });
+
+      // Fechar dropdown ao pressionar ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          userDropdown.classList.remove('active');
+        }
+      });
+    }
+  });
+</script>
+
+<!-- Script para Modal de Resenha -->
+<script>
+  // Sincronizar avaliação por estrelas entre inline e modal
+  let currentRating = 0;
+
+  function syncStarRating() {
+    const inlineStars = document.querySelectorAll('.review-input-group .star');
+    const modalStars = document.querySelectorAll('#modal-star-rating .star');
+
+    // Função para atualizar estrelas
+    function updateStars(stars, rating) {
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
+    }
+
+    // Event listeners para estrelas inline
+    inlineStars.forEach(star => {
+      star.addEventListener('click', function() {
+        currentRating = parseInt(this.dataset.rating);
+        document.getElementById('rating-value').value = currentRating;
+        updateStars(inlineStars, currentRating);
+        updateStars(modalStars, currentRating);
+      });
+    });
+
+    // Event listeners para estrelas do modal
+    modalStars.forEach(star => {
+      star.addEventListener('click', function() {
+        currentRating = parseInt(this.dataset.rating);
+        document.getElementById('rating-value').value = currentRating;
+        updateStars(inlineStars, currentRating);
+        updateStars(modalStars, currentRating);
+      });
+    });
+  }
+
+  // Abrir modal
+  function openReviewModal() {
+    const overlay = document.getElementById('reviewModalOverlay');
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+    const inlineCheckbox = document.getElementById('spoiler-checkbox');
+    const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+
+    // Sincronizar conteúdo
+    modalTextarea.value = inlineTextarea.value;
+    modalCheckbox.checked = inlineCheckbox.checked;
+
+    // Mostrar modal
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    // Focus no textarea do modal
+    setTimeout(() => modalTextarea.focus(), 100);
+  }
+
+  // Fechar modal
+  function closeReviewModal() {
+    const overlay = document.getElementById('reviewModalOverlay');
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+    const inlineCheckbox = document.getElementById('spoiler-checkbox');
+    const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+
+    // Sincronizar conteúdo de volta
+    inlineTextarea.value = modalTextarea.value;
+    inlineCheckbox.checked = modalCheckbox.checked;
+
+    // Fechar modal
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  // Enviar do modal
+  function submitFromModal() {
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+    const inlineCheckbox = document.getElementById('spoiler-checkbox');
+    const modalCheckbox = document.getElementById('modal-spoiler-checkbox');
+    const form = document.querySelector('.review-input-group');
+
+    // Sincronizar valores
+    inlineTextarea.value = modalTextarea.value;
+    inlineCheckbox.checked = modalCheckbox.checked;
+
+    // Validar
+    if (!currentRating) {
+      alert('Por favor, selecione uma avaliação (estrelas)');
+      return;
+    }
+
+    if (!inlineTextarea.value.trim()) {
+      alert('Por favor, escreva sua resenha');
+      return;
+    }
+
+    // Fechar modal e submeter form
+    closeReviewModal();
+    form.submit();
+  }
+
+  // Fechar modal ao clicar fora
+  document.getElementById('reviewModalOverlay')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeReviewModal();
+    }
+  });
+
+  // Fechar modal com ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('reviewModalOverlay');
+      if (overlay && overlay.classList.contains('show')) {
+        closeReviewModal();
+      }
+    }
+  });
+
+  // Sincronizar textareas em tempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const inlineTextarea = document.getElementById('review-textarea');
+    const modalTextarea = document.getElementById('modal-review-textarea');
+
+    if (inlineTextarea && modalTextarea) {
+      inlineTextarea.addEventListener('input', function() {
+        modalTextarea.value = this.value;
+      });
+
+      modalTextarea.addEventListener('input', function() {
+        inlineTextarea.value = this.value;
+      });
+    }
+
+    // Inicializar sistema de estrelas
+    syncStarRating();
+  });
 </script>
 </body>
 </html>

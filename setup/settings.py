@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # Para formatação de números (intcomma)
     'rest_framework',
     'backstage',
     "whitenoise.runserver_nostatic",
@@ -144,7 +145,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # LOGIN_REDIRECT_URL = 'backstage:home' #para onde mandar o usuário depois de um login bem-sucedido (quando não houver next)
 # LOGOUT_REDIRECT_URL = 'backstage:login' #para onde mandar após o logout()
 
-# setup/settings.py
+# ===== Configurações TMDb API =====
+# Chave pública do TMDb compartilhada entre desenvolvedores
+# Todas as chamadas à API devem ser feitas pelo backend Django
 TMDB_API_KEY = "e2bf84876d17e898ef5fc63655cd5040"
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"

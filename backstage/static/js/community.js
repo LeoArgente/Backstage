@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
     // ===== User Menu Dropdown - YouTube Style =====
     const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
@@ -108,6 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const entrarPorConviteBtn = document.getElementById('entrar-por-convite');
     const codigoConviteInput = document.getElementById('codigo-convite');
 
+=======
+>>>>>>> 1ca5f00a24111cce8176aedd452501df7994a373
     // Função para mostrar notificações
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
@@ -146,6 +149,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return token.value;
     }
+
+    // ===== Join Communities Functionality =====
+    document.addEventListener('click', async function(e) {
+        // Entrar em comunidade
+        if (e.target.classList.contains('btn-join') && !e.target.classList.contains('joined')) {
+            e.stopPropagation();
+            
+            const slug = e.target.getAttribute('data-slug');
+            if (!slug) return;
+            
+            const button = e.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Entrando...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('slug', slug);
+                
+                const response = await fetch('/entrar-comunidade/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const communityName = button.closest('.community-card').querySelector('.community-name').textContent;
+                    showNotification(`Você entrou em ${communityName}!`, 'success');
+                    
+                    // Recarregar a página para atualizar a lista
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showNotification(data.error || 'Erro ao entrar na comunidade', 'error');
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Erro de conexão. Tente novamente.', 'error');
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+    });
+
+    // Elementos DOM
+    const criarComunidadeBtn = document.getElementById('create-community-btn');
+    const modalCriarComunidade = document.getElementById('create-community-modal');
+    const formCriarComunidade = document.getElementById('create-community-form');
+    const modalClose = document.getElementById('community-modal-close');
+    const modalCancel = document.getElementById('cancel-community');
+    const entrarPorConviteBtn = document.getElementById('entrar-por-convite');
+    const codigoConviteInput = document.getElementById('codigo-convite');
 
     // Abrir modal de criar comunidade
     if (criarComunidadeBtn) {

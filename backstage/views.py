@@ -260,13 +260,26 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
 
 @login_required(login_url='backstage:login')
 def comunidade(request):
-    # Buscar comunidades do usuário
-    minhas_comunidades = MembroComunidade.objects.filter(
-        usuario=request.user
-    ).select_related('comunidade').order_by('-data_entrada')
+    # Buscar comunidades do usuário (se estiver autenticado)
+    minhas_comunidades = []
+    if request.user.is_authenticated:
+        minhas_comunidades = MembroComunidade.objects.filter(
+            usuario=request.user
+        ).select_related('comunidade').order_by('-data_entrada')
+    
+    # Buscar todas as comunidades públicas
+    comunidades_publicas = Comunidade.objects.filter(
+        publica=True
+    ).order_by('-data_criacao')
+    
+    # Se o usuário estiver autenticado, excluir as que ele já é membro
+    if request.user.is_authenticated:
+        ids_minhas_comunidades = [mc.comunidade.id for mc in minhas_comunidades]
+        comunidades_publicas = comunidades_publicas.exclude(id__in=ids_minhas_comunidades)
     
     context = {
         'minhas_comunidades': minhas_comunidades,
+        'comunidades_publicas': comunidades_publicas,
     }
     return render(request, "backstage/community.html", context)
 

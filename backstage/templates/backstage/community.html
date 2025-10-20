@@ -133,14 +133,90 @@
   </div>
 
   <main class="container">
+    <!-- Minhas Comunidades Section -->
+    {% if user.is_authenticated and minhas_comunidades %}
+    <section class="communities-section">
+      <div class="section-header">
+        <h2 class="section-title">Minhas Comunidades</h2>
+        <p class="section-description">Comunidades que você faz parte</p>
+      </div>
+
+      <div class="communities-grid">
+        {% for membro in minhas_comunidades %}
+        <div class="community-card">
+          <img src="https://i.pinimg.com/1200x/bd/e3/e0/bde3e0aaf3dd35b4a42eed8ba9980591.jpg" alt="{{ membro.comunidade.nome }}" class="community-icon-img">
+          <div class="community-content">
+            <h3 class="community-name">{{ membro.comunidade.nome }}</h3>
+            <p class="community-description">{{ membro.comunidade.descricao|truncatewords:20 }}</p>
+            <div class="community-stats">
+              <span class="stat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                {{ membro.comunidade.membros.count }} membros
+              </span>
+              <span class="stat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                0 posts
+              </span>
+            </div>
+            <div class="community-tags">
+              <span class="tag">{{ membro.get_role_display }}</span>
+            </div>
+          </div>
+          <a href="{% url 'backstage:detalhes_comunidade' membro.comunidade.slug %}" class="btn-join joined">Ver Comunidade</a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
     <!-- Communities Section -->
     <section class="communities-section">
       <div class="section-header">
-        <h2 class="section-title">Comunidades Populares</h2>
+        <h2 class="section-title">{% if user.is_authenticated and minhas_comunidades %}Outras Comunidades{% else %}Comunidades Populares{% endif %}</h2>
         <p class="section-description">Junte-se a comunidades de fãs apaixonados por cinema e séries</p>
       </div>
 
       <div class="communities-grid">
+        {% for comunidade in comunidades_publicas %}
+        <div class="community-card">
+          <img src="https://i.pinimg.com/1200x/bd/e3/e0/bde3e0aaf3dd35b4a42eed8ba9980591.jpg" alt="{{ comunidade.nome }}" class="community-icon-img">
+          <div class="community-content">
+            <h3 class="community-name">{{ comunidade.nome }}</h3>
+            <p class="community-description">{{ comunidade.descricao|truncatewords:20 }}</p>
+            <div class="community-stats">
+              <span class="stat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                {{ comunidade.membros.count }} membros
+              </span>
+              <span class="stat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                0 posts
+              </span>
+            </div>
+            <div class="community-tags">
+              <span class="tag">Público</span>
+            </div>
+          </div>
+          <button class="btn-join" data-slug="{{ comunidade.slug }}">Entrar</button>
+        </div>
+        {% empty %}
+        <p style="color: #888; text-align: center; width: 100%; padding: 2rem;">Nenhuma comunidade pública disponível no momento.</p>
+        {% endfor %}
+
         <!-- Action Movies -->
         <div class="community-card">
           <img src="https://i.pinimg.com/1200x/bd/e3/e0/bde3e0aaf3dd35b4a42eed8ba9980591.jpg" alt="Pokemon" class="community-icon-img">

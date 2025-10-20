@@ -17,6 +17,7 @@ urlpatterns = [
     path('wireframer/', views.wireframer, name='wireframer'),
     path('sair/', views.sair, name='sair'),
     path('registrar/', views.registrar, name='registrar'),
+    path('api/registrar/', views.registrar_ajax, name='registrar_ajax'),
     path('filme/<int:tmdb_id>/criticar/', views.adicionar_critica, name='adicionar_critica'),
     path('salvar-critica/', views.salvar_critica, name='salvar_critica'),
     path('filmes/<int:tmdb_id>/', views.detalhes_filme, name='detalhes_filme'),

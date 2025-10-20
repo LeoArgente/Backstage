@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from .models import Filme, Critica, Lista, ItemLista
 from django.contrib import messages
 import json
@@ -91,6 +92,80 @@ def index(request):
 def sair(request):
     logout(request)
     return redirect('backstage:login')
+
+def registrar_ajax(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username', '').strip()
+            email = data.get('email', '').strip()
+            password1 = data.get('password1', '')
+            password2 = data.get('password2', '')
+
+            # Validações
+            errors = {}
+
+            # Validar username
+            if not username:
+                errors['username'] = 'Nome de usuário é obrigatório'
+            elif len(username) < 3:
+                errors['username'] = 'Nome de usuário deve ter pelo menos 3 caracteres'
+            elif User.objects.filter(username=username).exists():
+                errors['username'] = 'Este nome de usuário já existe'
+
+            # Validar email
+            if not email:
+                errors['email'] = 'Email é obrigatório'
+            elif User.objects.filter(email=email).exists():
+                errors['email'] = 'Este email já está cadastrado'
+
+            # Validar senhas
+            if not password1:
+                errors['password1'] = 'Senha é obrigatória'
+            elif len(password1) < 8:
+                errors['password1'] = 'Senha deve ter pelo menos 8 caracteres'
+
+            if not password2:
+                errors['password2'] = 'Confirmação de senha é obrigatória'
+            elif password1 != password2:
+                errors['password2'] = 'As senhas não coincidem'
+
+            if errors:
+                return JsonResponse({
+                    'success': False,
+                    'errors': errors
+                })
+
+            # Criar usuário
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1
+            )
+
+            # Fazer login automático
+            login(request, user)
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Conta criada com sucesso!'
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'errors': {'general': 'Dados inválidos'}
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'errors': {'general': 'Erro interno do servidor'}
+            })
+
+    return JsonResponse({
+        'success': False,
+        'errors': {'general': 'Método não permitido'}
+    })
 
 def registrar(request):
     if request.user.is_authenticated:

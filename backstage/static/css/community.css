@@ -1263,7 +1263,7 @@
     text-align: center;
     gap: 32px;
   }
-}
+
 
 /* Ajustes para telas muito pequenas (menor que 480px) */
 @media (max-width: 480px) {

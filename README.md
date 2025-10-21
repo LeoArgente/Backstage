@@ -71,7 +71,11 @@ Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que que
 
 ![bugtracker1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker.PNG)
 
+![bugtracker2](https://github.com/user-attachments/assets/b2527ebf-7f4d-4f84-a87d-cb956e232e63)
+
 Bugs corrigídos:
+
+- No Bugtracker2, o código está tentando acessar um campo criado_em que não existe — o nome certo no model é criada_em.
 
 -O template chamado em backstage/views.py (backstage/busca.html) não era compatível com a estrutura de pastas existente, pois o arquivo busca.html não foi encontrado dentro de backstage/templates/backstage/.
 

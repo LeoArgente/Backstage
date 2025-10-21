@@ -71,9 +71,8 @@ Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que que
 
 ![bugtracker1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker.PNG)
 
-![bugtracker2](https://github.com/user-attachments/assets/b2527ebf-7f4d-4f84-a87d-cb956e232e63)
+![bugtracker2]()
 
-![bugtracker3](https://github.com/user-attachments/assets/b15621ae-75bc-435f-9b34-0aae779c3ca9)
 
 Bugs corrigídos:
 

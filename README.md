@@ -71,7 +71,15 @@ Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que que
 
 ![bugtracker1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker.PNG)
 
+![bugtracker2]()
+
+
 Bugs corrigídos:
+
+-No Bugtracker2, o código está tentando acessar um campo criado_em que não existe — o nome certo no model é criada_em.
+
+-No Bugtracker3, o Django lança um erro do tipo OperationalError, Isso indica que o banco de dados não possui a tabela backstage_membrocomunidade, que o Django está tentando consultar.
+O erro surgiu durante a renderização do template community.html, quando a view backstage.views.comunidade tentou acessar dados do modelo MembroComunidade.
 
 -O template chamado em backstage/views.py (backstage/busca.html) não era compatível com a estrutura de pastas existente, pois o arquivo busca.html não foi encontrado dentro de backstage/templates/backstage/.
 

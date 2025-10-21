@@ -86,5 +86,5 @@ Cypress.Commands.add('criarLista', () => {
   cy.get('#create-list-btn').should('be.visible').click();
   cy.get('#list-name').should('be.visible').type('Minha Lista de Filmes Favoritos');
   cy.get('#list-description').type('Lista com os melhores filmes que já assisti. Inclui clássicos e lançamentos recentes.');
-  cy.get('button[type="submit"]').click();
+  cy.get('#create-list-modal button[type="submit"]').click();
 });

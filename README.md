@@ -107,8 +107,8 @@ Permite que o usuário seja avisado sobre possíveis spoilers em resenhas alheia
 ## Screencasts
 Nessa entrega, realizamos os screencasts de CI/CD com build e deployment automatizado, Testes de Sistema (E2E) Automatizados e do deployment das novas histórias.
 
-[CI/CD](link)
-[E2E](link)
+[CI/CD](https://youtu.be/wdwugbv-VDs)
+[E2E](https://youtu.be/Qkh3bKwJbyA )
 [Deployment](link)
 
 ## Bugtracker

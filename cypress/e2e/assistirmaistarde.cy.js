@@ -1,4 +1,10 @@
 describe('Assistir Mais Tarde flow', () => {
+  beforeEach(() => {
+    cy.on('window:alert', (str) => {
+      console.log('Alert bloqueado:', str);
+    });
+  });
+
   before(() => {
     cy.deleteUsers();
   });

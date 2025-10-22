@@ -71,20 +71,6 @@ Criamos um bugtracker, onde podemos ver a correção de bugs e melhorias que que
 
 ![bugtracker1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker.PNG)
 
-Bugs corrigídos:
-
--O template chamado em backstage/views.py (backstage/busca.html) não era compatível com a estrutura de pastas existente, pois o arquivo busca.html não foi encontrado dentro de backstage/templates/backstage/.
-
--O template chamado em backstage/views.py (backstage/register.html) não era compatível com a estrutura de pastas existente, pois o arquivo register.html não foi encontrado dentro de backstage/templates/backstage/.
-
--A view salvar_critica em backstage/views.py não era compatível com o fluxo do Django, pois não retornava um objeto HttpResponse, mas sim None.
-
--O template chamado em backstage/views.py (backstage/login.html) não era compatível com a estrutura de pastas existente, pois o arquivo login.html não foi encontrado dentro de backstage/templates/backstage/.
-
--Os path definidos em setup/urls.py não incluíam uma rota para o caminho vazio (""), resultando no erro 404 ao acessar http://127.0.0.1:8000/.
-
--Os path, namespace e views "comunidade" (em backstage/urls.py) não eram compatíveis com o nome do arquivo (community.html)
-
 ## Programação em Par
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre o esse processo.
 
@@ -97,41 +83,42 @@ O objetivo dessa Sprint foi expandir o Backstage com a continuação da implemen
 ## HISTÓRIA 1:
 Permite que o usuário pesquise filmes por título, gênero ou autor, facilitando a sua navegação.
 
-![História1](print)
-![História1](print)
-![História1](print)
+![História1](https://github.com/marilializ/Backstage/blob/main/imagens/pesquisa_filtro1.png)
+![História1](https://github.com/marilializ/Backstage/blob/main/imagens/pesquisa_filtro2.png)
 
 ## HISTÓRIA 2:
 Permite que o usuário veja os principais detalhes de uma série (elenco, duração, classificação...) ao clicar nela.
 
-![História2](print)
+![História2](https://github.com/marilializ/Backstage/blob/main/imagens/series.png)
+![História2](https://github.com/marilializ/Backstage/blob/main/imagens/detalhes_series.png)
 
 ## HISTÓRIA 3:
 Permite que o usuário seja avisado sobre possíveis spoilers em resenhas alheias e que possa avisar se sua própria resenha tem spoilers.
 
-![História3](print)
+![História3](https://github.com/marilializ/Backstage/blob/main/imagens/spoiler.png)
+![História3](https://github.com/marilializ/Backstage/blob/main/imagens/spoiler_critica.PNG)
 
 ## Backlog no Jira
-![Backlog2](print)
+![Backlog3](https://github.com/marilializ/Backstage/blob/main/imagens/backlog3.PNG)
 
 ## Quadro no jira
-![Quadro2](print)
+![Quadro3](https://github.com/marilializ/Backstage/blob/main/imagens/quadro3.PNG)
 
 ## Screencasts
 Nessa entrega, realizamos os screencasts de CI/CD com build e deployment automatizado, Testes de Sistema (E2E) Automatizados e do deployment das novas histórias.
 
-[CI/CD](link)
-[E2E](link)
+[CI/CD](https://youtu.be/wdwugbv-VDs)
+[E2E](https://youtu.be/Qkh3bKwJbyA )
 [Deployment](link)
 
 ## Bugtracker
 Uma nova secção foi adicionada ao bugtracker, para o controle de bugs desta entrega.
 
 Open:
-PRINT DO BUG TRACKER
+![bugtracker2](https://github.com/marilializ/Backstage/blob/main/imagens/bugtracker_entrega3.PNG)
 
 Closed:
-PRINT DO BUG TRACKER
+![bugtracker2_closed](https://github.com/marilializ/Backstage/blob/main/imagens/bugtracker_closed3.PNG)
 
 ## Programação em Par
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.

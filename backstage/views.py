@@ -6,7 +6,7 @@ from django.contrib import messages
 import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+#from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -260,13 +260,26 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
 
 @login_required(login_url='backstage:login')
 def comunidade(request):
-    # Buscar comunidades do usuário
-    minhas_comunidades = MembroComunidade.objects.filter(
-        usuario=request.user
-    ).select_related('comunidade').order_by('-data_entrada')
+    # Buscar comunidades do usuário (se estiver autenticado)
+    minhas_comunidades = []
+    if request.user.is_authenticated:
+        minhas_comunidades = MembroComunidade.objects.filter(
+            usuario=request.user
+        ).select_related('comunidade').order_by('-data_entrada')
+    
+    # Buscar todas as comunidades públicas
+    comunidades_publicas = Comunidade.objects.filter(
+        publica=True
+    ).order_by('-data_criacao')
+    
+    # Se o usuário estiver autenticado, excluir as que ele já é membro
+    if request.user.is_authenticated:
+        ids_minhas_comunidades = [mc.comunidade.id for mc in minhas_comunidades]
+        comunidades_publicas = comunidades_publicas.exclude(id__in=ids_minhas_comunidades)
     
     context = {
         'minhas_comunidades': minhas_comunidades,
+        'comunidades_publicas': comunidades_publicas,
     }
     return render(request, "backstage/community.html", context)
 
@@ -316,17 +329,23 @@ def detalhes_comunidade(request, slug):
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
 def criar_comunidade(request):
     """API para criar nova comunidade"""
     try:
-        nome = request.POST.get('nome')
-        descricao = request.POST.get('descricao', '')
+        nome = request.POST.get('nome', '').strip()
+        descricao = request.POST.get('descricao', '').strip()
         publica = request.POST.get('publica') == 'on'
         
+        # Validações
         if not nome:
-            return JsonResponse({'success': False, 'error': 'Nome é obrigatório'})
+            return JsonResponse({'success': False, 'error': 'Nome é obrigatório'}, status=400)
         
-        # Criar a comunidade
+        if len(nome) > 100:
+            return JsonResponse({'success': False, 'error': 'Nome deve ter no máximo 100 caracteres'}, status=400)
+        
+        # Criar a comunidade (será salva automaticamente no banco)
         comunidade = Comunidade.objects.create(
             nome=nome,
             descricao=descricao,
@@ -344,11 +363,18 @@ def criar_comunidade(request):
         return JsonResponse({
             'success': True,
             'message': 'Comunidade criada com sucesso!',
-            'comunidade_slug': comunidade.slug
+            'comunidade_slug': comunidade.slug,
+            'comunidade_id': comunidade.id,
+            'codigo_convite': comunidade.codigo_convite
         })
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        import traceback
+        traceback.print_exc()  # Para debug no console do servidor
+        return JsonResponse({
+            'success': False, 
+            'error': f'Erro ao criar comunidade: {str(e)}'
+        }, status=500)
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
@@ -1224,3 +1250,70 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
             'success': False,
             'error': str(e)
             }, status=500)
+
+def buscar_sugestoes(request):
+    """API para sugestões de busca em tempo real"""
+    query = request.GET.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'sugestoes': []})
+    
+    try:
+        import requests
+        from django.conf import settings
+        
+        # Buscar filmes
+        url_filmes = f"https://api.themoviedb.org/3/search/movie"
+        params_filmes = {
+            'api_key': settings.TMDB_API_KEY,
+            'language': 'pt-BR',
+            'query': query,
+            'page': 1
+        }
+        response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
+        filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
+        
+        # Buscar séries
+        url_series = f"https://api.themoviedb.org/3/search/tv"
+        params_series = {
+            'api_key': settings.TMDB_API_KEY,
+            'language': 'pt-BR',
+            'query': query,
+            'page': 1
+        }
+        response_series = requests.get(url_series, params=params_series, timeout=5)
+        series = response_series.json().get('results', [])[:5]  # Limitar a 5 resultados
+        
+        # Formatar resultados
+        sugestoes = []
+        
+        # Adicionar filmes
+        for filme in filmes:
+            sugestoes.append({
+                'id': filme.get('id'),
+                'tipo': 'filme',
+                'titulo': filme.get('title', 'Sem título'),
+                'poster': f"https://image.tmdb.org/t/p/w92{filme.get('poster_path')}" if filme.get('poster_path') else None,
+                'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                'descricao': filme.get('overview', 'Sem descrição disponível')[:150] + '...' if filme.get('overview') else 'Sem descrição disponível',
+                'nota': round(filme.get('vote_average', 0), 1),
+                'url': f"/filmes/{filme.get('id')}/"
+            })
+        
+        # Adicionar séries
+        for serie in series:
+            sugestoes.append({
+                'id': serie.get('id'),
+                'tipo': 'serie',
+                'titulo': serie.get('name', 'Sem título'),
+                'poster': f"https://image.tmdb.org/t/p/w92{serie.get('poster_path')}" if serie.get('poster_path') else None,
+                'ano': serie.get('first_air_date', '')[:4] if serie.get('first_air_date') else '',
+                'descricao': serie.get('overview', 'Sem descrição disponível')[:150] + '...' if serie.get('overview') else 'Sem descrição disponível',
+                'nota': round(serie.get('vote_average', 0), 1),
+                'url': f"/series/{serie.get('id')}/"
+            })
+        
+        return JsonResponse({'sugestoes': sugestoes})
+        
+    except Exception as e:
+        return JsonResponse({'sugestoes': [], 'erro': str(e)})

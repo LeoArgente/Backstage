@@ -1,4 +1,9 @@
 describe('Criar Lista', () => {
+  beforeEach(() => {
+    cy.on('window:alert', (str) => {
+      console.log('Alert bloqueado:', str);
+    });
+  });
 
   before(() => {
     cy.deleteUsers();

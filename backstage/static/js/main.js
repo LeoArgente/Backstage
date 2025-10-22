@@ -834,3 +834,86 @@ function initNewsDropdown() {
     </a>
   `).join('');
 }
+
+// ===== User Menu Dropdown - Letterboxd Style =====
+function initUserMenu() {
+  const userMenuBtn = document.getElementById('userMenuBtn');
+  const userDropdown = document.getElementById('userDropdown');
+  
+  if (!userMenuBtn || !userDropdown) return;
+  
+  // Toggle dropdown on button click
+  userMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = userDropdown.classList.contains('show');
+    
+    // Toggle current dropdown
+    userDropdown.classList.toggle('show');
+    
+    // Update aria-expanded
+    userMenuBtn.setAttribute('aria-expanded', !isVisible);
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+      userDropdown.classList.remove('show');
+      userMenuBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  
+  // Close dropdown when pressing Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && userDropdown.classList.contains('show')) {
+      userDropdown.classList.remove('show');
+      userMenuBtn.setAttribute('aria-expanded', 'false');
+      userMenuBtn.focus();
+    }
+  });
+  
+  // Close dropdown when clicking on a menu item
+  userDropdown.querySelectorAll('.user-dropdown-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      // Delay closing to allow navigation
+      setTimeout(() => {
+        userDropdown.classList.remove('show');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+      }, 150);
+    });
+  });
+  
+  // Handle keyboard navigation
+  const menuItems = Array.from(userDropdown.querySelectorAll('.user-dropdown-item'));
+  
+  userMenuBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' && userDropdown.classList.contains('show')) {
+      e.preventDefault();
+      menuItems[0]?.focus();
+    }
+  });
+  
+  menuItems.forEach((item, index) => {
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = (index + 1) % menuItems.length;
+        menuItems[nextIndex].focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = (index - 1 + menuItems.length) % menuItems.length;
+        menuItems[prevIndex].focus();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        menuItems[0].focus();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        menuItems[menuItems.length - 1].focus();
+      }
+    });
+  });
+}
+
+// Initialize user menu on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+  initUserMenu();
+});

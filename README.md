@@ -109,7 +109,7 @@ Nessa entrega, realizamos os screencasts de CI/CD com build e deployment automat
 
 [CI/CD](https://youtu.be/wdwugbv-VDs)
 [E2E](https://youtu.be/Qkh3bKwJbyA )
-[Deployment](link)
+[Deployment](https://youtu.be/OZWgpgllPYo)
 
 ## Bugtracker
 Uma nova secção foi adicionada ao bugtracker, para o controle de bugs desta entrega.

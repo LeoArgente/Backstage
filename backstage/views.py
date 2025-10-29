@@ -215,7 +215,7 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
                         'errors': errors
                     })
                 else:
-                    return render(request, 'backstage/register.html', {
+                    return render(request, 'backstage/registrar.html', {
                         'errors': errors,
                         'username': username,
                         'email': email
@@ -249,11 +249,11 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
                     'errors': {'general': 'Erro interno do servidor'}
                 })
             else:
-                return render(request, 'backstage/register.html', {
+                return render(request, 'backstage/registrar.html', {
                     'errors': {'general': 'Erro ao criar conta. Tente novamente.'}
                 })
-    
-    return render(request, 'backstage/register.html')
+
+    return render(request, 'backstage/registrar.html')
 
 # chamadas das urls das páginas #################################################################################################
 # front nononha e liz + back leo e lou

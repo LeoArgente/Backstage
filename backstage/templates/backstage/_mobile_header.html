@@ -1,0 +1,25 @@
+{% load static %}
+<!-- Mobile Header (visible only on mobile) -->
+<header class="mobile-header">
+  {% if user.is_authenticated %}
+  <button class="mobile-user-avatar" id="mobileUserBtn" aria-label="Perfil do usuário">
+    <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
+  </button>
+  {% else %}
+  <a href="{% url 'backstage:login' %}" class="mobile-login-link">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+    </svg>
+  </a>
+  {% endif %}
+  <a class="mobile-brand" href="{% url 'backstage:index' %}">
+    <img src="{% static 'images/Logo_Backstage_branca.png' %}" alt="Backstage" width="120">
+  </a>
+  <button class="mobile-search-btn" id="mobileSearchBtn" aria-label="Buscar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+      <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+</header>

@@ -1,0 +1,79 @@
+{% load static %}
+<!-- Mobile Navigation Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get elements
+    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+    const mobileSearchClose = document.getElementById('mobileSearchClose');
+    const mobileUserBtn = document.getElementById('mobileUserBtn');
+
+    // Mobile user avatar - redirect to profile (you can change this URL)
+    if (mobileUserBtn) {
+      mobileUserBtn.addEventListener('click', function() {
+        window.location.href = '{% url "backstage:index" %}'; // Change to profile page URL
+      });
+    }
+
+    // Mobile search overlay toggle
+    if (mobileSearchBtn && mobileSearchOverlay && mobileSearchClose) {
+      mobileSearchBtn.addEventListener('click', function() {
+        mobileSearchOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Focus on search input
+        const searchInput = mobileSearchOverlay.querySelector('.mobile-search-input');
+        if (searchInput) {
+          setTimeout(() => searchInput.focus(), 100);
+        }
+      });
+
+      mobileSearchClose.addEventListener('click', function() {
+        mobileSearchOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      });
+
+      // Close search overlay when pressing ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && mobileSearchOverlay.classList.contains('active')) {
+          mobileSearchOverlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+
+    // Bottom nav active state management
+    const currentPath = window.location.pathname;
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+
+    bottomNavItems.forEach(item => {
+      const href = item.getAttribute('href');
+
+      // Remove active class from all items first
+      item.classList.remove('active');
+
+      // Add active class to matching item
+      if (currentPath === href ||
+          (href !== '/' && currentPath.startsWith(href))) {
+        item.classList.add('active');
+      }
+
+      // Special case for home page
+      if (currentPath === '/' && href === '{% url 'backstage:index' %}') {
+        item.classList.add('active');
+      }
+    });
+
+    // Handle window resize - close search overlay if window is resized to desktop
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        if (window.innerWidth > 768) {
+          if (mobileSearchOverlay) mobileSearchOverlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      }, 250);
+    });
+  });
+</script>

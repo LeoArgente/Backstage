@@ -10,8 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/series_details.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
+  {% include 'backstage/_mobile_search.html' %}
+
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -1054,7 +1058,11 @@
     });
   </script>
 
-  <script src="{% static 'js/main.js' %}" defer></script>
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+
+<script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/series_details.js' %}" defer></script>
+
+{% include 'backstage/_mobile_scripts.html' %}
 </body>
 </html>

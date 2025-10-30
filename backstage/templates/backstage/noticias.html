@@ -12,8 +12,12 @@
   <link rel="stylesheet" href="{% static 'css/news.css' %}">
   <link rel="stylesheet" href="{% static 'css/movies.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
+  {% include 'backstage/_mobile_search.html' %}
+
   <div id="app">
     <!-- Header -->
     <header class="site-header">
@@ -524,8 +528,12 @@
   </footer>
 
   <script src="{% static 'js/main.js' %}" defer></script>
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+
   <script src="{% static 'js/profile_menu.js' %}" defer></script>
   <script src="{% static 'js/filter-popup.js' %}" defer></script>
   <script src="{% static 'js/search-suggestions.js' %}" defer></script>
+
+  {% include 'backstage/_mobile_scripts.html' %}
 </body>
 </html>

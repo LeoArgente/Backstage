@@ -95,10 +95,6 @@ class ItemListaSerie(models.Model):
     def __str__(self):
         return f"{self.serie.titulo} em {self.lista.nome}"
 
-
-
-
-
 class Comunidade(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Comunidade")
     slug = models.SlugField(max_length=120, unique=True, blank=True)

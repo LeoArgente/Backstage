@@ -11,7 +11,6 @@ urlpatterns = [
     path('filmes/', views.filmes, name='filmes'),
     path('movies/', views.movies, name='movies'),
     path('lists/', views.lists, name='lists'),
-    path('noticias/', views.noticias, name='noticias'),
     path('series/', views.series, name='series'),
     path('wireframer/', views.wireframer, name='wireframer'),
     path('sair/', views.sair, name='sair'),

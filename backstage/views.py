@@ -550,9 +550,6 @@ def movies(request):
     }
     return render(request, "backstage/movies.html", context)
 
-def noticias(request):
-    return render(request, "backstage/noticias.html")
-
 def series(request):
 
     try:

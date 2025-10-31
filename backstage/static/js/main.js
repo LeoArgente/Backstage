@@ -238,30 +238,48 @@ async function setFeaturedMoviesCarousel() {
   // Function to update the featured movie display with ultra-smooth transition
   function updateFeaturedMovie(index) {
     const movie = top5Movies[index];
-    
+
     // Create subtle crossfade effect for both backdrop images (desktop and mobile)
     if (heroBackdropDesktop) {
-      const newImg = new Image();
-      newImg.onload = function() {
-        // Update desktop backdrop (horizontal)
-        heroBackdropDesktop.src = getFullImageUrl(movie.backdrop_path, true);
-        heroBackdropDesktop.alt = movie.titulo;
-        heroBackdropDesktop.style.opacity = '0.6';
-        heroBackdropDesktop.style.filter = 'blur(0px)';
-      };
-      newImg.src = getFullImageUrl(movie.backdrop_path, true);
+      const imgElement = heroBackdropDesktop.querySelector('img');
+      if (imgElement) {
+        const newImg = new Image();
+        newImg.onload = function() {
+          // Fade out current image
+          imgElement.style.transition = 'opacity 0.5s ease';
+          imgElement.style.opacity = '0';
+
+          setTimeout(() => {
+            // Update desktop backdrop (horizontal)
+            imgElement.src = getFullImageUrl(movie.backdrop_path, true);
+            imgElement.alt = movie.titulo;
+            // Fade in new image
+            imgElement.style.opacity = '1';
+          }, 500);
+        };
+        newImg.src = getFullImageUrl(movie.backdrop_path, true);
+      }
     }
-    
+
     if (heroBackdropMobile) {
-      const newImg = new Image();
-      newImg.onload = function() {
-        // Update mobile backdrop (vertical poster)
-        heroBackdropMobile.src = getFullImageUrl(movie.poster_path, false);
-        heroBackdropMobile.alt = movie.titulo;
-        heroBackdropMobile.style.opacity = '0.6';
-        heroBackdropMobile.style.filter = 'blur(0px)';
-      };
-      newImg.src = getFullImageUrl(movie.poster_path, false);
+      const imgElement = heroBackdropMobile.querySelector('img');
+      if (imgElement) {
+        const newImg = new Image();
+        newImg.onload = function() {
+          // Fade out current image
+          imgElement.style.transition = 'opacity 0.5s ease';
+          imgElement.style.opacity = '0';
+
+          setTimeout(() => {
+            // Update mobile backdrop (mesma imagem horizontal do desktop)
+            imgElement.src = getFullImageUrl(movie.backdrop_path, true);
+            imgElement.alt = movie.titulo;
+            // Fade in new image
+            imgElement.style.opacity = '1';
+          }, 500);
+        };
+        newImg.src = getFullImageUrl(movie.backdrop_path, true);
+      }
     }
     
     // Stagger text changes for seamless transition

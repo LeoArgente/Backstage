@@ -45,14 +45,6 @@
             <div class="search-suggestions"></div>
           </form>
 
-          <button class="icon-btn notification-btn" aria-label="Notificações">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span class="notification-badge">3</span>
-          </button>
-
           {% if user.is_authenticated %}
           <div class="user-menu">
             <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">

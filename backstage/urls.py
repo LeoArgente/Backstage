@@ -51,4 +51,16 @@ urlpatterns = [
     path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
     path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
+    
+    # URLs de Amizade
+    path('amigos/', views.amigos, name='amigos'),
+    
+    # APIs de Amizade
+    path('api/buscar-usuarios/', views.buscar_usuarios, name='buscar_usuarios'),
+    path('api/enviar-solicitacao-amizade/', views.enviar_solicitacao_amizade, name='enviar_solicitacao_amizade'),
+    path('api/aceitar-solicitacao-amizade/<int:request_id>/', views.aceitar_solicitacao_amizade, name='aceitar_solicitacao_amizade'),
+    path('api/aceitar-solicitacao-por-usuario/<int:user_id>/', views.aceitar_solicitacao_por_usuario, name='aceitar_solicitacao_por_usuario'),
+    path('api/rejeitar-solicitacao-amizade/<int:request_id>/', views.rejeitar_solicitacao_amizade, name='rejeitar_solicitacao_amizade'),
+    path('api/cancelar-solicitacao-amizade/<int:request_id>/', views.cancelar_solicitacao_amizade, name='cancelar_solicitacao_amizade'),
+    path('api/remover-amigo/<int:user_id>/', views.remover_amigo, name='remover_amigo'),
 ]

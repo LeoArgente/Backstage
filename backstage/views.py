@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -1318,3 +1318,273 @@ def buscar_sugestoes(request):
         
     except Exception as e:
         return JsonResponse({'sugestoes': [], 'erro': str(e)})
+
+
+# ============================================================================
+# VIEWS DE AMIZADE
+# ============================================================================
+
+@login_required(login_url='backstage:login')
+def amigos(request):
+    """Página principal de amigos"""
+    usuario_atual = request.user
+    
+    # Buscar amigos do usuário
+    amizades1 = Amizade.objects.filter(usuario1=usuario_atual).select_related('usuario2')
+    amizades2 = Amizade.objects.filter(usuario2=usuario_atual).select_related('usuario1')
+    
+    amigos_list = []
+    for amizade in amizades1:
+        amigo = amizade.usuario2
+        amigo.criticas_count = Critica.objects.filter(usuario=amigo).count() + CriticaSerie.objects.filter(usuario=amigo).count()
+        amigos_list.append(amigo)
+    
+    for amizade in amizades2:
+        amigo = amizade.usuario1
+        amigo.criticas_count = Critica.objects.filter(usuario=amigo).count() + CriticaSerie.objects.filter(usuario=amigo).count()
+        amigos_list.append(amigo)
+    
+    # Buscar solicitações recebidas
+    solicitacoes_recebidas = SolicitacaoAmizade.objects.filter(
+        destinatario=usuario_atual,
+        status='pending'
+    ).select_related('remetente')
+    
+    # Buscar solicitações enviadas
+    solicitacoes_enviadas = SolicitacaoAmizade.objects.filter(
+        remetente=usuario_atual,
+        status='pending'
+    ).select_related('destinatario')
+    
+    context = {
+        'amigos': amigos_list,
+        'amigos_count': len(amigos_list),
+        'solicitacoes_recebidas': solicitacoes_recebidas,
+        'solicitacoes_enviadas': solicitacoes_enviadas,
+        'solicitacoes_pendentes_count': solicitacoes_recebidas.count(),
+    }
+    
+    return render(request, 'backstage/amigos.html', context)
+
+
+@api_login_required
+def buscar_usuarios(request):
+    """API para buscar usuários"""
+    query = request.GET.get('q', '').strip()
+    usuario_atual = request.user
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'success': False, 'message': 'Digite pelo menos 2 caracteres'})
+    
+    # Buscar usuários excluindo o usuário atual
+    usuarios = User.objects.filter(
+        username__icontains=query
+    ).exclude(id=usuario_atual.id)[:10]
+    
+    # Preparar dados dos usuários
+    usuarios_data = []
+    for usuario in usuarios:
+        # Verificar se já é amigo
+        is_friend = Amizade.objects.filter(
+            Q(usuario1=usuario_atual, usuario2=usuario) |
+            Q(usuario1=usuario, usuario2=usuario_atual)
+        ).exists()
+        
+        # Verificar se há solicitação pendente enviada
+        request_sent = SolicitacaoAmizade.objects.filter(
+            remetente=usuario_atual,
+            destinatario=usuario,
+            status='pending'
+        ).exists()
+        
+        # Verificar se há solicitação pendente recebida
+        request_received = SolicitacaoAmizade.objects.filter(
+            remetente=usuario,
+            destinatario=usuario_atual,
+            status='pending'
+        ).exists()
+        
+        # Contar reviews
+        reviews_count = Critica.objects.filter(usuario=usuario).count() + CriticaSerie.objects.filter(usuario=usuario).count()
+        
+        usuarios_data.append({
+            'id': usuario.id,
+            'username': usuario.username,
+            'is_friend': is_friend,
+            'request_sent': request_sent,
+            'request_received': request_received,
+            'reviews_count': reviews_count,
+        })
+    
+    return JsonResponse({'success': True, 'usuarios': usuarios_data})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def enviar_solicitacao_amizade(request):
+    """API para enviar solicitação de amizade"""
+    try:
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return JsonResponse({'success': False, 'message': 'ID de usuário inválido'})
+        
+        destinatario = get_object_or_404(User, id=user_id)
+        usuario_atual = request.user
+        
+        # Verificar se não está tentando adicionar a si mesmo
+        if destinatario == usuario_atual:
+            return JsonResponse({'success': False, 'message': 'Você não pode adicionar a si mesmo'})
+        
+        # Verificar se já são amigos
+        if Amizade.objects.filter(
+            Q(usuario1=usuario_atual, usuario2=destinatario) |
+            Q(usuario1=destinatario, usuario2=usuario_atual)
+        ).exists():
+            return JsonResponse({'success': False, 'message': 'Vocês já são amigos'})
+        
+        # Verificar se já existe solicitação pendente
+        if SolicitacaoAmizade.objects.filter(
+            Q(remetente=usuario_atual, destinatario=destinatario) |
+            Q(remetente=destinatario, destinatario=usuario_atual),
+            status='pending'
+        ).exists():
+            return JsonResponse({'success': False, 'message': 'Já existe uma solicitação pendente'})
+        
+        # Criar solicitação
+        SolicitacaoAmizade.objects.create(
+            remetente=usuario_atual,
+            destinatario=destinatario,
+            status='pending'
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Solicitação enviada com sucesso!'})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def aceitar_solicitacao_amizade(request, request_id):
+    """API para aceitar solicitação de amizade"""
+    try:
+        solicitacao = get_object_or_404(
+            SolicitacaoAmizade,
+            id=request_id,
+            destinatario=request.user,
+            status='pending'
+        )
+        
+        # Atualizar status da solicitação
+        solicitacao.status = 'accepted'
+        solicitacao.save()
+        
+        # Criar amizade
+        Amizade.objects.create(
+            usuario1=solicitacao.remetente,
+            usuario2=solicitacao.destinatario
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Solicitação aceita!'})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def aceitar_solicitacao_por_usuario(request, user_id):
+    """API para aceitar solicitação de amizade pelo ID do usuário"""
+    try:
+        remetente = get_object_or_404(User, id=user_id)
+        
+        solicitacao = get_object_or_404(
+            SolicitacaoAmizade,
+            remetente=remetente,
+            destinatario=request.user,
+            status='pending'
+        )
+        
+        # Atualizar status da solicitação
+        solicitacao.status = 'accepted'
+        solicitacao.save()
+        
+        # Criar amizade
+        Amizade.objects.create(
+            usuario1=solicitacao.remetente,
+            usuario2=solicitacao.destinatario
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Solicitação aceita!'})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def rejeitar_solicitacao_amizade(request, request_id):
+    """API para rejeitar solicitação de amizade"""
+    try:
+        solicitacao = get_object_or_404(
+            SolicitacaoAmizade,
+            id=request_id,
+            destinatario=request.user,
+            status='pending'
+        )
+        
+        # Atualizar status da solicitação
+        solicitacao.status = 'rejected'
+        solicitacao.save()
+        
+        return JsonResponse({'success': True, 'message': 'Solicitação rejeitada'})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def cancelar_solicitacao_amizade(request, request_id):
+    """API para cancelar solicitação de amizade enviada"""
+    try:
+        solicitacao = get_object_or_404(
+            SolicitacaoAmizade,
+            id=request_id,
+            remetente=request.user,
+            status='pending'
+        )
+        
+        # Deletar a solicitação
+        solicitacao.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Solicitação cancelada'})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def remover_amigo(request, user_id):
+    """API para remover amigo"""
+    try:
+        amigo = get_object_or_404(User, id=user_id)
+        usuario_atual = request.user
+        
+        # Buscar e deletar a amizade
+        amizade = Amizade.objects.filter(
+            Q(usuario1=usuario_atual, usuario2=amigo) |
+            Q(usuario1=amigo, usuario2=usuario_atual)
+        ).first()
+        
+        if amizade:
+            amizade.delete()
+            return JsonResponse({'success': True, 'message': 'Amigo removido'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Amizade não encontrada'})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

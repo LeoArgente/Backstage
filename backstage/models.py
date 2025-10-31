@@ -165,3 +165,57 @@ class MembroComunidade(models.Model):
     def __str__(self):
         return f"{self.usuario.username} em {self.comunidade.nome} ({self.get_role_display()})"
 
+
+class SolicitacaoAmizade(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('accepted', 'Aceita'),
+        ('rejected', 'Rejeitada'),
+    ]
+    
+    remetente = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='solicitacoes_enviadas'
+    )
+    destinatario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='solicitacoes_recebidas'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('remetente', 'destinatario')
+        verbose_name = "Solicitação de Amizade"
+        verbose_name_plural = "Solicitações de Amizade"
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return f"{self.remetente.username} → {self.destinatario.username} ({self.get_status_display()})"
+
+
+class Amizade(models.Model):
+    usuario1 = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='amizades_usuario1'
+    )
+    usuario2 = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='amizades_usuario2'
+    )
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario1', 'usuario2')
+        verbose_name = "Amizade"
+        verbose_name_plural = "Amizades"
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return f"{self.usuario1.username} ↔ {self.usuario2.username}"
+

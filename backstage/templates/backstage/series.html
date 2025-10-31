@@ -12,8 +12,10 @@
   <link rel="stylesheet" href="{% static 'css/series.css' %}">
   <link rel="stylesheet" href="{% static 'css/movies.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -329,6 +331,10 @@
       </div>
     </div>
   </footer>
+
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
 
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/profile_menu.js' %}" defer></script>

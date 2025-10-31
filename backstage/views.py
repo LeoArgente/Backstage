@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -1448,3 +1448,184 @@ def amigos(request):
     """Página de amigos"""
     # Aqui você pode adicionar lógica para buscar amigos do usuário
     return render(request, 'backstage/amigos.html')
+
+
+# ============================================================================
+# VIEWS DE DIÁRIO
+# ============================================================================
+
+@login_required(login_url='backstage:login')
+def diary(request):
+    """Página principal do diário de filmes"""
+    from datetime import datetime
+    from collections import Counter
+    
+    usuario = request.user
+    hoje = datetime.now()
+    
+    # Buscar todas as entradas do diário do usuário
+    entradas = DiarioFilme.objects.filter(usuario=usuario).select_related('filme')
+    
+    # Estatísticas
+    total_filmes = entradas.count()
+    filmes_mes = entradas.filter(
+        data_assistido__year=hoje.year,
+        data_assistido__month=hoje.month
+    ).count()
+    
+    # Gênero favorito (se tiver categorias no modelo Filme)
+    generos = []
+    for entrada in entradas:
+        if entrada.filme.categoria:
+            generos.append(entrada.filme.categoria)
+    
+    genero_favorito = None
+    if generos:
+        counter = Counter(generos)
+        genero_favorito = counter.most_common(1)[0][0]
+    
+    # Contadores de gênero e avaliação para os filtros
+    genre_counts = Counter(generos)
+    rating_counts = Counter([entrada.nota for entrada in entradas])
+    
+    context = {
+        'total_filmes': total_filmes,
+        'filmes_mes': filmes_mes,
+        'genero_favorito': genero_favorito,
+        'mes_atual': hoje.strftime('%B %Y'),
+        'genre_counts': dict(genre_counts),
+        'rating_counts': dict(rating_counts),
+    }
+    
+    return render(request, 'backstage/diary.html', context)
+
+
+@api_login_required
+def diario_entradas(request):
+    """API para buscar entradas do diário"""
+    from datetime import datetime
+    
+    usuario = request.user
+    ano = request.GET.get('ano')
+    mes = request.GET.get('mes')
+    
+    # Filtrar entradas
+    entradas = DiarioFilme.objects.filter(usuario=usuario).select_related('filme')
+    
+    if ano and mes:
+        entradas = entradas.filter(
+            data_assistido__year=int(ano),
+            data_assistido__month=int(mes)
+        )
+    
+    # Preparar dados
+    entradas_data = []
+    for entrada in entradas:
+        entradas_data.append({
+            'id': entrada.id,
+            'filme_id': entrada.filme.tmdb_id or entrada.filme.id,
+            'titulo': entrada.filme.titulo,
+            'poster': entrada.filme.poster or '/static/images/no-poster.png',
+            'ano': entrada.data_assistido.year,
+            'mes': entrada.data_assistido.month,
+            'dia': entrada.data_assistido.day,
+            'nota': entrada.nota,
+            'assistido_com': entrada.assistido_com or '',
+        })
+    
+    return JsonResponse({'success': True, 'entradas': entradas_data})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def diario_adicionar(request):
+    """API para adicionar filme ao diário"""
+    from datetime import datetime
+    
+    try:
+        data = json.loads(request.body)
+        filme_id = data.get('filme_id')
+        data_assistido = data.get('data')
+        nota = data.get('nota')
+        assistido_com = data.get('assistido_com', '')
+        
+        if not filme_id or not data_assistido or not nota:
+            return JsonResponse({
+                'success': False,
+                'message': 'Dados incompletos'
+            })
+        
+        # Buscar ou criar o filme
+        filme = None
+        try:
+            # Tentar buscar pelo TMDB ID
+            filme = Filme.objects.get(tmdb_id=filme_id)
+        except Filme.DoesNotExist:
+            # Se não encontrar, buscar os detalhes do TMDB e criar
+            detalhes = obter_detalhes_com_cache(filme_id)
+            if detalhes:
+                filme = Filme.objects.create(
+                    tmdb_id=filme_id,
+                    titulo=detalhes.get('title', 'Sem título'),
+                    descricao=detalhes.get('overview', ''),
+                    data_lancamento=detalhes.get('release_date') if detalhes.get('release_date') else None,
+                    poster=f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}" if detalhes.get('poster_path') else None,
+                    categoria=', '.join([g.get('name', '') for g in detalhes.get('genres', [])[:3]])
+                )
+        
+        if not filme:
+            return JsonResponse({
+                'success': False,
+                'message': 'Filme não encontrado'
+            })
+        
+        # Converter string de data para objeto date
+        data_obj = datetime.strptime(data_assistido, '%Y-%m-%d').date()
+        
+        # Criar ou atualizar entrada do diário
+        entrada, created = DiarioFilme.objects.update_or_create(
+            usuario=request.user,
+            filme=filme,
+            data_assistido=data_obj,
+            defaults={
+                'nota': nota,
+                'assistido_com': assistido_com
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Filme adicionado ao diário!' if created else 'Entrada atualizada!',
+            'entrada_id': entrada.id
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao adicionar filme: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def diario_remover(request, entrada_id):
+    """API para remover entrada do diário"""
+    try:
+        entrada = get_object_or_404(
+            DiarioFilme,
+            id=entrada_id,
+            usuario=request.user
+        )
+        
+        entrada.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Entrada removida do diário'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })

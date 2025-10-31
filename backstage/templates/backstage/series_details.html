@@ -455,38 +455,6 @@
               {% endfor %}
             </div>
           </section>
-
-          <section class="reviews-section">
-            <div class="section-header">
-              <h2 class="section-title">Críticas dos Usuários</h2>
-            </div>
-            
-            <div class="reviews-list">
-              {% for critica in criticas %}
-              <article class="review-card">
-                <div class="review-header">
-                  <img src="https://ui-avatars.com/api/?name={{ critica.usuario.username }}&background=667eea&color=fff" alt="{{ critica.usuario.username }}" class="reviewer-avatar" />
-                  <div class="reviewer-info">
-                    <span class="reviewer-name">{{ critica.usuario.username }}</span>
-                    <div class="review-meta">
-                      <span class="review-rating">
-                        {% for star in "12345" %}
-                          {% if forloop.counter <= critica.nota %}★{% else %}☆{% endif %}
-                        {% endfor %}
-                      </span>
-                      <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
-                    </div>
-                  </div>
-                </div>
-                <p class="review-text">{{ critica.texto }}</p>
-              </article>
-              {% empty %}
-              <div class="no-reviews">
-                <p>Ainda não há críticas para esta série. Seja o primeiro a avaliar!</p>
-              </div>
-              {% endfor %}
-            </div>
-          </section>
         </div>
 
         <aside class="overview-sidebar">
@@ -611,6 +579,7 @@
       <div class="reviews-full-section">
         <div class="section-header">
           <h2 class="section-title">Críticas dos Usuários</h2>
+          <button class="btn btn-primary" onclick="openReviewModal()">Escrever Crítica</button>
         </div>
         
         <div class="reviews-list-full">
@@ -627,10 +596,24 @@
                     {% endfor %}
                   </span>
                   <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
+                  {% if critica.tem_spoiler %}
+                  <span class="spoiler-badge">⚠️ SPOILER</span>
+                  {% endif %}
                 </div>
               </div>
             </div>
-            <p class="review-text">{{ critica.texto }}</p>
+            <p class="review-text {% if critica.tem_spoiler %}has-spoiler{% endif %}" data-original-text="{{ critica.texto }}">
+              {% if critica.tem_spoiler %}
+                <span class="spoiler-blur">{{ critica.texto }}</span>
+                <button class="show-spoiler-btn" onclick="toggleSpoiler(this)">Clique para revelar spoiler</button>
+              {% else %}
+                {{ critica.texto }}
+              {% endif %}
+            </p>
+            <div class="review-actions">
+              <button class="review-action">👍 0</button>
+              <button class="review-action">💬 0</button>
+            </div>
           </article>
           {% empty %}
           <div class="no-reviews">

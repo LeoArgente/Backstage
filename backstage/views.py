@@ -592,7 +592,10 @@ def detalhes_filme(request, tmdb_id):
         })
 
     # Buscar críticas locais
-    criticas = Critica.objects.filter(filme=filme_local)
+    criticas = Critica.objects.filter(filme=filme_local).order_by('-criado_em')
+    print(f"[DEBUG] Total de críticas para o filme {tmdb_id}: {criticas.count()}")
+    for critica in criticas:
+        print(f"[DEBUG] Crítica: {critica.usuario.username} - Nota {critica.nota} - {critica.texto[:30]}...")
 
     # Passar dados de crew e cast para o JavaScript via JSON
     # Garantir que sempre sejam listas válidas, mesmo que vazias
@@ -1172,6 +1175,7 @@ def detalhes_serie(request, tmdb_id):
     
     # Buscar críticas locais
     criticas = CriticaSerie.objects.filter(serie=serie_local).order_by('-criado_em')
+    print(f"[DEBUG] Total de críticas para a série {tmdb_id}: {criticas.count()}")
 
     # Converter temporadas e vídeos para JSON
     import json

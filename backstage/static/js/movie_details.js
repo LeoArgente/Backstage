@@ -684,16 +684,9 @@ function loadFullCast() {
 }
 
 function loadFullReviews() {
-  const reviewsList = document.querySelector('.reviews-list-full');
-  if (!reviewsList) return;
-
-  // Reviews serão carregadas do backend Django (modelo Critica)
-  // Por enquanto, mostrar mensagem de que não há reviews
-  reviewsList.innerHTML = `
-    <div class="no-reviews-message" style="text-align: center; padding: 3rem; color: #64748b;">
-      <p>Nenhuma avaliação ainda. Seja o primeiro a avaliar este filme!</p>
-    </div>
-  `;
+  // Não fazer nada - as críticas já estão renderizadas pelo Django no HTML
+  // O template movie_details.html já renderiza as críticas com {% for critica in criticas %}
+  return;
 }
 
 async function loadMediaContent(mediaType) {

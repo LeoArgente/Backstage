@@ -24,18 +24,7 @@
 
         <div class="nav-menu">
           <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
-          <div class="nav-link-wrapper">
-            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
-            <div class="news-dropdown">
-              <div class="dropdown-header">
-                <h3>Últimas Notícias</h3>
-                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
-              </div>
-              <div class="news-dropdown-content">
-                <!-- News items will be populated by JS -->
-              </div>
-            </div>
-          </div>
+          <a href="{% url 'backstage:amigos' %}" class="nav-link active">Amigos</a>
           <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>

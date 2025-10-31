@@ -10,12 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/series_details.css' %}">
-  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
-  {% include 'backstage/_mobile_header.html' %}
-  {% include 'backstage/_mobile_search.html' %}
-
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -27,6 +23,18 @@
 
         <div class="nav-menu">
           <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
+          <div class="nav-link-wrapper">
+            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
+            <div class="news-dropdown">
+              <div class="dropdown-header">
+                <h3>Últimas Notícias</h3>
+                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
+              </div>
+              <div class="news-dropdown-content">
+                <!-- News items will be populated by JS -->
+              </div>
+            </div>
+          </div>
           <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link active">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
@@ -43,7 +51,14 @@
             <input type="hidden" name="tipo" value="titulo" />
           </form>
 
-          {% if user.is_authenticated %}
+          <button class="icon-btn notification-btn" aria-label="Notificações">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
+              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="notification-badge">3</span>
+          </button>
+
           <div class="user-menu">
             <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
               <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
@@ -111,16 +126,6 @@
                 Favoritos
               </a>
               
-              <a href="{% url 'backstage:amigos' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Amigos
-              </a>
-              
               <div class="user-dropdown-divider"></div>
               
               <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
@@ -151,9 +156,6 @@
               </a>
             </div>
           </div>
-          {% else %}
-          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
-          {% endif %}
         </div>
       </nav>
     </div>
@@ -457,6 +459,38 @@
               {% endfor %}
             </div>
           </section>
+
+          <section class="reviews-section">
+            <div class="section-header">
+              <h2 class="section-title">Críticas dos Usuários</h2>
+            </div>
+            
+            <div class="reviews-list">
+              {% for critica in criticas %}
+              <article class="review-card">
+                <div class="review-header">
+                  <img src="https://ui-avatars.com/api/?name={{ critica.usuario.username }}&background=667eea&color=fff" alt="{{ critica.usuario.username }}" class="reviewer-avatar" />
+                  <div class="reviewer-info">
+                    <span class="reviewer-name">{{ critica.usuario.username }}</span>
+                    <div class="review-meta">
+                      <span class="review-rating">
+                        {% for star in "12345" %}
+                          {% if forloop.counter <= critica.nota %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                      </span>
+                      <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="review-text">{{ critica.texto }}</p>
+              </article>
+              {% empty %}
+              <div class="no-reviews">
+                <p>Ainda não há críticas para esta série. Seja o primeiro a avaliar!</p>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
         </div>
 
         <aside class="overview-sidebar">
@@ -581,7 +615,6 @@
       <div class="reviews-full-section">
         <div class="section-header">
           <h2 class="section-title">Críticas dos Usuários</h2>
-          <button class="btn btn-primary" onclick="openReviewModal()">Escrever Crítica</button>
         </div>
         
         <div class="reviews-list-full">
@@ -598,24 +631,10 @@
                     {% endfor %}
                   </span>
                   <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
-                  {% if critica.tem_spoiler %}
-                  <span class="spoiler-badge">⚠️ SPOILER</span>
-                  {% endif %}
                 </div>
               </div>
             </div>
-            <p class="review-text {% if critica.tem_spoiler %}has-spoiler{% endif %}" data-original-text="{{ critica.texto }}">
-              {% if critica.tem_spoiler %}
-                <span class="spoiler-blur">{{ critica.texto }}</span>
-                <button class="show-spoiler-btn" onclick="toggleSpoiler(this)">Clique para revelar spoiler</button>
-              {% else %}
-                {{ critica.texto }}
-              {% endif %}
-            </p>
-            <div class="review-actions">
-              <button class="review-action">👍 0</button>
-              <button class="review-action">💬 0</button>
-            </div>
+            <p class="review-text">{{ critica.texto }}</p>
           </article>
           {% empty %}
           <div class="no-reviews">
@@ -1031,11 +1050,7 @@
     });
   </script>
 
-  {% include 'backstage/_mobile_bottom_nav.html' %}
-
-<script src="{% static 'js/main.js' %}" defer></script>
+  <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/series_details.js' %}" defer></script>
-
-{% include 'backstage/_mobile_scripts.html' %}
 </body>
 </html>

@@ -1,45 +1,109 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amigos - Backstage</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
-    <link rel="stylesheet" href="{% static 'css/friends.css' %}">
-    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amigos - Backstage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/friends.css' %}">
 </head>
 <body>
-  <header class="site-header">
+    <header class="site-header">
     <div class="container">
-      <nav class="main-nav">
-        <div class="nav-left">
-          <a href="{% url 'backstage:index' %}" class="logo">
-            <span class="logo-text">BACKSTAGE</span>
-          </a>
+      <nav class="nav-primary">
+        <a class="brand" href="{% url 'backstage:index' %}">
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
+        </a>
 
-          <div class="nav-links">
-            <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
-            <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
-            <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
-            <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
-            <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
+        <div class="nav-menu">
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
+          <div class="nav-link-wrapper">
+            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
+            <div class="news-dropdown">
+              <div class="dropdown-header">
+                <h3>Últimas Notícias</h3>
+                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
+              </div>
+              <div class="news-dropdown-content">
+                <!-- News items will be populated by JS -->
+              </div>
+            </div>
           </div>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
         </div>
 
-        <div class="nav-right">
-          <div class="search-container">
-            <input type="text" class="search-input" placeholder="Buscar filmes, séries..." id="searchInput" autocomplete="off">
-            <button class="search-btn" aria-label="Buscar">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <div class="nav-actions">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
+
+          <div class="filter-controls header-filter-controls">
+            <button type="button" class="filter-btn" id="filterBtn" aria-label="Filtros">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" stroke="currentColor" stroke-width="2"/>
               </svg>
             </button>
-            <div id="searchSuggestions" class="search-suggestions"></div>
+
+            <div class="filter-popup" id="filterPopup">
+              <div class="filter-content">
+                <h3>Filtros de busca</h3>
+                <form method="get" action="{% url 'backstage:buscar' %}">
+                  <select name="tipo" id="tipoSelect">
+                    <option value="">Escolha o tipo de filtro</option>
+                    <option value="titulo">Título</option>
+                    <option value="genero">Gênero</option>
+                    <option value="ano">Ano</option>
+                  </select>
+                  <div id="filtroAno" style="display:none;">
+                    <label for="anoInput">Ano:</label>
+                    <input type="number" name="ano" placeholder="Ex: 2024" id="anoInput">
+                  </div>
+                  <div id="filtroGenero" style="display:none;">
+                    <label for="generoSelect">Gênero:</label>
+                    <select name="genero" id="generoSelect">
+                      <option value="">Selecione um gênero</option>
+                      <option value="Ação">Ação</option>
+                      <option value="Aventura">Aventura</option>
+                      <option value="Comédia">Comédia</option>
+                      <option value="Drama">Drama</option>
+                      <option value="Fantasia">Fantasia</option>
+                      <option value="Ficção Científica">Ficção Científica</option>
+                      <option value="Romance">Romance</option>
+                      <option value="Suspense">Suspense</option>
+                      <option value="Terror">Terror</option>
+                      <option value="Animação">Animação</option>
+                      <option value="Documentário">Documentário</option>
+                    </select>
+                  </div>
+                  <button type="submit">Aplicar filtros</button>
+                </form>
+              </div>
+            </div>
           </div>
+
+          <button class="icon-btn notification-btn" aria-label="Notificações">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
+              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="notification-badge">3</span>
+          </button>
 
           {% if user.is_authenticated %}
           <div class="user-menu">
@@ -47,6 +111,7 @@
               <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
             </button>
             
+            <!-- Letterboxd-Style Dropdown Menu -->
             <div class="user-dropdown" id="userDropdown" role="menu">
               <div class="user-dropdown-header">
                 <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
@@ -66,6 +131,21 @@
                 Perfil
               </a>
               
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Meu Diário
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Reviews
+              </a>
+              
               <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -78,7 +158,22 @@
                 Listas
               </a>
               
-              <a href="{% url 'backstage:amigos' %}" class="user-dropdown-item active" role="menuitem" tabindex="0">
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Watchlist
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Favoritos
+              </a>
+              
+              <a href="{% url 'backstage:amigos' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
@@ -86,6 +181,24 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 Amigos
+              </a>
+              
+              <div class="user-dropdown-divider"></div>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Configurações
+              </a>
+              
+              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Ajuda
               </a>
               
               <div class="user-dropdown-divider"></div>

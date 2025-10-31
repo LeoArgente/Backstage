@@ -11,6 +11,7 @@ urlpatterns = [
     path('filmes/', views.filmes, name='filmes'),
     path('movies/', views.movies, name='movies'),
     path('lists/', views.lists, name='lists'),
+    path('noticias/', views.noticias, name='noticias'),
     path('series/', views.series, name='series'),
     path('wireframer/', views.wireframer, name='wireframer'),
     path('sair/', views.sair, name='sair'),
@@ -52,15 +53,14 @@ urlpatterns = [
     path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
     
-    # URLs de Amizade
+    # URLs do menu do usuário
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/<str:username>/', views.perfil, name='perfil_usuario'),
+    path('meu-diario/', views.meu_diario, name='meu_diario'),
+    path('reviews/', views.reviews, name='reviews'),
+    path('watchlist/', views.watchlist, name='watchlist'),
+    path('favoritos/', views.favoritos, name='favoritos'),
+    path('configuracoes/', views.configuracoes, name='configuracoes'),
+    path('ajuda/', views.ajuda, name='ajuda'),
     path('amigos/', views.amigos, name='amigos'),
-    
-    # APIs de Amizade
-    path('api/buscar-usuarios/', views.buscar_usuarios, name='buscar_usuarios'),
-    path('api/enviar-solicitacao-amizade/', views.enviar_solicitacao_amizade, name='enviar_solicitacao_amizade'),
-    path('api/aceitar-solicitacao-amizade/<int:request_id>/', views.aceitar_solicitacao_amizade, name='aceitar_solicitacao_amizade'),
-    path('api/aceitar-solicitacao-por-usuario/<int:user_id>/', views.aceitar_solicitacao_por_usuario, name='aceitar_solicitacao_por_usuario'),
-    path('api/rejeitar-solicitacao-amizade/<int:request_id>/', views.rejeitar_solicitacao_amizade, name='rejeitar_solicitacao_amizade'),
-    path('api/cancelar-solicitacao-amizade/<int:request_id>/', views.cancelar_solicitacao_amizade, name='cancelar_solicitacao_amizade'),
-    path('api/remover-amigo/<int:user_id>/', views.remover_amigo, name='remover_amigo'),
 ]

@@ -231,7 +231,7 @@
         
         <div class="movie-actions">
           <div class="action-buttons">
-            <button class="action-btn watched">
+            <button class="action-btn watched" id="markAsWatchedBtn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
@@ -239,15 +239,6 @@
               Assistido
             </button>
             <button class="action-btn watchlist">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v20M5 12h14"/>
-              </svg>
-              Quero Ver
-            </button>
-            <button class="action-btn favorite">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
               Favoritar
             </button>
             <button class="action-btn list">
@@ -304,6 +295,61 @@
                   <div class="form-actions">
                       <button type="button" onclick="showListOptions()">Voltar</button>
                       <button type="submit">Criar Lista</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal de Assistido -->
+  <div class="list-popup-overlay" id="watchedPopupOverlay">
+      <div class="list-popup watched-popup">
+          <div class="popup-header">
+              <h3 class="popup-title">Adicionar ao Diário</h3>
+              <button class="close-popup" onclick="hideWatchedPopup()">&times;</button>
+          </div>
+
+          <div class="popup-content">
+              <!-- Card do Filme -->
+              <div class="watched-movie-card" id="watchedMovieCard">
+                  <img id="watchedMoviePoster" src="" alt="Poster" class="watched-poster">
+                  <div class="watched-movie-info">
+                      <h4 id="watchedMovieTitle">Título do Filme</h4>
+                      <p id="watchedMovieYear">2025</p>
+                  </div>
+              </div>
+
+              <form id="watchedForm" onsubmit="saveWatchedMovie(event)">
+                  <div class="form-group">
+                      <label for="watchedDate">Data que assistiu:</label>
+                      <input type="date" id="watchedDate" required>
+                  </div>
+
+                  <div class="form-group">
+                      <label>Sua avaliação: <span class="required">*</span></label>
+                      <div class="star-rating-watched">
+                          <button type="button" class="star-watched" data-rating="5">★</button>
+                          <button type="button" class="star-watched" data-rating="4">★</button>
+                          <button type="button" class="star-watched" data-rating="3">★</button>
+                          <button type="button" class="star-watched" data-rating="2">★</button>
+                          <button type="button" class="star-watched" data-rating="1">★</button>
+                      </div>
+                      <input type="hidden" id="watchedRating" required>
+                  </div>
+
+                  <div class="form-group">
+                      <label for="watchedWith">Assistido com (opcional):</label>
+                      <input type="text" id="watchedWith" placeholder="Ex: João, Maria...">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="watchedNotes">Notas (opcional):</label>
+                      <textarea id="watchedNotes" rows="4" placeholder="Escreva suas impressões sobre o filme..."></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                      <button type="button" class="btn-cancel" onclick="hideWatchedPopup()">Cancelar</button>
+                      <button type="submit" class="btn-save">Salvar</button>
                   </div>
               </form>
           </div>
@@ -1365,6 +1411,136 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar sistema de estrelas
     syncStarRating();
+  });
+
+  // ===== MODAL DE ASSISTIDO =====
+  document.addEventListener('DOMContentLoaded', function() {
+    const watchedBtn = document.getElementById('markAsWatchedBtn');
+    const watchedOverlay = document.getElementById('watchedPopupOverlay');
+    const watchedForm = document.getElementById('watchedForm');
+    const watchedDateInput = document.getElementById('watchedDate');
+    const starsWatched = document.querySelectorAll('.star-watched');
+    const watchedRatingInput = document.getElementById('watchedRating');
+
+    // Definir data de hoje como padrão
+    const today = new Date().toISOString().split('T')[0];
+    watchedDateInput.value = today;
+
+    // Abrir modal de assistido
+    if (watchedBtn) {
+      watchedBtn.addEventListener('click', function() {
+        // Preencher dados do filme no modal
+        const movieTitle = document.querySelector('.movie-title');
+        const movieYear = document.querySelector('.movie-year');
+        const moviePoster = document.querySelector('.movie-poster');
+        const movieInfoSection = document.querySelector('.movie-info-section');
+        
+        const tmdbId = movieInfoSection ? movieInfoSection.dataset.movieId : null;
+        
+        if (tmdbId) {
+          watchedForm.dataset.tmdbId = tmdbId;
+        }
+
+        // Preencher card do filme
+        if (movieTitle) {
+          document.getElementById('watchedMovieTitle').textContent = movieTitle.textContent;
+        }
+        
+        if (movieYear) {
+          document.getElementById('watchedMovieYear').textContent = movieYear.textContent;
+        }
+        
+        if (moviePoster) {
+          document.getElementById('watchedMoviePoster').src = moviePoster.src;
+        }
+
+        watchedOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      });
+    }
+
+    // Sistema de estrelas para avaliação
+    starsWatched.forEach(star => {
+      star.addEventListener('click', function() {
+        const rating = parseInt(this.dataset.rating);
+        watchedRatingInput.value = rating;
+        
+        // Atualizar visual das estrelas
+        starsWatched.forEach(s => {
+          if (parseInt(s.dataset.rating) <= rating) {
+            s.classList.add('active');
+          } else {
+            s.classList.remove('active');
+          }
+        });
+      });
+    });
+  });
+
+  // Função para fechar modal de assistido
+  function hideWatchedPopup() {
+    const overlay = document.getElementById('watchedPopupOverlay');
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+    document.getElementById('watchedForm').reset();
+    document.getElementById('watchedRating').value = '';
+    
+    // Resetar estrelas
+    document.querySelectorAll('.star-watched').forEach(s => s.classList.remove('active'));
+  }
+
+  // Função para salvar filme como assistido
+  function saveWatchedMovie(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const tmdbId = form.dataset.tmdbId;
+    const date = document.getElementById('watchedDate').value;
+    const rating = document.getElementById('watchedRating').value;
+    const watchedWith = document.getElementById('watchedWith').value.trim();
+    const notes = document.getElementById('watchedNotes').value.trim();
+
+    if (!rating) {
+      alert('Por favor, selecione uma avaliação');
+      return;
+    }
+
+    const data = {
+      filme_id: tmdbId,
+      data: date,
+      nota: parseInt(rating),
+      assistido_com: watchedWith || '',
+      notas: notes || ''
+    };
+
+    fetch('/api/diario/adicionar/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Filme adicionado ao diário!');
+        hideWatchedPopup();
+      } else {
+        alert('Erro: ' + (data.message || 'Não foi possível adicionar o filme'));
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao adicionar filme ao diário');
+    });
+  }
+
+  // Fechar modal clicando fora
+  document.getElementById('watchedPopupOverlay')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      hideWatchedPopup();
+    }
   });
 </script>
 

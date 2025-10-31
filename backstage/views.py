@@ -1254,8 +1254,11 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
 def buscar_sugestoes(request):
     """API para sugestões de busca em tempo real"""
     query = request.GET.get('q', '').strip()
+    print(f"\n=== BUSCAR_SUGESTOES ===")
+    print(f"Query recebida: '{query}'")
     
     if not query or len(query) < 2:
+        print("Query muito curta, retornando vazio")
         return JsonResponse({'sugestoes': []})
     
     try:
@@ -1270,8 +1273,11 @@ def buscar_sugestoes(request):
             'query': query,
             'page': 1
         }
+        print(f"Buscando filmes na TMDb: {url_filmes}")
         response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
+        print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
         filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
+        print(f"Filmes encontrados: {len(filmes)}")
         
         # Buscar séries
         url_series = f"https://api.themoviedb.org/3/search/tv"
@@ -1289,7 +1295,7 @@ def buscar_sugestoes(request):
         
         # Adicionar filmes
         for filme in filmes:
-            sugestoes.append({
+            filme_data = {
                 'id': filme.get('id'),
                 'tipo': 'filme',
                 'titulo': filme.get('title', 'Sem título'),
@@ -1298,11 +1304,13 @@ def buscar_sugestoes(request):
                 'descricao': filme.get('overview', 'Sem descrição disponível')[:150] + '...' if filme.get('overview') else 'Sem descrição disponível',
                 'nota': round(filme.get('vote_average', 0), 1),
                 'url': f"/filmes/{filme.get('id')}/"
-            })
+            }
+            sugestoes.append(filme_data)
+            print(f"  - Filme: {filme_data['titulo']} ({filme_data['ano']})")
         
         # Adicionar séries
         for serie in series:
-            sugestoes.append({
+            serie_data = {
                 'id': serie.get('id'),
                 'tipo': 'serie',
                 'titulo': serie.get('name', 'Sem título'),
@@ -1311,11 +1319,17 @@ def buscar_sugestoes(request):
                 'descricao': serie.get('overview', 'Sem descrição disponível')[:150] + '...' if serie.get('overview') else 'Sem descrição disponível',
                 'nota': round(serie.get('vote_average', 0), 1),
                 'url': f"/series/{serie.get('id')}/"
-            })
+            }
+            sugestoes.append(serie_data)
+            print(f"  - Série: {serie_data['titulo']} ({serie_data['ano']})")
         
+        print(f"Total de sugestões retornadas: {len(sugestoes)}")
+        print("=== FIM BUSCAR_SUGESTOES ===\n")
         return JsonResponse({'sugestoes': sugestoes})
         
     except Exception as e:
+        print(f"❌ ERRO em buscar_sugestoes: {e}")
+        print("=== FIM BUSCAR_SUGESTOES (ERRO) ===\n")
         return JsonResponse({'sugestoes': [], 'erro': str(e)})
 
 
@@ -1509,6 +1523,8 @@ def diario_entradas(request):
     ano = request.GET.get('ano')
     mes = request.GET.get('mes')
     
+    print(f"\n=== DIÁRIO ENTRADAS - Usuário: {usuario.username} ===")
+    
     # Filtrar entradas
     entradas = DiarioFilme.objects.filter(usuario=usuario).select_related('filme')
     
@@ -1518,14 +1534,44 @@ def diario_entradas(request):
             data_assistido__month=int(mes)
         )
     
+    print(f"Total de entradas encontradas: {entradas.count()}")
+    
     # Preparar dados
     entradas_data = []
     for entrada in entradas:
+        filme = entrada.filme
+        print(f"\nProcessando entrada ID {entrada.id}:")
+        print(f"  - Filme ID: {filme.id}")
+        print(f"  - TMDb ID: {filme.tmdb_id}")
+        print(f"  - Título atual: '{filme.titulo}'")
+        print(f"  - Poster: {filme.poster}")
+        
+        # Se o filme não tem título, buscar do TMDb
+        if not filme.titulo and filme.tmdb_id:
+            print(f"  ⚠️  Filme sem título, buscando do TMDb...")
+            try:
+                detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                if detalhes:
+                    # Atualizar o filme com os dados do TMDb
+                    filme.titulo = detalhes.get('title', 'Sem título')
+                    filme.descricao = detalhes.get('overview', '')
+                    if detalhes.get('poster_path'):
+                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    if detalhes.get('release_date'):
+                        filme.data_lancamento = detalhes.get('release_date')
+                    filme.save()
+                    print(f"  ✓ Filme atualizado: {filme.titulo}")
+            except Exception as e:
+                print(f"  ✗ Erro ao buscar detalhes: {e}")
+        
+        titulo_final = filme.titulo or 'Sem título'
+        print(f"  → Título final: '{titulo_final}'")
+        
         entradas_data.append({
             'id': entrada.id,
-            'filme_id': entrada.filme.tmdb_id or entrada.filme.id,
-            'titulo': entrada.filme.titulo,
-            'poster': entrada.filme.poster or '/static/images/no-poster.png',
+            'filme_id': filme.tmdb_id or filme.id,
+            'titulo': titulo_final,
+            'poster': filme.poster or '/static/images/no-poster.png',
             'ano': entrada.data_assistido.year,
             'mes': entrada.data_assistido.month,
             'dia': entrada.data_assistido.day,
@@ -1533,6 +1579,7 @@ def diario_entradas(request):
             'assistido_com': entrada.assistido_com or '',
         })
     
+    print(f"\n✓ Retornando {len(entradas_data)} entradas")
     return JsonResponse({'success': True, 'entradas': entradas_data})
 
 

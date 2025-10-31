@@ -1259,7 +1259,7 @@
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    padding: 20px;
+    padding: 80px 20px 20px 20px;
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -1276,12 +1276,12 @@
     border-radius: var(--radius-xl);
     width: 100%;
     max-width: 500px;
-    max-height: 90vh;
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.15);
     animation: modalSlideIn 0.3s ease;
+    margin: auto;
 }
 
 .popup-header {
@@ -1297,26 +1297,25 @@
 }
 
 .close-popup {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 0;
-    font-size: 24px;
+    font-size: 22px;
     line-height: 1;
-    color: var(--text-secondary);
+    color: #9ca3af;
 }
 
 .close-popup:hover {
-    background: var(--surface-hover);
-    border-color: var(--red);
-    color: var(--red);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
 }
 
 .popup-content {
@@ -1615,4 +1614,193 @@
     .form-actions button {
         width: 100%;
     }
+}
+
+/* Watched Modal Specific Styles */
+.watched-popup {
+    background: rgba(20, 25, 35, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.watched-popup .popup-header h3.popup-title {
+    display: block !important;
+    flex: 1;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.watched-popup .popup-header {
+    justify-content: space-between !important;
+    padding: 20px 24px 16px 24px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.watched-movie-card {
+    display: flex;
+    gap: 14px;
+    padding: 12px;
+    background: rgba(45, 50, 60, 0.6);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.watched-poster {
+    width: 56px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.watched-movie-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.watched-movie-info h4 {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.watched-movie-info p {
+    color: #9ca3af;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* Star rating for watched modal */
+.star-rating-watched {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 0;
+}
+
+.star-watched {
+    background: none;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #4b5563;
+    padding: 0;
+    line-height: 1;
+}
+
+.star-watched:hover,
+.star-watched.active {
+    color: #fbbf24;
+    transform: scale(1.1);
+}
+
+.star-watched.active ~ .star-watched {
+    color: #fbbf24;
+}
+
+.watched-popup .form-group {
+    margin-bottom: 14px;
+}
+
+.watched-popup .form-group label {
+    display: block;
+    color: #e5e7eb;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.watched-popup .form-group label .required {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.watched-popup .form-group input[type="date"],
+.watched-popup .form-group input[type="text"],
+.watched-popup .form-group textarea {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(45, 50, 60, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.watched-popup .form-group textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.watched-popup .form-group input[type="date"]:focus,
+.watched-popup .form-group input[type="text"]:focus,
+.watched-popup .form-group textarea:focus {
+    outline: none;
+    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(45, 50, 60, 0.8);
+}
+
+.watched-popup .form-group input::placeholder,
+.watched-popup .form-group textarea::placeholder {
+    color: #6b7280;
+    opacity: 0.8;
+}
+
+.watched-popup .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 0;
+}
+
+.watched-popup .form-actions button {
+    flex: 1;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-size: 14px;
+}
+
+.watched-popup .btn-cancel {
+    background: transparent !important;
+    color: #9ca3af !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.watched-popup .btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.watched-popup .btn-save {
+    background: #ef4444 !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+.watched-popup .btn-save:hover {
+    background: #dc2626 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.watched-popup .popup-content {
+    padding: 20px 24px 24px 24px;
+    overflow-y: visible;
 }

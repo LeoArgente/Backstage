@@ -6,6 +6,58 @@
   background: var(--background);
 }
 
+/* Page Header with Add Button */
+.diary-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.diary-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff1744 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.diary-subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.btn-add-movie {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff1744 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+}
+
+.btn-add-movie:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 217, 255, 0.5);
+}
+
+.btn-add-movie svg {
+  stroke-width: 2.5;
+}
+
 /* Statistics Cards */
 .diary-stats {
   display: grid;
@@ -137,6 +189,14 @@
   margin-bottom: 0.5rem;
   align-items: center;
   transition: all 0.2s ease;
+}
+
+/* Linhas adicionais do mesmo dia (sem data) */
+.calendar-day-row:not(.empty) + .calendar-day-row:not(.empty) {
+  margin-top: -0.25rem;
+  border-top: 1px dashed rgba(0, 217, 255, 0.2);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .calendar-day-row:hover {
@@ -416,7 +476,8 @@
   margin-bottom: 0.5rem;
 }
 
-.form-group input[type="text"] {
+.form-group input[type="text"],
+.form-group input[type="date"] {
   width: 100%;
   padding: 0.75rem 1rem;
   background: var(--background);
@@ -427,10 +488,21 @@
   transition: all 0.3s ease;
 }
 
-.form-group input[type="text"]:focus {
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+}
+
+.form-group input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
 .search-results {
@@ -603,6 +675,21 @@
 @media (max-width: 768px) {
   .diary-container {
     padding: 1rem 0;
+  }
+
+  .diary-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .diary-title {
+    font-size: 1.75rem;
+  }
+
+  .btn-add-movie {
+    width: 100%;
+    justify-content: center;
   }
 
   .diary-stats {

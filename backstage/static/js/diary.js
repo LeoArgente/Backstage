@@ -81,7 +81,11 @@ function loadDiaryEntries() {
         diaryEntries = {};
         data.entradas.forEach(entry => {
           const dateKey = `${entry.ano}-${String(entry.mes).padStart(2, '0')}-${String(entry.dia).padStart(2, '0')}`;
-          diaryEntries[dateKey] = entry;
+          // Armazenar como array para suportar múltiplos filmes por dia
+          if (!diaryEntries[dateKey]) {
+            diaryEntries[dateKey] = [];
+          }
+          diaryEntries[dateKey].push(entry);
         });
         renderCalendar();
       }
@@ -105,26 +109,49 @@ function renderCalendar() {
     const date = new Date(currentYear, currentMonth, day);
     const dayOfWeek = dayNames[date.getDay()];
     const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const entry = diaryEntries[dateKey];
+    const entries = diaryEntries[dateKey]; // Agora é um array
 
-    const dayRow = document.createElement('div');
-    dayRow.className = 'calendar-day-row' + (entry ? '' : ' empty');
-    
-    if (entry) {
-      dayRow.innerHTML = `
-        <div class="calendar-date">
-          <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
-          <span class="calendar-day-number">${day}</span>
-        </div>
-        <div class="calendar-day-name">${dayOfWeek}</div>
-        <div class="calendar-poster">
-          <img src="${entry.poster}" alt="${entry.titulo}">
-        </div>
-        <div class="calendar-movie-title">${entry.titulo}</div>
-        <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
-        <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
-      `;
+    if (entries && entries.length > 0) {
+      // Renderizar cada filme do dia
+      entries.forEach((entry, index) => {
+        const dayRow = document.createElement('div');
+        dayRow.className = 'calendar-day-row';
+        
+        // Mostrar data apenas na primeira linha do dia
+        if (index === 0) {
+          dayRow.innerHTML = `
+            <div class="calendar-date">
+              <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
+              <span class="calendar-day-number">${day}</span>
+            </div>
+            <div class="calendar-day-name">${dayOfWeek}</div>
+            <div class="calendar-poster">
+              <img src="${entry.poster}" alt="${entry.titulo}">
+            </div>
+            <div class="calendar-movie-title">${entry.titulo}</div>
+            <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
+            <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
+          `;
+        } else {
+          // Filmes adicionais do mesmo dia (sem repetir data)
+          dayRow.innerHTML = `
+            <div class="calendar-date"></div>
+            <div class="calendar-day-name"></div>
+            <div class="calendar-poster">
+              <img src="${entry.poster}" alt="${entry.titulo}">
+            </div>
+            <div class="calendar-movie-title">${entry.titulo}</div>
+            <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
+            <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
+          `;
+        }
+        
+        calendarDays.appendChild(dayRow);
+      });
     } else {
+      // Dia sem filmes
+      const dayRow = document.createElement('div');
+      dayRow.className = 'calendar-day-row empty';
       dayRow.innerHTML = `
         <div class="calendar-date">
           <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
@@ -144,17 +171,49 @@ function renderCalendar() {
         <div class="calendar-rating">-</div>
         <div class="calendar-watched-with">-</div>
       `;
+      calendarDays.appendChild(dayRow);
     }
-
-    calendarDays.appendChild(dayRow);
   }
 }
 
-// Open add movie modal
+// Open add movie modal (from calendar day)
 function openAddMovieModal(day, month, year) {
   selectedDateForAdd = { day, month, year };
-  document.getElementById('selectedDate').textContent = `${day}/${month}/${year}`;
-  document.getElementById('selectedDay').value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  document.getElementById('selectedDate').textContent = `no dia ${day}/${month}/${year}`;
+  
+  // Set hidden date field
+  const dateInput = document.getElementById('movieDate');
+  const dateValue = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  dateInput.value = dateValue;
+  
+  // Hide date picker when opening from specific day
+  const datePickerGroup = document.getElementById('datePickerGroup');
+  if (datePickerGroup) {
+    datePickerGroup.style.display = 'none';
+  }
+  
+  document.getElementById('addMovieModal').classList.add('active');
+  document.getElementById('movieSearch').focus();
+}
+
+// Open add movie modal with date picker (from main button)
+function openAddMovieModalWithDatePicker() {
+  // Clear previous selection
+  selectedDateForAdd = null;
+  document.getElementById('selectedDate').textContent = 'ao diário';
+  
+  // Show date picker
+  const datePickerGroup = document.getElementById('datePickerGroup');
+  if (datePickerGroup) {
+    datePickerGroup.style.display = 'block';
+  }
+  
+  // Set today as default
+  const today = new Date();
+  const dateInput = document.getElementById('movieDate');
+  const todayValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  dateInput.value = todayValue;
+  
   document.getElementById('addMovieModal').classList.add('active');
   document.getElementById('movieSearch').focus();
 }
@@ -166,36 +225,90 @@ function closeAddMovieModal() {
   document.getElementById('movieSearchResults').classList.remove('active');
   document.getElementById('selectedMovieInfo').style.display = 'none';
   selectedMovieData = null;
+  selectedDateForAdd = null;
+  
+  // Reset date picker visibility
+  const datePickerGroup = document.getElementById('datePickerGroup');
+  if (datePickerGroup) {
+    datePickerGroup.style.display = 'block';
+  }
 }
 
 // Search movies
 function searchMovies(query) {
+  console.log('=== INÍCIO DA BUSCA ===');
+  console.log('Query:', query);
+  console.log('URL da API:', `/api/sugestoes/?q=${encodeURIComponent(query)}`);
+  
+  const resultsContainer = document.getElementById('movieSearchResults');
+  console.log('Container encontrado?', !!resultsContainer);
+  
+  if (!resultsContainer) {
+    console.error('❌ Elemento #movieSearchResults NÃO ENCONTRADO no DOM!');
+    return;
+  }
+  
   fetch(`/api/sugestoes/?q=${encodeURIComponent(query)}`)
-    .then(response => response.json())
+    .then(response => {
+      console.log('Status da resposta:', response.status);
+      console.log('Response OK?', response.ok);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
-      const resultsContainer = document.getElementById('movieSearchResults');
+      console.log('✅ Dados recebidos:', data);
+      console.log('Número de sugestões:', data.sugestoes ? data.sugestoes.length : 0);
       
       if (data.sugestoes && data.sugestoes.length > 0) {
+        console.log('Primeira sugestão:', data.sugestoes[0]);
+        
         const filmes = data.sugestoes.filter(s => s.tipo === 'filme');
+        console.log(`Filmes após filtro (tipo='filme'): ${filmes.length}`);
         
-        resultsContainer.innerHTML = filmes.map(filme => `
-          <div class="search-result-item" onclick='selectMovie(${JSON.stringify(filme)})'>
-            <img src="${filme.poster || '/static/images/no-poster.png'}" alt="${filme.titulo}" class="search-result-poster">
-            <div class="search-result-info">
-              <h4>${filme.titulo}</h4>
-              <p>${filme.ano} • ⭐ ${filme.nota}</p>
-            </div>
-          </div>
-        `).join('');
-        
-        resultsContainer.classList.add('active');
+        if (filmes.length > 0) {
+          console.log('Gerando HTML para', filmes.length, 'filmes');
+          
+          resultsContainer.innerHTML = filmes.map(filme => {
+            const filmeJson = JSON.stringify(filme).replace(/'/g, "&#39;");
+            return `
+              <div class="search-result-item" onclick='selectMovie(${filmeJson})'>
+                <img src="${filme.poster || '/static/images/no-poster.png'}" alt="${filme.titulo}" class="search-result-poster">
+                <div class="search-result-info">
+                  <h4>${filme.titulo}</h4>
+                  <p>${filme.ano} • ⭐ ${filme.nota}</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          console.log('HTML gerado, adicionando classe active');
+          resultsContainer.classList.add('active');
+          console.log('Classes do container:', resultsContainer.className);
+        } else {
+          console.log('⚠️ Nenhum filme após filtrar tipo="filme"');
+          resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme encontrado</p>';
+          resultsContainer.classList.add('active');
+        }
       } else {
+        console.log('⚠️ Nenhuma sugestão retornada pela API');
         resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme encontrado</p>';
         resultsContainer.classList.add('active');
       }
+      
+      console.log('=== FIM DA BUSCA (SUCESSO) ===');
     })
     .catch(error => {
-      console.error('Erro ao buscar filmes:', error);
+      console.error('❌ ERRO ao buscar filmes:', error);
+      console.error('Tipo do erro:', error.name);
+      console.error('Mensagem:', error.message);
+      
+      if (resultsContainer) {
+        resultsContainer.innerHTML = `<p style="padding: 1rem; text-align: center; color: var(--red);">Erro: ${error.message}</p>`;
+        resultsContainer.classList.add('active');
+      }
+      console.log('=== FIM DA BUSCA (ERRO) ===');
     });
 }
 
@@ -216,10 +329,18 @@ function saveMovieToDiary() {
   const movieId = document.getElementById('selectedMovieId').value;
   const rating = document.querySelector('input[name="rating"]:checked')?.value;
   const watchedWith = document.getElementById('watchedWith').value;
-  const date = document.getElementById('selectedDay').value;
+  
+  // Get date from date picker input
+  const dateInput = document.getElementById('movieDate');
+  const date = dateInput ? dateInput.value : null;
 
   if (!movieId) {
     showNotification('Selecione um filme', 'error');
+    return;
+  }
+
+  if (!date) {
+    showNotification('Selecione uma data', 'error');
     return;
   }
 

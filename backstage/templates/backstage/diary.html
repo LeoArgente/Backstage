@@ -118,6 +118,21 @@
 
   <div class="diary-container">
     <div class="container">
+      <!-- Page Header with Add Button -->
+      <div class="diary-page-header">
+        <div>
+          <h1 class="diary-title">Meu Diário de Filmes</h1>
+          <p class="diary-subtitle">Acompanhe todos os filmes que você assistiu</p>
+        </div>
+        <button class="btn-add-movie" onclick="openAddMovieModalWithDatePicker()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Adicionar Filme ao Diário
+        </button>
+      </div>
+
       <!-- Statistics Cards -->
       <div class="diary-stats">
         <div class="stat-card">
@@ -208,7 +223,7 @@
   <div class="modal" id="addMovieModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Adicionar filme no dia <span id="selectedDate"></span></h2>
+        <h2>Adicionar filme <span id="selectedDate"></span></h2>
         <button class="modal-close" onclick="closeAddMovieModal()">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
@@ -218,6 +233,11 @@
       </div>
       <div class="modal-body">
         <form id="addMovieForm">
+          <div class="form-group" id="datePickerGroup">
+            <label for="movieDate">Data em que assistiu</label>
+            <input type="date" id="movieDate" class="form-input">
+          </div>
+
           <div class="form-group">
             <label for="movieSearch">Buscar Filme</label>
             <input type="text" id="movieSearch" placeholder="Digite o nome do filme..." autocomplete="off">

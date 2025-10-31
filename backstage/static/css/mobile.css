@@ -289,6 +289,62 @@
     margin-top: 0;
   }
 
+  /* Hero backdrop - show poster vertical on mobile, hide desktop backdrop */
+  .hero-backdrop-desktop {
+    display: none !important;
+  }
+
+  .hero-backdrop-mobile {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Adjust hero content positioning for vertical poster */
+  .hero-content {
+    padding: 24px 16px;
+  }
+
+  /* Hero actions - stack buttons on mobile */
+  .hero-actions {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    position: relative;
+    z-index: 15; /* Above indicators */
+    margin-bottom: 60px; /* Space for indicators below */
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Reposition hero indicators on mobile - below buttons */
+  .hero-indicators {
+    bottom: 16px !important;
+    z-index: 10;
+  }
+
+  .hero-indicator {
+    width: 32px;
+    height: 3px;
+  }
+
+  /* Hero title - reduce size on mobile */
+  .hero-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  /* Hero meta - adjust spacing */
+  .hero-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   /* Adjust container padding for mobile */
   .container {
     padding-left: 16px;

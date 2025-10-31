@@ -228,7 +228,8 @@ async function setFeaturedMoviesCarousel() {
   }
   
   // Keep existing hero content structure
-  const heroBackdrop = heroSection.querySelector('.hero-backdrop img');
+  const heroBackdropDesktop = heroSection.querySelector('.hero-backdrop-desktop');
+  const heroBackdropMobile = heroSection.querySelector('.hero-backdrop-mobile');
   const heroTitle = heroSection.querySelector('.hero-title');
   const heroSynopsis = heroSection.querySelector('.hero-synopsis');
   const heroMeta = heroSection.querySelector('.hero-meta');
@@ -238,17 +239,29 @@ async function setFeaturedMoviesCarousel() {
   function updateFeaturedMovie(index) {
     const movie = top5Movies[index];
     
-    // Create subtle crossfade effect for backdrop
-    if (heroBackdrop) {
+    // Create subtle crossfade effect for both backdrop images (desktop and mobile)
+    if (heroBackdropDesktop) {
       const newImg = new Image();
       newImg.onload = function() {
-        // Direct backdrop update without transition
-        heroBackdrop.src = getFullImageUrl(movie.backdrop_path, true);
-        heroBackdrop.alt = movie.titulo;
-        heroBackdrop.style.opacity = '0.6'; // Meio termo entre o fade forte e fraco
-        heroBackdrop.style.filter = 'blur(0px)';
+        // Update desktop backdrop (horizontal)
+        heroBackdropDesktop.src = getFullImageUrl(movie.backdrop_path, true);
+        heroBackdropDesktop.alt = movie.titulo;
+        heroBackdropDesktop.style.opacity = '0.6';
+        heroBackdropDesktop.style.filter = 'blur(0px)';
       };
       newImg.src = getFullImageUrl(movie.backdrop_path, true);
+    }
+    
+    if (heroBackdropMobile) {
+      const newImg = new Image();
+      newImg.onload = function() {
+        // Update mobile backdrop (vertical poster)
+        heroBackdropMobile.src = getFullImageUrl(movie.poster_path, false);
+        heroBackdropMobile.alt = movie.titulo;
+        heroBackdropMobile.style.opacity = '0.6';
+        heroBackdropMobile.style.filter = 'blur(0px)';
+      };
+      newImg.src = getFullImageUrl(movie.poster_path, false);
     }
     
     // Stagger text changes for seamless transition

@@ -245,7 +245,10 @@
   <section class="hero">
     {% if filme_destaque %}
     <div class="hero-backdrop">
-      <img src="{{ tmdb_image_base }}original{{ filme_destaque.backdrop_path|default:filme_destaque.poster_path }}" alt="{{ filme_destaque.titulo }}" />
+      <!-- Desktop: backdrop horizontal -->
+      <img class="hero-backdrop-desktop" src="{{ tmdb_image_base }}original{{ filme_destaque.backdrop_path|default:filme_destaque.poster_path }}" alt="{{ filme_destaque.titulo }}" />
+      <!-- Mobile: poster vertical -->
+      <img class="hero-backdrop-mobile" src="{{ tmdb_image_base }}original{{ filme_destaque.poster_path|default:filme_destaque.backdrop_path }}" alt="{{ filme_destaque.titulo }}" />
       <div class="hero-gradient"></div>
     </div>
     <div class="container hero-content">

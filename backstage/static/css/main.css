@@ -750,6 +750,7 @@ button {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -800,6 +801,7 @@ button {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -824,6 +826,7 @@ button {
   .suggestion-descricao {
     font-size: 12px;
     -webkit-line-clamp: 1;
+    line-clamp: 1;
   }
   
   .search-suggestions {
@@ -928,6 +931,15 @@ button {
     ),
     /* Cor base do site */
     var(--bg-primary);
+}
+
+/* Desktop: show backdrop, hide mobile poster */
+.hero-backdrop-desktop {
+  display: block;
+}
+
+.hero-backdrop-mobile {
+  display: none;
 }
 
 .hero-backdrop img {
@@ -2505,11 +2517,11 @@ button {
     min-width: 160px;
     width: 160px;
   }
-  
+  /* 
   .movie-card-poster {
-    /* aspect-ratio já define a altura proporcionalmente */
+    aspect-ratio já define a altura proporcionalmente 
   }
-  
+  */
   .movie-card-title {
     font-size: 0.9rem;
   }

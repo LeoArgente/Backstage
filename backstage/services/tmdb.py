@@ -158,14 +158,35 @@ def buscar_filme_destaque():
     filmes = buscar_filmes_em_cartaz()
     if filmes:
         import random
-        filme = random.choice(filmes[:5])  # Escolhe entre os 5 primeiros
-        # Já vem padronizado da função buscar_filmes_em_cartaz
-        filme['duracao_min'] = 120  # Valor padrão
+        # Filtra filmes que têm tanto backdrop quanto poster
+        filmes_com_imagens = [f for f in filmes[:10] if f.get('backdrop_path') and f.get('poster_path')]
+        if not filmes_com_imagens:
+            filmes_com_imagens = filmes[:5]  # Fallback se nenhum tiver ambas
+        
+        filme = random.choice(filmes_com_imagens)
+        
+        # Busca detalhes completos do filme para garantir que temos backdrop e poster corretos
+        try:
+            detalhes = buscar_detalhes_filme(filme['tmdb_id'])
+            # Atualiza com dados completos
+            filme['backdrop_path'] = detalhes.get('backdrop_path')
+            filme['poster_path'] = detalhes.get('poster_path')
+            filme['duracao_min'] = detalhes.get('runtime', 120)
+            filme['sinopse'] = detalhes.get('overview', filme.get('sinopse', ''))
+        except:
+            filme['duracao_min'] = 120  # Valor padrão se falhar
+        
         # Converter nota da escala 10 para escala 5 com 1 casa decimal
         if filme.get('nota_tmdb'):
             filme['nota_escala_5'] = round(filme['nota_tmdb'] / 2, 1)
         else:
             filme['nota_escala_5'] = 4.0  # Valor padrão
+        
+        print(f"DEBUG - Filme destaque: {filme['titulo']}")
+        print(f"DEBUG - TMDB ID: {filme['tmdb_id']}")
+        print(f"DEBUG - Backdrop: {filme.get('backdrop_path')}")
+        print(f"DEBUG - Poster: {filme.get('poster_path')}")
+        
         return filme
     return None
 

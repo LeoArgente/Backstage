@@ -11,8 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -1365,5 +1367,9 @@ document.addEventListener('DOMContentLoaded', function() {
     syncStarRating();
   });
 </script>
+
+{% include 'backstage/_mobile_search.html' %}
+{% include 'backstage/_mobile_bottom_nav.html' %}
+{% include 'backstage/_mobile_scripts.html' %}
 </body>
 </html>

@@ -63,4 +63,10 @@ urlpatterns = [
     path('configuracoes/', views.configuracoes, name='configuracoes'),
     path('ajuda/', views.ajuda, name='ajuda'),
     path('amigos/', views.amigos, name='amigos'),
+
+    # URLs de Diário
+    path('diary/', views.diary, name='diary'),
+    path('api/diario/entradas/', views.diario_entradas, name='diario_entradas'),
+    path('api/diario/adicionar/', views.diario_adicionar, name='diario_adicionar'),
+    path('api/diario/remover/<int:entrada_id>/', views.diario_remover, name='diario_remover'),
 ]

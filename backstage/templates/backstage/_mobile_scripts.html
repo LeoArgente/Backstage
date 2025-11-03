@@ -8,10 +8,31 @@
     const mobileSearchClose = document.getElementById('mobileSearchClose');
     const mobileUserBtn = document.getElementById('mobileUserBtn');
 
-    // Mobile user avatar - redirect to profile (you can change this URL)
-    if (mobileUserBtn) {
-      mobileUserBtn.addEventListener('click', function() {
-        window.location.href = '{% url "backstage:index" %}'; // Change to profile page URL
+    // Mobile user dropdown toggle
+    const mobileUserDropdown = document.getElementById('mobileUserDropdown');
+
+    if (mobileUserBtn && mobileUserDropdown) {
+      // Toggle dropdown when clicking avatar
+      mobileUserBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isActive = mobileUserDropdown.classList.toggle('active');
+        mobileUserBtn.setAttribute('aria-expanded', isActive);
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!mobileUserBtn.contains(e.target) && !mobileUserDropdown.contains(e.target)) {
+          mobileUserDropdown.classList.remove('active');
+          mobileUserBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Close dropdown when pressing ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && mobileUserDropdown.classList.contains('active')) {
+          mobileUserDropdown.classList.remove('active');
+          mobileUserBtn.setAttribute('aria-expanded', 'false');
+        }
       });
     }
 

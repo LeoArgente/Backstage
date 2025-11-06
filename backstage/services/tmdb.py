@@ -278,7 +278,11 @@ def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str 
     except FilmeCache.DoesNotExist:
         fc = None
 
-    payload = montar_payload_agregado(id_tmdb, region=region)
+    try:
+        payload = montar_payload_agregado(id_tmdb, region=region)
+    except Exception as e:
+        print(f"[ERRO] Falha ao buscar detalhes do filme {id_tmdb}: {e}")
+        return None
 
     if fc:
         # Cache existe mas está expirado - atualizar

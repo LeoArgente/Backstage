@@ -78,16 +78,26 @@
       <!-- Statistics Cards -->
       <div class="diary-stats">
         <div class="stat-card">
-          <h3>Total de Filmes</h3>
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M2 7h20M7 3v4M17 3v4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h3>Total Assistido</h3>
           <p class="stat-number">{{ total_filmes }}</p>
+          <p class="stat-label">filmes</p>
         </div>
         <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 6v6l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
           <h3>Este Mês</h3>
           <p class="stat-number">{{ filmes_mes }}</p>
-        </div>
-        <div class="stat-card">
-          <h3>Gênero Favorito</h3>
-          <p class="stat-text">{{ genero_favorito|default:"Drama" }}</p>
+          <p class="stat-label">filmes</p>
         </div>
       </div>
 
@@ -127,6 +137,20 @@
 
         <!-- Filters Sidebar -->
         <aside class="filters-sidebar">
+          {% if genero_favorito %}
+          <div class="favorite-genre-card">
+            <div class="favorite-genre-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="favorite-genre-content">
+              <span class="favorite-genre-label">Seu gênero favorito é</span>
+              <span class="favorite-genre-name">{{ genero_favorito }}</span>
+            </div>
+          </div>
+          {% endif %}
+
           <div class="filters-header">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

@@ -371,28 +371,41 @@
 
         <!-- Tab: Buscar Amigos -->
         <div class="friends-tab-content" id="buscar">
-          <div class="search-friends-box">
-            <input type="text" id="searchFriendsInput" class="search-friends-input" placeholder="Buscar usuários por nome...">
-            <button class="btn-search" onclick="buscarUsuarios()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <!-- Busca em tempo real -->
+          <div class="search-container-realtime">
+            <div class="search-input-wrapper">
+              <svg class="search-icon-realtime" width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
                 <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
-              Buscar
-            </button>
+              <input 
+                type="text" 
+                id="search-input-realtime" 
+                class="search-friends-input-realtime" 
+                placeholder="Digite o nome do usuário..."
+                autocomplete="off"
+              >
+              <div id="search-loading" class="search-loading" style="display: none;">
+                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Resultados em tempo real -->
+            <div id="search-results-realtime" class="search-results-realtime">
+              <!-- Resultados serão inseridos aqui via JavaScript -->
+            </div>
           </div>
 
-          <div id="searchResults" class="friends-grid" style="margin-top: 2rem;">
-            <!-- Resultados da busca serão inseridos aqui via JavaScript -->
-          </div>
-
-          <div id="searchEmptyState" class="empty-state" style="display: none;">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <div class="search-helper-text">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 16v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="8" r="1" fill="currentColor"/>
             </svg>
-            <h3>Nenhum usuário encontrado</h3>
-            <p>Tente buscar por outro nome</p>
+            <span>Digite pelo menos 2 caracteres para buscar</span>
           </div>
         </div>
       </div>
@@ -406,5 +419,6 @@
   <script src="{% static 'js/profile_menu.js' %}"></script>
   <script src="{% static 'js/search-suggestions.js' %}"></script>
   <script src="{% static 'js/friends.js' %}"></script>
+  <script src="{% static 'js/friends-realtime-search.js' %}"></script>
 </body>
 </html>

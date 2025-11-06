@@ -69,4 +69,12 @@ urlpatterns = [
     path('api/diario/entradas/', views.diario_entradas, name='diario_entradas'),
     path('api/diario/adicionar/', views.diario_adicionar, name='diario_adicionar'),
     path('api/diario/remover/<int:entrada_id>/', views.diario_remover, name='diario_remover'),
+    
+    # URLs de Sistema de Amizade
+    path('api/buscar-usuarios-realtime/', views.buscar_usuarios_realtime, name='buscar_usuarios_realtime'),
+    path('api/enviar-solicitacao/', views.enviar_solicitacao, name='enviar_solicitacao'),
+    path('api/aceitar-solicitacao/', views.aceitar_solicitacao, name='aceitar_solicitacao'),
+    path('api/rejeitar-solicitacao/', views.rejeitar_solicitacao, name='rejeitar_solicitacao'),
+    path('api/cancelar-solicitacao/', views.cancelar_solicitacao, name='cancelar_solicitacao'),
+    path('api/remover-amigo/', views.remover_amigo, name='remover_amigo'),
 ]

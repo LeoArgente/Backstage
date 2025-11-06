@@ -104,8 +104,11 @@
 
 .friends-tab-content.active {
   display: block;
+  color: inherit;           /* herda a cor padrão */
+  border: none;             /* remove qualquer linha ou borda */
+  background: transparent;  /* remove fundo colorido, se houver */
 }
-
+  
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -6,7 +6,7 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: var(--surface);
+  background: #182231 !important;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   width: 264px;
@@ -26,11 +26,12 @@
 
 .user-dropdown-header {
   padding: 16px;
-  background: #1e293b;
+  background: #1e293b !important;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   display: flex;
   align-items: center;
   gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .user-dropdown-avatar {
@@ -47,7 +48,7 @@
 .user-dropdown-name {
   font-weight: 600;
   font-size: 14px;
-  color: var(--text-primary);
+  color: #ffffff !important;
   margin: 0;
 }
 
@@ -84,7 +85,7 @@
   right: 15px;
   width: 10px;
   height: 10px;
-  background: var(--surface);
+  background: #182231 !important;
   border-left: 1px solid var(--border);
   border-top: 1px solid var(--border);
   transform: rotate(45deg);

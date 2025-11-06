@@ -93,7 +93,7 @@
     position: fixed;
     top: 88px;
     right: 16px;
-    background: rgba(17, 24, 39, 0.98);
+    background: #182231 !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     min-width: 240px;
@@ -117,6 +117,8 @@
 
   .mobile-user-dropdown-header {
     padding: 16px;
+    background: #1e293b !important;
+    border-radius: 12px 12px 0 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
@@ -205,7 +207,7 @@
     right: 12px;
     width: 12px;
     height: 12px;
-    background: rgba(17, 24, 39, 0.98);
+    background: #182231 !important;
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     transform: rotate(45deg);

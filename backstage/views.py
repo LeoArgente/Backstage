@@ -113,6 +113,18 @@ def salvar_critica(request):
                 tmdb_id=int(filme_id),
                 defaults={'titulo': f'Filme TMDb {filme_id}'}
             )
+            
+            # Backfill título se estiver vazio ou temporário
+            if not filme.titulo or filme.titulo.startswith('Filme TMDb'):
+                detalhes = obter_detalhes_com_cache(int(filme_id))
+                if detalhes and isinstance(detalhes, dict):
+                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or f'Filme TMDb {filme_id}'
+                    filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if detalhes.get('poster_path'):
+                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}"
+                    if detalhes.get('data_lancamento'):
+                        filme.data_lancamento = detalhes.get('data_lancamento')
+                    filme.save()
 
             # Criar a crítica
             critica = Critica.objects.create(
@@ -909,10 +921,22 @@ def buscar_listas_usuario(request):
 def adicionar_filme_lista(request, lista_id, tmdb_id):
     try:
         lista = Lista.objects.get(id=lista_id, usuario=request.user)
-        filme, _ = Filme.objects.get_or_create(
+        filme, created = Filme.objects.get_or_create(
             tmdb_id=tmdb_id,
             defaults={'titulo': 'Filme TMDB ' + str(tmdb_id)}
         )
+        
+        # Backfill título se estiver vazio ou temporário
+        if not filme.titulo or filme.titulo.startswith('Filme TMDB'):
+            detalhes = obter_detalhes_com_cache(tmdb_id)
+            if detalhes and isinstance(detalhes, dict):
+                filme.titulo = detalhes.get('titulo') or detalhes.get('title') or f'Filme TMDB {tmdb_id}'
+                filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                if detalhes.get('poster_path'):
+                    filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}"
+                if detalhes.get('data_lancamento'):
+                    filme.data_lancamento = detalhes.get('data_lancamento')
+                filme.save()
 
         item, created = ItemLista.objects.get_or_create(
             lista=lista,
@@ -1546,19 +1570,19 @@ def diario_entradas(request):
         print(f"  - Título atual: '{filme.titulo}'")
         print(f"  - Poster: {filme.poster}")
         
-        # Se o filme não tem título, buscar do TMDb
+        # Se o filme não tem título, buscar do TMDb (usando nosso payload normalizado)
         if not filme.titulo and filme.tmdb_id:
             print(f"  ⚠️  Filme sem título, buscando do TMDb...")
             try:
                 detalhes = obter_detalhes_com_cache(filme.tmdb_id)
-                if detalhes:
-                    # Atualizar o filme com os dados do TMDb
-                    filme.titulo = detalhes.get('title', 'Sem título')
-                    filme.descricao = detalhes.get('overview', '')
+                if detalhes and isinstance(detalhes, dict):
+                    # Atualizar o filme com os dados normalizados do TMDb
+                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
+                    filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
                     if detalhes.get('poster_path'):
                         filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
-                    if detalhes.get('release_date'):
-                        filme.data_lancamento = detalhes.get('release_date')
+                    if detalhes.get('data_lancamento') or detalhes.get('release_date'):
+                        filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()
                     print(f"  ✓ Filme atualizado: {filme.titulo}")
             except Exception as e:
@@ -1608,17 +1632,37 @@ def diario_adicionar(request):
             # Tentar buscar pelo TMDB ID
             filme = Filme.objects.get(tmdb_id=filme_id)
         except Filme.DoesNotExist:
-            # Se não encontrar, buscar os detalhes do TMDB e criar
+            # Se não encontrar, buscar os detalhes do TMDB (payload normalizado) e criar
             detalhes = obter_detalhes_com_cache(filme_id)
-            if detalhes:
+            if detalhes and isinstance(detalhes, dict):
+                # generos já vem como lista de strings ['Action', 'Drama'], não como dicts
+                generos = detalhes.get('generos', []) or []
+                generos_str = ', '.join(generos[:3]) if generos else ''
+                
                 filme = Filme.objects.create(
                     tmdb_id=filme_id,
-                    titulo=detalhes.get('title', 'Sem título'),
-                    descricao=detalhes.get('overview', ''),
-                    data_lancamento=detalhes.get('release_date') if detalhes.get('release_date') else None,
+                    titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
+                    descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
+                    data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
                     poster=f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}" if detalhes.get('poster_path') else None,
-                    categoria=', '.join([g.get('name', '') for g in detalhes.get('genres', [])[:3]])
+                    categoria=generos_str
                 )
+
+        # Se encontrou um Filme existente mas sem título, tentar completar agora
+        if filme and (not filme.titulo) and filme.tmdb_id:
+            try:
+                detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                if detalhes and isinstance(detalhes, dict):
+                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo or 'Sem título'
+                    if not filme.descricao:
+                        filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if not filme.poster and detalhes.get('poster_path'):
+                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
+                        filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                    filme.save()
+            except Exception as e:
+                print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
         
         if not filme:
             return JsonResponse({

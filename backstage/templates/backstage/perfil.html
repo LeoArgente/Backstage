@@ -67,7 +67,11 @@
       <div class="container">
         <div class="profile-hero-content">
           <div class="profile-avatar-large">
-            <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="{{ usuario_perfil.username }}" />
+            {% if usuario_perfil.profile.foto_perfil %}
+              <img src="{{ usuario_perfil.profile.foto_perfil.url }}" alt="{{ usuario_perfil.username }}" />
+            {% else %}
+              <img src="{% static 'images/default-avatar.png' %}" alt="{{ usuario_perfil.username }}" />
+            {% endif %}
           </div>
           <div class="profile-info">
             <h1 class="profile-name">{{ usuario_perfil.username }}</h1>

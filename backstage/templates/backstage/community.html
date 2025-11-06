@@ -511,7 +511,11 @@
         <!-- Post Creation -->
         <div class="create-post-card">
           <div class="create-post-header">
-            <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Seu avatar" class="user-avatar-img" />
+            {% if user.profile.foto_perfil %}
+              <img src="{{ user.profile.foto_perfil.url }}" alt="Seu avatar" class="user-avatar-img" />
+            {% else %}
+              <img src="{% static 'images/default-avatar.png' %}" alt="Seu avatar" class="user-avatar-img" />
+            {% endif %}
             <button class="create-post-btn" id="create-post-btn">
               O que você está assistindo?
             </button>

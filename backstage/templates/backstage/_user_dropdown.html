@@ -4,13 +4,21 @@
 {% if user.is_authenticated %}
 <div class="user-menu">
   <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
-    <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
+    {% if user.profile.foto_perfil %}
+      <img src="{{ user.profile.foto_perfil.url }}" alt="Avatar do usuário" />
+    {% else %}
+      <img src="{% static 'images/default-avatar.png' %}" alt="Avatar do usuário" />
+    {% endif %}
   </button>
 
   <!-- Letterboxd-Style Dropdown Menu -->
   <div class="user-dropdown" id="userDropdown" role="menu">
     <div class="user-dropdown-header">
-      <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
+      {% if user.profile.foto_perfil %}
+        <img src="{{ user.profile.foto_perfil.url }}" alt="Avatar" class="user-dropdown-avatar" />
+      {% else %}
+        <img src="{% static 'images/default-avatar.png' %}" alt="Avatar" class="user-dropdown-avatar" />
+      {% endif %}
       <div class="user-dropdown-info">
         <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
       </div>

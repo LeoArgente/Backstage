@@ -249,3 +249,44 @@ class DiarioFilme(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} - {self.filme.titulo} ({self.data_assistido})"
+
+
+class Profile(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    foto_perfil = models.ImageField(
+        upload_to='perfis/',
+        blank=True,
+        null=True,
+        verbose_name="Foto de Perfil"
+    )
+    bio = models.TextField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="Biografia"
+    )
+    instagram = models.URLField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Instagram"
+    )
+    twitter = models.URLField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Twitter"
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Perfil"
+        verbose_name_plural = "Perfis"
+
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"

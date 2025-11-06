@@ -1468,12 +1468,79 @@ def favoritos(request):
 @login_required(login_url='backstage:login')
 def configuracoes(request):
     """Página de configurações do usuário"""
+    from .models import Profile
+
+    # Criar profile se não existir
+    profile, created = Profile.objects.get_or_create(usuario=request.user)
+
     if request.method == 'POST':
-        # Aqui você pode adicionar lógica para salvar configurações
-        messages.success(request, 'Configurações salvas com sucesso!')
+        secao = request.POST.get('secao')
+
+        # Seção Conta
+        if secao == 'conta':
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+
+            # Atualizar username
+            if username and username != request.user.username:
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, 'Este nome de usuário já está em uso.')
+                else:
+                    request.user.username = username
+                    request.user.save()
+                    messages.success(request, 'Nome de usuário atualizado com sucesso!')
+
+            # Atualizar email
+            if email and email != request.user.email:
+                if User.objects.filter(email=email).exists():
+                    messages.error(request, 'Este email já está em uso.')
+                else:
+                    request.user.email = email
+                    request.user.save()
+                    messages.success(request, 'Email atualizado com sucesso!')
+
+        # Seção Perfil
+        elif secao == 'perfil':
+            # Verificar se é uma solicitação de remoção de foto
+            if request.POST.get('remover_foto') == 'true':
+                if profile.foto_perfil:
+                    # Deletar o arquivo físico
+                    profile.foto_perfil.delete(save=False)
+                    profile.foto_perfil = None
+                    profile.save()
+                    messages.success(request, 'Foto de perfil removida com sucesso!')
+            else:
+                bio = request.POST.get('bio')
+                instagram = request.POST.get('instagram')
+                twitter = request.POST.get('twitter')
+
+                profile.bio = bio
+                profile.instagram = instagram
+                profile.twitter = twitter
+
+                # Upload de foto - deletar foto antiga se existir
+                if 'foto_perfil' in request.FILES:
+                    # Deletar foto antiga antes de adicionar nova
+                    if profile.foto_perfil:
+                        profile.foto_perfil.delete(save=False)
+                    profile.foto_perfil = request.FILES['foto_perfil']
+
+                profile.save()
+                messages.success(request, 'Perfil atualizado com sucesso!')
+
+        # Seção Resgatar Código
+        elif secao == 'codigo':
+            codigo = request.POST.get('codigo')
+            # TODO: Implementar lógica de resgate de código
+            messages.info(request, 'Funcionalidade de resgatar código em breve!')
+
         return redirect('backstage:configuracoes')
-    
-    return render(request, 'backstage/configuracoes.html')
+
+    context = {
+        'user': request.user,
+        'profile': profile,
+    }
+    return render(request, 'backstage/configuracoes.html', context)
 
 
 def ajuda(request):

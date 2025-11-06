@@ -48,19 +48,20 @@ class FriendsRealtimeSearch {
         if (this.searchTimeout) {
             clearTimeout(this.searchTimeout);
         }
-        
+
         query = query.trim();
         this.currentQuery = query;
-        
+
         // Mínimo de 2 caracteres
         if (query.length < 2) {
             this.hideResults();
+            this.hideLoading(); // Esconder loading se input estiver vazio
             return;
         }
-        
+
         // Mostrar loading
         this.showLoading();
-        
+
         // Debounce de 300ms
         this.searchTimeout = setTimeout(() => {
             this.buscarUsuarios(query);

@@ -1347,7 +1347,7 @@ def perfil(request, username=None):
     criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie')[:6]
     
     # Buscar listas
-    listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itemlista_set__filme')[:6]
+    listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itens__filme')[:6]
     
     # Estatísticas
     total_filmes = Critica.objects.filter(usuario=usuario_perfil).count()

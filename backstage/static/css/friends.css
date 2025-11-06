@@ -18,8 +18,16 @@
 .page-header h1 {
   font-size: 3rem;
   font-weight: 800;
-  color: #dc2626;
-  margin-bottom: 0.5rem;
+  color: #e50914 !important;
+  text-align: center !important
+  
+}
+
+.page-header .page-description {
+  color: #d1d5db !important;
+  font-size: 1.1rem !important;
+  text-align: center !important;
+  margin-top: 10px;
 }
 
 .page-description {

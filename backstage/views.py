@@ -1515,7 +1515,9 @@ def diary(request):
     generos = []
     for entrada in entradas:
         if entrada.filme.categoria:
-            generos.append(entrada.filme.categoria)
+            # categoria pode ser "Action, Drama, Thriller" - separar em lista
+            cats = [g.strip() for g in entrada.filme.categoria.split(',') if g.strip()]
+            generos.extend(cats)
     
     genero_favorito = None
     if generos:

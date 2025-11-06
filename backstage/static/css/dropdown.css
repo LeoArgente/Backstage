@@ -9,7 +9,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  width: 240px;
+  width: 264px;
   box-shadow: var(--shadow-xl);
   opacity: 0;
   visibility: hidden;
@@ -26,19 +26,29 @@
 
 .user-dropdown-header {
   padding: 16px;
-  border-bottom: 1px solid var(--border);
+  background: #1e293b;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-dropdown-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-dropdown-info {
+  flex: 1;
 }
 
 .user-dropdown-name {
   font-weight: 600;
   font-size: 14px;
   color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.user-dropdown-email {
-  font-size: 12px;
-  color: var(--text-muted);
+  margin: 0;
 }
 
 .user-dropdown-divider {

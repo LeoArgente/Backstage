@@ -1862,6 +1862,13 @@ def enviar_solicitacao(request):
         
         destinatario = get_object_or_404(User, id=destinatario_id)
         
+        # Não pode enviar solicitação para si mesmo
+        if request.user == destinatario:
+            return JsonResponse({
+                'success': False,
+                'message': 'Você não pode enviar solicitação para si mesmo'
+            })
+        
         # Verificar se já são amigos
         ja_amigo = Amizade.objects.filter(
             Q(usuario1=request.user, usuario2=destinatario) |
@@ -1874,23 +1881,62 @@ def enviar_solicitacao(request):
                 'message': 'Vocês já são amigos'
             })
         
-        # Verificar se já existe solicitação pendente
+        # Verificar se já existe solicitação (qualquer status, qualquer direção)
         solicitacao_existente = SolicitacaoAmizade.objects.filter(
             Q(remetente=request.user, destinatario=destinatario) |
-            Q(remetente=destinatario, destinatario=request.user),
-            status='pending'
+            Q(remetente=destinatario, destinatario=request.user)
         ).first()
         
         if solicitacao_existente:
-            return JsonResponse({
-                'success': False,
-                'message': 'Já existe uma solicitação pendente'
-            })
+            # Se existe solicitação pendente
+            if solicitacao_existente.status == 'pending':
+                if solicitacao_existente.remetente == request.user:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Você já enviou uma solicitação para este usuário'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Este usuário já te enviou uma solicitação. Verifique a aba de solicitações!'
+                    })
+            
+            # Se existe solicitação aceita
+            elif solicitacao_existente.status == 'accepted':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Já existe um registro de amizade aceita'
+                })
+            
+            # Se existe solicitação rejeitada, reenviar (atualizar para pendente)
+            elif solicitacao_existente.status == 'rejected':
+                # Se a solicitação rejeitada foi enviada pelo usuário atual, reativar
+                if solicitacao_existente.remetente == request.user:
+                    solicitacao_existente.status = 'pending'
+                    solicitacao_existente.save()
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Solicitação reenviada com sucesso!'
+                    })
+                # Se foi o outro que enviou e foi rejeitada, criar nova na direção oposta
+                # Mas não podemos por causa do unique_together, então deletamos a antiga
+                else:
+                    solicitacao_existente.delete()
+                    SolicitacaoAmizade.objects.create(
+                        remetente=request.user,
+                        destinatario=destinatario,
+                        status='pending'
+                    )
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Solicitação enviada com sucesso!'
+                    })
         
-        # Criar solicitação
+        # Se não existe nenhuma solicitação, criar nova
         SolicitacaoAmizade.objects.create(
             remetente=request.user,
-            destinatario=destinatario
+            destinatario=destinatario,
+            status='pending'
         )
         
         return JsonResponse({
@@ -1912,19 +1958,41 @@ def aceitar_solicitacao(request):
     try:
         data = json.loads(request.body)
         solicitacao_id = data.get('solicitacao_id')
+        remetente_id = data.get('remetente_id')
         
-        if not solicitacao_id:
+        # Aceitar por solicitacao_id (do botão na aba de solicitações)
+        if solicitacao_id:
+            solicitacao = get_object_or_404(
+                SolicitacaoAmizade,
+                id=solicitacao_id,
+                destinatario=request.user,
+                status='pending'
+            )
+        # Aceitar por remetente_id (da busca em tempo real)
+        elif remetente_id:
+            solicitacao = get_object_or_404(
+                SolicitacaoAmizade,
+                remetente_id=remetente_id,
+                destinatario=request.user,
+                status='pending'
+            )
+        else:
             return JsonResponse({
                 'success': False,
-                'message': 'ID da solicitação não fornecido'
+                'message': 'ID da solicitação ou remetente não fornecido'
             })
         
-        solicitacao = get_object_or_404(
-            SolicitacaoAmizade,
-            id=solicitacao_id,
-            destinatario=request.user,
-            status='pending'
-        )
+        # Verificar se já são amigos
+        ja_amigos = Amizade.objects.filter(
+            Q(usuario1=request.user, usuario2=solicitacao.remetente) |
+            Q(usuario1=solicitacao.remetente, usuario2=request.user)
+        ).exists()
+        
+        if ja_amigos:
+            return JsonResponse({
+                'success': False,
+                'message': 'Vocês já são amigos!'
+            })
         
         # Criar amizade
         Amizade.objects.create(

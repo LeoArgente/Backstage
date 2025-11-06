@@ -165,15 +165,18 @@ function enviarSolicitacao(userId, button) {
 
 // Aceitar Solicitação
 function aceitarSolicitacao(requestId) {
-  fetch(`/api/aceitar-solicitacao-amizade/${requestId}/`, {
+  console.log('🔵 Aceitando solicitação ID:', requestId);
+  fetch('/api/aceitar-solicitacao/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
-    }
+    },
+    body: JSON.stringify({ solicitacao_id: requestId })
   })
   .then(response => response.json())
   .then(data => {
+    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação aceita!', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -182,22 +185,25 @@ function aceitarSolicitacao(requestId) {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
+    console.error('💥 Erro:', error);
     showNotification('Erro ao aceitar solicitação', 'error');
   });
 }
 
 // Aceitar Solicitação por ID de Usuário
 function aceitarSolicitacaoPorUsuario(userId) {
-  fetch(`/api/aceitar-solicitacao-por-usuario/${userId}/`, {
+  console.log('🟢 Aceitando solicitação do usuário ID:', userId);
+  fetch('/api/aceitar-solicitacao/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
-    }
+    },
+    body: JSON.stringify({ remetente_id: userId })
   })
   .then(response => response.json())
   .then(data => {
+    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação aceita!', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -206,7 +212,7 @@ function aceitarSolicitacaoPorUsuario(userId) {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
+    console.error('💥 Erro:', error);
     showNotification('Erro ao aceitar solicitação', 'error');
   });
 }
@@ -217,15 +223,18 @@ function rejeitarSolicitacao(requestId) {
     return;
   }
 
-  fetch(`/api/rejeitar-solicitacao-amizade/${requestId}/`, {
+  console.log('🔴 Rejeitando solicitação ID:', requestId);
+  fetch('/api/rejeitar-solicitacao/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
-    }
+    },
+    body: JSON.stringify({ solicitacao_id: requestId })
   })
   .then(response => response.json())
   .then(data => {
+    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação rejeitada', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -234,7 +243,7 @@ function rejeitarSolicitacao(requestId) {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
+    console.error('💥 Erro:', error);
     showNotification('Erro ao rejeitar solicitação', 'error');
   });
 }
@@ -245,15 +254,18 @@ function cancelarSolicitacao(requestId) {
     return;
   }
 
-  fetch(`/api/cancelar-solicitacao-amizade/${requestId}/`, {
+  console.log('🟡 Cancelando solicitação ID:', requestId);
+  fetch('/api/cancelar-solicitacao/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
-    }
+    },
+    body: JSON.stringify({ solicitacao_id: requestId })
   })
   .then(response => response.json())
   .then(data => {
+    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação cancelada', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -262,7 +274,7 @@ function cancelarSolicitacao(requestId) {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
+    console.error('💥 Erro:', error);
     showNotification('Erro ao cancelar solicitação', 'error');
   });
 }
@@ -273,15 +285,18 @@ function removerAmigo(userId, username) {
     return;
   }
 
-  fetch(`/api/remover-amigo/${userId}/`, {
+  console.log('🔴 Removendo amigo ID:', userId);
+  fetch('/api/remover-amigo/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
-    }
+    },
+    body: JSON.stringify({ amigo_id: userId })
   })
   .then(response => response.json())
   .then(data => {
+    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Amigo removido', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -290,7 +305,7 @@ function removerAmigo(userId, username) {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
+    console.error('💥 Erro:', error);
     showNotification('Erro ao remover amigo', 'error');
   });
 }
@@ -308,6 +323,16 @@ function getCookie(name) {
       }
     }
   }
+  
+  // Se não encontrar nos cookies, tenta pegar do input hidden
+  if (!cookieValue) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      cookieValue = csrfInput.value;
+    }
+  }
+  
+  console.log(`🔑 CSRF Token (${name}):`, cookieValue ? '✅ Encontrado' : '❌ NÃO encontrado');
   return cookieValue;
 }
 

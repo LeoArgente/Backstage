@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block head_extra %}
+<link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
+{% endblock %}
+
 {% block content %}
 <h2>Adicionar crítica para "{{ filme.titulo }}"</h2>
 

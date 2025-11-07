@@ -613,33 +613,41 @@
      MOVIES/SERIES GRID ALIGNMENT
      ========================================== */
 
-  .movies-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
-    gap: 12px !important;
+  .movies-grid,
+  .series-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    justify-items: center;
   }
 
-  .movie-card {
+  .movie-card,
+  .series-card {
     width: 100%;
+    max-width: 180px;
   }
 
-  .movie-poster {
+  .movie-poster,
+  .series-poster {
     aspect-ratio: 2/3;
     width: 100%;
     height: auto !important;
   }
 
-  .movie-poster img {
+  .movie-poster img,
+  .series-poster img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center top;
   }
 
-  .movie-info {
+  .movie-info,
+  .series-info {
     padding: 12px !important;
   }
 
-  .movie-title {
+  .movie-title,
+  .series-title {
     font-size: 0.875rem !important;
     line-height: 1.3;
   }

@@ -229,8 +229,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     background: none;
     border: none;
     color: #ffffff;
@@ -243,9 +243,10 @@
     opacity: 0.7;
   }
 
-  .mobile-search-btn svg {
-    width: 36px;
-    height: 36px;
+  /* Slightly larger search icon for improved tap target and visibility */
+  .mobile-search-btn .mobile-search-icon {
+    width: 40px !important;
+    height: 40px !important;
   }
 
 

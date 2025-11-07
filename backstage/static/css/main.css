@@ -264,9 +264,11 @@ button {
 }
 
 .carousel-track {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Mudado para auto porque estamos usando requestAnimationFrame */
   scrollbar-width: thin;
   scrollbar-color: var(--bg-tertiary) var(--bg-secondary);
+  will-change: scroll-position;
+  /* Removida a transition para evitar conflito com a animação JavaScript */
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -281,6 +283,7 @@ button {
 .carousel-track::-webkit-scrollbar-thumb {
   background: var(--bg-tertiary);
   border-radius: 3px;
+  transition: background 0.3s ease;
 }
 
 .carousel-track::-webkit-scrollbar-thumb:hover {
@@ -288,7 +291,16 @@ button {
 }
 
 .carousel-btn {
-  transition: all var(--transition-base);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-btn:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.carousel-btn:active {
+  transform: scale(0.95);
 }
 
 .carousel-btn:disabled {
@@ -1464,7 +1476,7 @@ button {
   background: var(--surface);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: all var(--transition-base);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: pointer;
   border: 1px solid var(--border);
   display: flex;
@@ -1473,12 +1485,14 @@ button {
   min-width: 220px;
   width: 220px;
   flex-shrink: 0;
+  will-change: transform, box-shadow;
 }
 
 .movie-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
   border-color: var(--border-hover);
+  z-index: 10;
 }
 
 .movie-card-poster {

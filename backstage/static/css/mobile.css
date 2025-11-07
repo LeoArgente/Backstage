@@ -359,14 +359,6 @@
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
   }
 
-  /* Slight visual increase for the Comunidade icon to match perceived weight
-     of other icons. Uses a small scale so layout stays unchanged. */
-  .floating-bottom-nav .bottom-nav-item .community-icon,
-  .floating-bottom-nav .bottom-nav-item .community-icon * {
-    transform-origin: center;
-    transform: scale(1.12);
-  }
-
   .bottom-nav-item {
     flex: 1;
     display: flex;
@@ -407,17 +399,9 @@
     color: var(--red, #dc2626);
   }
 
-  .bottom-nav-item.active span::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: -6px;
-    width: 6px;
-    height: 6px;
-    background: var(--red, #dc2626);
-    border-radius: 50%;
-    display: block;
+  .bottom-nav-item.active svg {
+    fill: var(--red, #dc2626);
+    stroke: var(--red, #dc2626);
   }
 
 
@@ -632,55 +616,36 @@
   }
 
   /* ==========================================
-     MOVIE/SERIES DETAILS - POSTER ALIGNMENT
-     ========================================== */
-
-  .movie-poster-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 auto;
-  }
-
-  /* ==========================================
      MOVIES/SERIES GRID ALIGNMENT
      ========================================== */
 
-  .movies-grid,
-  .series-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 16px !important;
-    justify-items: center;
+  .movies-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: 12px !important;
   }
 
-  .movie-card,
-  .series-card {
+  .movie-card {
     width: 100%;
-    max-width: 180px;
   }
 
-  .movie-poster,
-  .series-poster {
+  .movie-poster {
     aspect-ratio: 2/3;
     width: 100%;
     height: auto !important;
   }
 
-  .movie-poster img,
-  .series-poster img {
+  .movie-poster img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center top;
   }
 
-  .movie-info,
-  .series-info {
+  .movie-info {
     padding: 12px !important;
   }
 
-  .movie-title,
-  .series-title {
+  .movie-title {
     font-size: 0.875rem !important;
     line-height: 1.3;
   }

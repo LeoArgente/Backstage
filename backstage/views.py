@@ -697,11 +697,15 @@ def buscar(request):
             resultados_filmes = []
             resultados_pessoas = []
 
+    # Calcular total de resultados
+    total_resultados = len(resultados_filmes) + len(resultados_pessoas)
+
     context = {
         'query': query,
         'tipo_busca': tipo_busca,
         'resultados_filmes': resultados_filmes,
         'resultados_pessoas': resultados_pessoas,
+        'total_resultados': total_resultados,
         'generos': generos,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }

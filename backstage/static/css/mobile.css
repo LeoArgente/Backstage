@@ -397,6 +397,10 @@
     transform: scale(0.95);
   }
 
+  .bottom-nav-item.active {
+    color: var(--red, #dc2626);
+  }
+
   .bottom-nav-item.active span::after {
     content: '';
     position: absolute;

@@ -610,6 +610,17 @@
   }
 
   /* ==========================================
+     MOVIE/SERIES DETAILS - POSTER ALIGNMENT
+     ========================================== */
+
+  .movie-poster-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+  }
+
+  /* ==========================================
      MOVIES/SERIES GRID ALIGNMENT
      ========================================== */
 

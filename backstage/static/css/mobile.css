@@ -353,6 +353,14 @@
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
   }
 
+  /* Slight visual increase for the Comunidade icon to match perceived weight
+     of other icons. Uses a small scale so layout stays unchanged. */
+  .floating-bottom-nav .bottom-nav-item .community-icon,
+  .floating-bottom-nav .bottom-nav-item .community-icon * {
+    transform-origin: center;
+    transform: scale(1.12);
+  }
+
   .bottom-nav-item {
     flex: 1;
     display: flex;

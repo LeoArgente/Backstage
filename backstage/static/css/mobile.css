@@ -374,6 +374,12 @@
     transition: all 0.2s ease;
   }
 
+  /* Make the home icon slightly larger than other nav icons */
+  .bottom-nav-item .home-icon {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
   .bottom-nav-item span {
     transition: all 0.2s ease;
   }
@@ -391,17 +397,6 @@
     stroke: var(--red, #dc2626);
   }
 
-  .bottom-nav-item.active::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 32px;
-    height: 3px;
-    background: var(--red, #dc2626);
-    border-radius: 0 0 3px 3px;
-  }
 
   /* ==========================================
      LAYOUT ADJUSTMENTS FOR MOBILE

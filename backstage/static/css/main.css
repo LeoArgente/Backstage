@@ -2569,6 +2569,7 @@ button {
     font-size: 0.85rem;
     min-height: 1.6rem;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .movies-grid {
@@ -2623,6 +2624,7 @@ button {
     font-size: 0.8rem;
     min-height: 1.5rem;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .movie-card-year {

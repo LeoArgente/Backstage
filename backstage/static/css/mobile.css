@@ -190,6 +190,12 @@
     stroke: currentColor;
   }
 
+  .mobile-user-dropdown-item svg[width="20"],
+  .mobile-user-dropdown-item svg[height="20"] {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
   .mobile-logout-item {
     color: #ef4444;
   }

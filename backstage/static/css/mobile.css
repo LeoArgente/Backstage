@@ -397,13 +397,17 @@
     transform: scale(0.95);
   }
 
-  .bottom-nav-item.active {
-    color: var(--red, #dc2626);
-  }
-
-  .bottom-nav-item.active svg {
-    fill: var(--red, #dc2626);
-    stroke: var(--red, #dc2626);
+  .bottom-nav-item.active span::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -6px;
+    width: 6px;
+    height: 6px;
+    background: var(--red, #dc2626);
+    border-radius: 50%;
+    display: block;
   }
 
 

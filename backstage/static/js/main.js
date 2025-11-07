@@ -586,17 +586,57 @@ function initCarouselControls() {
     
     if (!track) return;
     
-    // Auto-scroll functionality
+    // Configurar scroll suave nativo
+    track.style.scrollBehavior = 'smooth';
+    
+    // Auto-scroll functionality com animação suave e contínua
     let autoScrollInterval = null;
+    let isScrolling = false;
+    
+    const smoothScroll = (distance, duration) => {
+      return new Promise((resolve) => {
+        const start = track.scrollLeft;
+        const startTime = performance.now();
+        
+        const easeInOutCubic = (t) => {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        };
+        
+        const animateScroll = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = easeInOutCubic(progress);
+          
+          track.scrollLeft = start + (distance * easeProgress);
+          
+          if (progress < 1) {
+            requestAnimationFrame(animateScroll);
+          } else {
+            isScrolling = false;
+            resolve();
+          }
+        };
+        
+        isScrolling = true;
+        requestAnimationFrame(animateScroll);
+      });
+    };
+    
     const startAutoScroll = () => {
-      autoScrollInterval = setInterval(() => {
+      autoScrollInterval = setInterval(async () => {
+        if (isScrolling) return;
+        
+        const cardWidth = 240; // Largura do card
         const maxScroll = track.scrollWidth - track.clientWidth;
+        
         if (track.scrollLeft >= maxScroll - 10) {
-          track.scrollTo({ left: 0, behavior: 'smooth' });
+          // Volta suavemente para o início
+          await smoothScroll(-track.scrollLeft, 1200);
         } else {
-          track.scrollBy({ left: 240, behavior: 'smooth' });
+          // Avança suavemente um card por vez
+          await smoothScroll(cardWidth, 800);
         }
-      }, 3000);
+      }, 4000);
     };
     
     const stopAutoScroll = () => {
@@ -612,21 +652,19 @@ function initCarouselControls() {
     carousel.addEventListener('mouseenter', stopAutoScroll);
     carousel.addEventListener('mouseleave', startAutoScroll);
     
-    // Manual controls
+    // Manual controls com feedback visual melhorado
     if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        const scrollAmount = 240 * 3; // Scroll 3 cards
-        track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      prevBtn.addEventListener('click', async () => {
         stopAutoScroll();
+        await smoothScroll(-720, 600); // 3 cards para trás
         setTimeout(startAutoScroll, 5000);
       });
     }
     
     if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
-        const scrollAmount = 240 * 3; // Scroll 3 cards
-        track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      nextBtn.addEventListener('click', async () => {
         stopAutoScroll();
+        await smoothScroll(720, 600); // 3 cards para frente
         setTimeout(startAutoScroll, 5000);
       });
     }

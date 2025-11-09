@@ -1428,15 +1428,25 @@ def reviews(request):
 def watchlist(request):
     """Página da watchlist (assistir mais tarde)"""
     try:
-        lista_watchlist = Lista.objects.get(usuario=request.user, nome="Assistir mais tarde")
+        lista_watchlist = Lista.objects.get(usuario=request.user, nome="Assistir Mais Tarde")
     except Lista.DoesNotExist:
         lista_watchlist = Lista.objects.create(
             usuario=request.user,
-            nome="Assistir mais tarde",
+            nome="Assistir Mais Tarde",
             descricao="Filmes e séries para assistir mais tarde"
         )
     
-    itens = lista_watchlist.itemlista_set.all().select_related('filme', 'serie')
+    # Buscar itens de filmes e séries
+    itens_filmes = lista_watchlist.itens.all().select_related('filme')
+    itens_series = lista_watchlist.itens_serie.all().select_related('serie')
+    
+    # Combinar e ordenar por data de adição
+    from itertools import chain
+    itens = sorted(
+        chain(itens_filmes, itens_series),
+        key=lambda x: x.adicionado_em,
+        reverse=True
+    )
     
     context = {
         'lista': lista_watchlist,

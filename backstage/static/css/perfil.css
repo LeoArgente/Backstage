@@ -56,6 +56,24 @@
   line-height: 1.2;
 }
 
+.badge-friend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 217, 255, 0.1);
+  border: 1px solid #00d9ff;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #00d9ff;
+  margin-bottom: 1rem;
+}
+
+.badge-friend svg {
+  stroke: #00d9ff;
+}
+
 .profile-email {
   font-size: 1rem;
   color: var(--text-secondary, rgba(255, 255, 255, 0.6));
@@ -310,6 +328,10 @@
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
 }
 
 .list-card:hover {
@@ -497,34 +519,4 @@
   --card-background: rgba(30, 41, 59, 0.5);
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
-}
-
-/* Badge de Amigo */
-.badge-friend {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(0, 217, 255, 0.1);
-  border: 2px solid #00d9ff;
-  border-radius: 8px;
-  color: #00d9ff;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.badge-friend svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Lista Card Hover */
-.list-card {
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.list-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(220, 38, 38, 0.2);
 }

@@ -1372,7 +1372,7 @@ def perfil(request, username=None):
     
     is_own_profile = (request.user == usuario_perfil)
     
-    # Buscar reviews do usuário
+    # Buscar reviews do usuário (mostrando 12 em vez de 6)
     criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').order_by('-criado_em')[:12]
     criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').order_by('-criado_em')[:12]
     
@@ -1382,7 +1382,7 @@ def perfil(request, username=None):
     # Estatísticas
     total_filmes = Critica.objects.filter(usuario=usuario_perfil).count()
     total_series = CriticaSerie.objects.filter(usuario=usuario_perfil).count()
-    total_listas = listas.count()
+    total_listas = Lista.objects.filter(usuario=usuario_perfil).count()
     
     # Contar amigos
     amigos_count = Amizade.objects.filter(

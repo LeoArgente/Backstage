@@ -74,6 +74,15 @@
           </div>
           <div class="profile-info">
             <h1 class="profile-name">{{ usuario_perfil.username }}</h1>
+            {% if sao_amigos %}
+            <div class="badge-friend">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Vocês são amigos
+            </div>
+            {% endif %}
 
             <div class="profile-stats">
               <div class="stat-item">
@@ -103,17 +112,6 @@
                 </svg>
                 Editar Perfil
               </a>
-            </div>
-            {% elif sao_amigos %}
-            <div class="profile-actions">
-              <span class="badge-friend">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                  <line x1="18" y1="8" x2="23" y2="8" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                Vocês são amigos
-              </span>
             </div>
             {% endif %}
           </div>
@@ -214,7 +212,7 @@
           {% if listas %}
           <div class="lists-grid">
             {% for lista in listas %}
-            <a href="{% url 'backstage:visualizar_lista' lista.id %}" class="list-card" style="text-decoration: none; color: inherit; display: block;">
+            <a href="{% url 'backstage:visualizar_lista' lista.id %}" class="list-card">
               <div class="list-header">
                 <h3>{{ lista.nome }}</h3>
                 {% if lista.publica %}
@@ -237,7 +235,11 @@
               <path d="M9 5H2v14h7V5zM16 5h-5v14h5V5zM22 5h-5v14h5V5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <h3>Nenhuma lista criada</h3>
+            {% if is_own_profile %}
             <p>Organize seus filmes e séries em listas personalizadas!</p>
+            {% else %}
+            <p>{{ usuario_perfil.username }} ainda não criou nenhuma lista.</p>
+            {% endif %}
           </div>
           {% endif %}
         </div>

@@ -1370,17 +1370,32 @@ def perfil(request, username=None):
     else:
         usuario_perfil = request.user
     
-    # Buscar reviews do usuário
-    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme')[:6]
-    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie')[:6]
+    is_own_profile = (request.user == usuario_perfil)
     
-    # Buscar listas
-    listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itens__filme')[:6]
+    # Buscar reviews do usuário
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').order_by('-criado_em')[:12]
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').order_by('-criado_em')[:12]
+    
+    # Buscar listas - se for perfil de amigo, mostrar todas as listas públicas
+    listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itens__filme').order_by('-atualizada_em')
     
     # Estatísticas
     total_filmes = Critica.objects.filter(usuario=usuario_perfil).count()
     total_series = CriticaSerie.objects.filter(usuario=usuario_perfil).count()
-    total_listas = Lista.objects.filter(usuario=usuario_perfil).count()
+    total_listas = listas.count()
+    
+    # Contar amigos
+    amigos_count = Amizade.objects.filter(
+        Q(usuario1=usuario_perfil) | Q(usuario2=usuario_perfil)
+    ).count()
+    
+    # Verificar se são amigos (se não for o próprio perfil)
+    sao_amigos = False
+    if not is_own_profile:
+        sao_amigos = Amizade.objects.filter(
+            Q(usuario1=request.user, usuario2=usuario_perfil) |
+            Q(usuario1=usuario_perfil, usuario2=request.user)
+        ).exists()
     
     context = {
         'usuario_perfil': usuario_perfil,
@@ -1390,7 +1405,9 @@ def perfil(request, username=None):
         'total_filmes': total_filmes,
         'total_series': total_series,
         'total_listas': total_listas,
-        'is_own_profile': request.user == usuario_perfil,
+        'amigos_count': amigos_count,
+        'is_own_profile': is_own_profile,
+        'sao_amigos': sao_amigos,
     }
     
     return render(request, 'backstage/perfil.html', context)

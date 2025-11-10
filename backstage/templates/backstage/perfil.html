@@ -88,6 +88,10 @@
                 <span class="stat-number">{{ total_listas }}</span>
                 <span class="stat-label">Listas</span>
               </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ amigos_count }}</span>
+                <span class="stat-label">Amigos</span>
+              </div>
             </div>
 
             {% if is_own_profile %}
@@ -99,6 +103,17 @@
                 </svg>
                 Editar Perfil
               </a>
+            </div>
+            {% elif sao_amigos %}
+            <div class="profile-actions">
+              <span class="badge-friend">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                  <line x1="18" y1="8" x2="23" y2="8" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Vocês são amigos
+              </span>
             </div>
             {% endif %}
           </div>
@@ -190,14 +205,16 @@
         <!-- Listas Tab -->
         <div class="tab-content" id="tab-listas">
           <div class="section-header">
-            <h2>Minhas Listas</h2>
+            <h2>{% if is_own_profile %}Minhas Listas{% else %}Listas de {{ usuario_perfil.username }}{% endif %}</h2>
+            {% if is_own_profile %}
             <a href="{% url 'backstage:lists' %}" class="link-more">Ver todas</a>
+            {% endif %}
           </div>
 
           {% if listas %}
           <div class="lists-grid">
             {% for lista in listas %}
-            <div class="list-card">
+            <a href="{% url 'backstage:visualizar_lista' lista.id %}" class="list-card" style="text-decoration: none; color: inherit; display: block;">
               <div class="list-header">
                 <h3>{{ lista.nome }}</h3>
                 {% if lista.publica %}
@@ -211,7 +228,7 @@
                 <span class="list-count">{{ lista.itens.count }} itens</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
               </div>
-            </div>
+            </a>
             {% endfor %}
           </div>
           {% else %}

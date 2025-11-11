@@ -13,9 +13,27 @@
   <link rel="stylesheet" href="{% static 'css/movies.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <link rel="stylesheet" href="{% static 'css/intro.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+  <!-- Video Intro Overlay -->
+  <div class="intro-overlay">
+    <div class="intro-video-container">
+      <video class="intro-video" muted playsinline preload="auto">
+        <source src="{% static 'videos/intro.mp4' %}" type="video/mp4">
+        Seu navegador não suporta vídeo HTML5.
+      </video>
+      <button class="intro-skip-btn" aria-label="Pular introdução">
+        Pular
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="13 17 18 12 13 7"></polyline>
+          <polyline points="6 17 11 12 6 7"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
   {% include 'backstage/_mobile_header.html' %}
     <header class="site-header">
     <div class="container">
@@ -471,6 +489,7 @@
   {% include 'backstage/_mobile_bottom_nav.html' %}
   {% include 'backstage/_mobile_scripts.html' %}
 
+    <script src="{% static 'js/intro.js' %}"></script>
     <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
     <script src="{% static 'js/profile_menu.js' %}" defer></script>
     <script src="{% static 'js/filter-popup.js' %}" defer></script>

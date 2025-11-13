@@ -158,18 +158,9 @@ function renderCalendar() {
           <span class="calendar-day-number">${day}</span>
         </div>
         <div class="calendar-day-name">${dayOfWeek}</div>
-        <div class="calendar-poster empty" onclick="openAddMovieModal(${day}, ${currentMonth + 1}, ${currentYear})">
-          <div class="add-movie-btn">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span>Adicionar filme neste dia</span>
-          </div>
-        </div>
-        <div class="calendar-movie-title">-</div>
-        <div class="calendar-rating">-</div>
-        <div class="calendar-watched-with">-</div>
+        <div class="calendar-movie-title"></div>
+        <div class="calendar-rating"></div>
+        <div class="calendar-watched-with"></div>
       `;
       calendarDays.appendChild(dayRow);
     }

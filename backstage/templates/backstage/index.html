@@ -312,70 +312,48 @@
         <a href="#" class="section-link">Ver toda atividade →</a>
       </div>
       <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-g6utg0zth2yzukhi.webp" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>LeoArgente01</strong> avaliou <a href="#">Vingadores: Era de Ultron</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 2 horas</span>
+        {% if user.is_authenticated %}
+          {% if atividades_amigos %}
+            {% for atividade in atividades_amigos %}
+            <div class="activity-item">
+              <img src="https://ui-avatars.com/api/?name={{ atividade.usuario.username }}&background=random&size=48" class="activity-avatar" alt="{{ atividade.usuario.username }}">
+              <div class="activity-content">
+                <p>
+                  <strong>{{ atividade.usuario.username }}</strong> avaliou 
+                  {% if atividade.tipo == 'filme' %}
+                    <a href="{% url 'backstage:detalhes_filme' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
+                  {% else %}
+                    <a href="{% url 'backstage:detalhes_serie' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
+                  {% endif %}
+                  com
+                  <span class="rating-stars">{% for i in "12345" %}{% if forloop.counter <= atividade.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
+                </p>
+                <span class="activity-time">{{ atividade.data|timesince }} atrás</span>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="activity-empty">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <p>Nenhuma atividade dos seus amigos ainda.</p>
+              <a href="{% url 'backstage:amigos' %}" class="btn-primary">Adicionar Amigos</a>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="activity-empty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+            <p>Faça login para ver as atividades dos seus amigos!</p>
+            <a href="{% url 'backstage:login' %}" class="btn-primary">Fazer Login</a>
           </div>
-        </div>
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-vf5bica5zkhp2fxk.webp" class="activity-avatar" alt="João">
-          <div class="activity-content">
-            <p><strong>Lowzy</strong> adicionou <a href="#">Poor Things</a> à sua lista de favoritos</p>
-            <span class="activity-time">há 5 horas</span>
-          </div>
-        </div>
-        <div class="activity-item">
-          <img src="https://tse1.mm.bing.net/th/id/OIP.tLD7WGvJsZjVafaoK1n9EwHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3" class="activity-avatar" alt="Ana">
-          <div class="activity-content">
-            <p><strong>Fantasticmsliz</strong> avaliou <a href="#">Ruptura</a></p>
-            <span class="activity-time">há 1 dia</span>
-          </div>
-        </div>
-        <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-rrhxh9ll01td29ok.webp" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>Inconsistente</strong> avaliou <a href="#">Gen V</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 10 horas</span>
-          </div>
-        </div>
-        <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://tse3.mm.bing.net/th/id/OIP.3KREukHWrQYcIEyEni3DHQHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>Nononha123</strong> avaliou <a href="#">Game of Thrones</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 4 horas</span>
-          </div>
-        </div>
-        <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://tse2.mm.bing.net/th/id/OIP.J-TCe-ReFGDGhlmqbcZ-oQHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>VictorExtreme97</strong> avaliou <a href="#">The Office</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 6 horas</span>
-          </div>
-        </div>
-      </div>
-      <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-glvjkc137tsrudsw.webp" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>RafaelBorba</strong> avaliou <a href="#">Breaking Bad</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 1 hora</span>
-          </div>
-        </div>
+        {% endif %}
       </div>
     </section>
   </main>

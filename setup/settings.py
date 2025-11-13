@@ -17,7 +17,8 @@ if NOT_PROD:
     DEBUG = True
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = 'django-insecure-p4()2l%g!!s)t^$c3327!d@h*2rh2xrfab(xtj5(q)zu7b-_ru'
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

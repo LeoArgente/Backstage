@@ -165,9 +165,57 @@ def index(request):
     except:
         filme_destaque = None
 
+    # Buscar atividades dos amigos (críticas recentes)
+    atividades_amigos = []
+    if request.user.is_authenticated:
+        # Buscar amigos do usuário
+        amigos_ids = []
+        amizades_como_usuario1 = Amizade.objects.filter(usuario1=request.user).values_list('usuario2_id', flat=True)
+        amizades_como_usuario2 = Amizade.objects.filter(usuario2=request.user).values_list('usuario1_id', flat=True)
+        amigos_ids = list(amizades_como_usuario1) + list(amizades_como_usuario2)
+        
+        if amigos_ids:
+            # Buscar críticas de filmes dos amigos
+            criticas_filmes = Critica.objects.filter(
+                usuario_id__in=amigos_ids
+            ).select_related('usuario', 'filme').order_by('-criado_em')[:10]
+            
+            # Buscar críticas de séries dos amigos
+            criticas_series = CriticaSerie.objects.filter(
+                usuario_id__in=amigos_ids
+            ).select_related('usuario', 'serie').order_by('-criado_em')[:10]
+            
+            # Combinar e ordenar todas as atividades
+            for critica in criticas_filmes:
+                atividades_amigos.append({
+                    'tipo': 'filme',
+                    'usuario': critica.usuario,
+                    'titulo': critica.filme.titulo,
+                    'nota': critica.nota,
+                    'data': critica.criado_em,
+                    'filme_id': critica.filme.id,
+                    'tmdb_id': critica.filme.tmdb_id,
+                })
+            
+            for critica in criticas_series:
+                atividades_amigos.append({
+                    'tipo': 'serie',
+                    'usuario': critica.usuario,
+                    'titulo': critica.serie.titulo,
+                    'nota': critica.nota,
+                    'data': critica.criado_em,
+                    'serie_id': critica.serie.id,
+                    'tmdb_id': critica.serie.tmdb_id,
+                })
+            
+            # Ordenar por data (mais recente primeiro)
+            atividades_amigos.sort(key=lambda x: x['data'], reverse=True)
+            atividades_amigos = atividades_amigos[:10]  # Limitar a 10 atividades
+
     context = {
         'filme_destaque': filme_destaque,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'atividades_amigos': atividades_amigos,
     }
     return render(request, 'backstage/index.html', context)
 

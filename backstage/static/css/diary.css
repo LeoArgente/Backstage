@@ -244,6 +244,34 @@
   margin-bottom: 0.5rem;
 }
 
+/* Calendar Days Container - Limited to 10 days with scroll */
+#calendarDays {
+  max-height: 650px; /* Aproximadamente 10 rows (cada row tem ~60px de altura) */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+}
+
+/* Custom Scrollbar for Calendar Days */
+#calendarDays::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+#calendarDays::-webkit-scrollbar-track {
+  background: rgba(0, 98, 115, 0.3);
+  border-radius: 4px;
+}
+
+#calendarDays::-webkit-scrollbar-thumb {
+  background: rgba(0, 217, 255, 0.3);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+#calendarDays::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 217, 255, 0.5);
+}
+
 .calendar-day-header {
   font-size: 0.875rem;
   font-weight: 600;
@@ -329,6 +357,17 @@
   transition: all 0.3s ease;
 }
 
+.calendar-poster a {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.calendar-poster a:hover {
+  transform: scale(1.05);
+}
+
 .calendar-poster img {
   width: 100%;
   height: 100%;
@@ -344,6 +383,14 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.calendar-movie-title a {
+  transition: color 0.3s ease;
+}
+
+.calendar-movie-title a:hover {
+  color: var(--blue-light);
 }
 
 .calendar-rating {
@@ -466,8 +513,8 @@
 }
 
 .filter-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 0.5rem;
   margin: 0.5rem 0;
 }
@@ -500,6 +547,8 @@
   transform: scaleY(0);
   transition: transform 0.3s ease;
   box-shadow: 0 0 10px rgba(0, 217, 255, 0.6);
+}
+
 .filter-count {
   display: inline-flex;
   align-items: center;
@@ -525,33 +574,12 @@
   background: white;
   border-color: white;
   color: var(--red);
-} box-shadow: 0 4px 20px rgba(0, 217, 255, 0.25),
+  box-shadow: 0 4px 20px rgba(0, 217, 255, 0.25),
               inset 0 0 20px rgba(0, 217, 255, 0.1);
 }
 
 .filter-option.active::before {
   transform: scaleY(1);
-}
-
-.filter-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 0.5rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.filter-option.active .filter-count {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--background);
 }
 
 /* Modal */

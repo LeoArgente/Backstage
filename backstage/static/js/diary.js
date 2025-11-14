@@ -126,9 +126,13 @@ function renderCalendar() {
             </div>
             <div class="calendar-day-name">${dayOfWeek}</div>
             <div class="calendar-poster">
-              <img src="${entry.poster}" alt="${entry.titulo}">
+              <a href="/filmes/${entry.filme_id}/">
+                <img src="${entry.poster}" alt="${entry.titulo}">
+              </a>
             </div>
-            <div class="calendar-movie-title">${entry.titulo}</div>
+            <div class="calendar-movie-title">
+              <a href="/filmes/${entry.filme_id}/" style="color: inherit; text-decoration: none;">${entry.titulo}</a>
+            </div>
             <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
             <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
           `;
@@ -138,9 +142,13 @@ function renderCalendar() {
             <div class="calendar-date"></div>
             <div class="calendar-day-name"></div>
             <div class="calendar-poster">
-              <img src="${entry.poster}" alt="${entry.titulo}">
+              <a href="/filmes/${entry.filme_id}/">
+                <img src="${entry.poster}" alt="${entry.titulo}">
+              </a>
             </div>
-            <div class="calendar-movie-title">${entry.titulo}</div>
+            <div class="calendar-movie-title">
+              <a href="/filmes/${entry.filme_id}/" style="color: inherit; text-decoration: none;">${entry.titulo}</a>
+            </div>
             <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
             <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
           `;

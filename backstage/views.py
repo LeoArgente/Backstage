@@ -2275,3 +2275,60 @@ def remover_amigo(request):
             'success': False,
             'message': f'Erro ao remover amigo: {str(e)}'
         })
+
+@login_required(login_url='backstage:login')
+def buscar_notificacoes(request):
+    """API para buscar notificações de solicitações de amizade pendentes"""
+    try:
+        # Buscar solicitações de amizade pendentes
+        solicitacoes = SolicitacaoAmizade.objects.filter(
+            destinatario=request.user,
+            status='pending'
+        ).select_related('remetente').order_by('-data_criacao')
+        
+        notificacoes = []
+        for solicitacao in solicitacoes:
+            notificacoes.append({
+                'id': solicitacao.id,
+                'tipo': 'solicitacao_amizade',
+                'remetente_id': solicitacao.remetente.id,
+                'remetente_username': solicitacao.remetente.username,
+                'remetente_nome': solicitacao.remetente.get_full_name() or solicitacao.remetente.username,
+                'mensagem': f'{solicitacao.remetente.username} enviou uma solicitação de amizade',
+                'data': solicitacao.data_criacao.isoformat(),
+                'tempo_relativo': calcular_tempo_relativo(solicitacao.data_criacao),
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'notificacoes': notificacoes,
+            'total': len(notificacoes)
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar notificações: {str(e)}'
+        })
+
+def calcular_tempo_relativo(data):
+    """Calcula o tempo relativo desde uma data"""
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    agora = timezone.now()
+    diferenca = agora - data
+    
+    if diferenca < timedelta(minutes=1):
+        return 'agora'
+    elif diferenca < timedelta(hours=1):
+        minutos = int(diferenca.total_seconds() / 60)
+        return f'há {minutos} min'
+    elif diferenca < timedelta(days=1):
+        horas = int(diferenca.total_seconds() / 3600)
+        return f'há {horas}h'
+    elif diferenca < timedelta(days=7):
+        dias = diferenca.days
+        return f'há {dias}d'
+    else:
+        return data.strftime('%d/%m/%Y')

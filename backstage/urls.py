@@ -77,4 +77,7 @@ urlpatterns = [
     path('api/rejeitar-solicitacao/', views.rejeitar_solicitacao, name='rejeitar_solicitacao'),
     path('api/cancelar-solicitacao/', views.cancelar_solicitacao, name='cancelar_solicitacao'),
     path('api/remover-amigo/', views.remover_amigo, name='remover_amigo'),
+    
+    # URLs de Notificações
+    path('api/notificacoes/', views.buscar_notificacoes, name='buscar_notificacoes'),
 ]

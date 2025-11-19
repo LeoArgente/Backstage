@@ -598,15 +598,52 @@ def lists(request):
     return render(request, "backstage/lists.html", context)
 
 def movies(request):
-
     try:
-        filmes = buscar_filmes_populares()
-    except:
+        # Obter parâmetros de filtro
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB
+        generos_map = {
+            'action': 28,
+            'adventure': 12,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 878,
+            'thriller': 53,
+            'horror': 27,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 14,
+            'history': 36,
+            'music': 10402,
+            'mystery': 9648,
+            'war': 10752,
+            'western': 37
+        }
+
+        # Buscar filmes conforme filtros
+        from .services.tmdb import buscar_filmes_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        filmes = buscar_filmes_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+    except Exception as e:
+        print(f"Erro ao buscar filmes: {e}")
         filmes = []
 
     context = {
         'filmes': filmes,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'genero_atual': genero,
+        'ordenacao_atual': ordenacao
     }
     return render(request, "backstage/movies.html", context)
 
@@ -614,15 +651,54 @@ def noticias(request):
     return render(request, "backstage/noticias.html")
 
 def series(request):
-
     try:
-        series_list = buscar_series_populares()
-    except:
+        # Obter parâmetros de filtro
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB (séries)
+        generos_map = {
+            'action': 10759,  # Action & Adventure
+            'adventure': 10759,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 10765,  # Sci-Fi & Fantasy
+            'thriller': 9648,  # Mystery
+            'horror': 9648,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 10765,
+            'reality': 10764,
+            'news': 10763,
+            'kids': 10762,
+            'soap': 10766,
+            'talk': 10767,
+            'western': 37,
+            'war': 10768
+        }
+
+        # Buscar séries conforme filtros
+        from .services.tmdb import buscar_series_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        series_list = buscar_series_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+    except Exception as e:
+        print(f"Erro ao buscar séries: {e}")
         series_list = []
 
     context = {
         'series': series_list,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'genero_atual': genero,
+        'ordenacao_atual': ordenacao
     }
     return render(request, "backstage/series.html", context)
 

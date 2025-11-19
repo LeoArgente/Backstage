@@ -204,6 +204,96 @@ def buscar_series_populares(page=1):
         'nota_tmdb': serie.get('vote_average')
     } for serie in series]
 
+def buscar_filmes_por_filtros(genero_id=None, ordenacao='popular', page=1):
+    """
+    Busca filmes com filtros de gênero e ordenação
+    genero_id: ID do gênero da TMDB (None para todos)
+    ordenacao: 'popular', 'rating', 'recent', 'alphabetical'
+    """
+    params = {
+        "language": "pt-BR",
+        "page": page,
+        "region": "BR"
+    }
+
+    # Adicionar filtro de gênero se especificado
+    if genero_id:
+        params["with_genres"] = genero_id
+
+    # Definir endpoint e ordenação conforme tipo
+    if ordenacao == 'rating':
+        params["sort_by"] = "vote_average.desc"
+        params["vote_count.gte"] = 100  # Filtrar filmes com pelo menos 100 votos
+        endpoint = "/discover/movie"
+    elif ordenacao == 'recent':
+        params["sort_by"] = "release_date.desc"
+        endpoint = "/discover/movie"
+    elif ordenacao == 'alphabetical':
+        params["sort_by"] = "title.asc"
+        endpoint = "/discover/movie"
+    else:  # popular (padrão)
+        params["sort_by"] = "popularity.desc"
+        endpoint = "/discover/movie"
+
+    data = _get(endpoint, params=params)
+    filmes = data.get("results", [])
+
+    # Padronizar campos
+    return [{
+        'tmdb_id': filme.get('id'),
+        'titulo': filme.get('title'),
+        'sinopse': filme.get('overview'),
+        'poster_path': filme.get('poster_path'),
+        'backdrop_path': filme.get('backdrop_path'),
+        'ano_lancamento': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+        'nota_tmdb': filme.get('vote_average')
+    } for filme in filmes]
+
+def buscar_series_por_filtros(genero_id=None, ordenacao='popular', page=1):
+    """
+    Busca séries com filtros de gênero e ordenação
+    genero_id: ID do gênero da TMDB (None para todos)
+    ordenacao: 'popular', 'rating', 'recent', 'alphabetical'
+    """
+    params = {
+        "language": "pt-BR",
+        "page": page,
+        "region": "BR"
+    }
+
+    # Adicionar filtro de gênero se especificado
+    if genero_id:
+        params["with_genres"] = genero_id
+
+    # Definir endpoint e ordenação conforme tipo
+    if ordenacao == 'rating':
+        params["sort_by"] = "vote_average.desc"
+        params["vote_count.gte"] = 100  # Filtrar séries com pelo menos 100 votos
+        endpoint = "/discover/tv"
+    elif ordenacao == 'recent':
+        params["sort_by"] = "first_air_date.desc"
+        endpoint = "/discover/tv"
+    elif ordenacao == 'alphabetical':
+        params["sort_by"] = "name.asc"
+        endpoint = "/discover/tv"
+    else:  # popular (padrão)
+        params["sort_by"] = "popularity.desc"
+        endpoint = "/discover/tv"
+
+    data = _get(endpoint, params=params)
+    series = data.get("results", [])
+
+    # Padronizar campos
+    return [{
+        'tmdb_id': serie.get('id'),
+        'titulo': serie.get('name'),
+        'sinopse': serie.get('overview'),
+        'poster_path': serie.get('poster_path'),
+        'backdrop_path': serie.get('backdrop_path'),
+        'ano_lancamento': serie.get('first_air_date', '')[:4] if serie.get('first_air_date') else '',
+        'nota_tmdb': serie.get('vote_average')
+    } for serie in series]
+
 def montar_payload_agregado(id_tmdb: int, region: str = None):
     region = region or getattr(settings, "TMDB_DEFAULT_REGION", "BR")
 

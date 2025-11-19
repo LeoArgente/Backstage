@@ -80,4 +80,8 @@ urlpatterns = [
     
     # URLs de Notificações
     path('api/notificacoes/', views.buscar_notificacoes, name='buscar_notificacoes'),
+
+    # URLs de Likes
+    path('api/critica/<int:critica_id>/like/', views.toggle_like_critica, name='toggle_like_critica'),
+    path('api/critica-serie/<int:critica_id>/like/', views.toggle_like_critica_serie, name='toggle_like_critica_serie'),
 ]

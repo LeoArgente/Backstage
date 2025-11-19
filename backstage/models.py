@@ -290,3 +290,47 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
+
+class LikeCritica(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='likes_criticas'
+    )
+    critica = models.ForeignKey(
+        Critica,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'critica')
+        verbose_name = "Like em Crítica"
+        verbose_name_plural = "Likes em Críticas"
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} curtiu crítica de {self.critica.usuario.username}"
+
+class LikeCriticaSerie(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='likes_criticas_serie'
+    )
+    critica = models.ForeignKey(
+        CriticaSerie,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'critica')
+        verbose_name = "Like em Crítica de Série"
+        verbose_name_plural = "Likes em Críticas de Séries"
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} curtiu crítica de série de {self.critica.usuario.username}"

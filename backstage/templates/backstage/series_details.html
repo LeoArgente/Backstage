@@ -372,6 +372,14 @@
                   </div>
                 </div>
                 <p class="review-text">{{ critica.texto }}</p>
+                <div class="review-actions">
+                  <button class="review-action like-btn {% if critica.usuario_deu_like %}liked{% endif %}"
+                          data-critica-id="{{ critica.id }}"
+                          onclick="toggleLikeSerie(this)">
+                    👍 <span class="like-count">{{ critica.total_likes|default:0 }}</span>
+                  </button>
+                  <button class="review-action">💬 0</button>
+                </div>
               </article>
               {% empty %}
               <div class="no-reviews">
@@ -937,6 +945,91 @@
       // Inicializar sistema de estrelas
       syncStarRating();
     });
+  </script>
+
+  <!-- CSS para Sistema de Likes -->
+  <style>
+    .like-btn {
+      transition: all 0.3s ease;
+    }
+
+    .like-btn.liked {
+      color: #3b82f6 !important;
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .like-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .like-count {
+      margin-left: 4px;
+    }
+  </style>
+
+  <!-- JavaScript para Sistema de Likes em Séries -->
+  <script>
+    // Função para toggle de like em críticas de séries
+    function toggleLikeSerie(button) {
+      const criticaId = button.dataset.criticaId;
+      const likeCountSpan = button.querySelector('.like-count');
+
+      // Fazer requisição AJAX
+      fetch(`/api/critica-serie/${criticaId}/like/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => {
+        if (response.status === 401) {
+          // Usuário não está autenticado, redirecionar para login
+          window.location.href = '/login/';
+          return null;
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data) return; // Se redirecionou, não processar
+
+        if (data.success) {
+          // Atualizar contagem de likes
+          likeCountSpan.textContent = data.total_likes;
+
+          // Atualizar classe liked
+          if (data.liked) {
+            button.classList.add('liked');
+          } else {
+            button.classList.remove('liked');
+          }
+        } else {
+          console.error('Erro ao processar like:', data.message);
+          alert('Erro ao processar like. Tente novamente.');
+        }
+      })
+      .catch(error => {
+        console.error('Erro na requisição:', error);
+        alert('Erro ao processar like. Tente novamente.');
+      });
+    }
+
+    // Função auxiliar para obter CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
   </script>
 
   {% include 'backstage/_mobile_search.html' %}

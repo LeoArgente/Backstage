@@ -865,19 +865,66 @@ function expandImage(imageUrl) {
 
 // ===== Additional Interactive Features =====
 
-// Review actions
-document.addEventListener('click', (e) => {
-  if (e.target.closest('.review-action')) {
-    const button = e.target.closest('.review-action');
-    
-    if (button.textContent.includes('👍')) {
-      // Handle like action
-      const currentLikes = parseInt(button.textContent.match(/\d+/)[0]);
-      button.textContent = `👍 ${currentLikes + 1}`;
-      button.style.color = 'var(--blue)';
+// ===== Like System for Reviews =====
+function toggleLike(button) {
+  const criticaId = button.dataset.criticaId;
+  const likeCountSpan = button.querySelector('.like-count');
+
+  // Fazer requisição AJAX
+  fetch(`/api/critica/${criticaId}/like/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    }
+  })
+  .then(response => {
+    if (response.status === 401) {
+      // Usuário não está autenticado, redirecionar para login
+      window.location.href = '/login/';
+      return null;
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (!data) return; // Se redirecionou, não processar
+
+    if (data.success) {
+      // Atualizar contagem de likes
+      likeCountSpan.textContent = data.total_likes;
+
+      // Atualizar classe liked
+      if (data.liked) {
+        button.classList.add('liked');
+      } else {
+        button.classList.remove('liked');
+      }
+    } else {
+      console.error('Erro ao processar like:', data.message);
+      alert('Erro ao processar like. Tente novamente.');
+    }
+  })
+  .catch(error => {
+    console.error('Erro na requisição:', error);
+    alert('Erro ao processar like. Tente novamente.');
+  });
+}
+
+// Função auxiliar para obter CSRF token
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
     }
   }
-});
+  return cookieValue;
+}
 
 // Media item interactions
 document.addEventListener('click', (e) => {

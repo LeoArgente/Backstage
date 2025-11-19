@@ -32,7 +32,7 @@ from .services.tmdb import (
     buscar_filme_por_titulo,
 )
 #####################
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from rapidfuzz import fuzz
 
@@ -654,8 +654,22 @@ def detalhes_filme(request, tmdb_id):
             'descricao': dados_filme.get('sinopse', ''),
         })
 
-    # Buscar críticas locais
-    criticas = Critica.objects.filter(filme=filme_local)
+    # Buscar críticas locais com contagem de likes
+    from .models import LikeCritica
+    criticas = Critica.objects.filter(filme=filme_local).annotate(
+        total_likes=Count('likes', distinct=True)
+    )
+
+    # Adicionar informação se o usuário atual deu like em cada crítica
+    if request.user.is_authenticated:
+        for critica in criticas:
+            critica.usuario_deu_like = LikeCritica.objects.filter(
+                usuario=request.user,
+                critica=critica
+            ).exists()
+    else:
+        for critica in criticas:
+            critica.usuario_deu_like = False
 
     # Passar dados de crew e cast para o JavaScript via JSON
     # Garantir que sempre sejam listas válidas, mesmo que vazias
@@ -1249,8 +1263,22 @@ def detalhes_serie(request, tmdb_id):
         }
     )
     
-    # Buscar críticas locais
-    criticas = CriticaSerie.objects.filter(serie=serie_local).order_by('-criado_em')
+    # Buscar críticas locais com contagem de likes
+    from .models import LikeCriticaSerie
+    criticas = CriticaSerie.objects.filter(serie=serie_local).annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+
+    # Adicionar informação se o usuário atual deu like em cada crítica
+    if request.user.is_authenticated:
+        for critica in criticas:
+            critica.usuario_deu_like = LikeCriticaSerie.objects.filter(
+                usuario=request.user,
+                critica=critica
+            ).exists()
+    else:
+        for critica in criticas:
+            critica.usuario_deu_like = False
 
     # Converter temporadas e vídeos para JSON
     import json
@@ -2315,10 +2343,10 @@ def calcular_tempo_relativo(data):
     """Calcula o tempo relativo desde uma data"""
     from django.utils import timezone
     from datetime import timedelta
-    
+
     agora = timezone.now()
     diferenca = agora - data
-    
+
     if diferenca < timedelta(minutes=1):
         return 'agora'
     elif diferenca < timedelta(hours=1):
@@ -2332,3 +2360,91 @@ def calcular_tempo_relativo(data):
         return f'há {dias}d'
     else:
         return data.strftime('%d/%m/%Y')
+
+# ==================== LIKES SYSTEM ====================
+
+@api_login_required
+@require_http_methods(['POST'])
+def toggle_like_critica(request, critica_id):
+    """API para dar ou remover like de uma crítica"""
+    try:
+        from .models import LikeCritica, Critica
+
+        # Buscar a crítica
+        critica = get_object_or_404(Critica, id=critica_id)
+
+        # Verificar se o usuário já deu like
+        like_existente = LikeCritica.objects.filter(
+            usuario=request.user,
+            critica=critica
+        ).first()
+
+        if like_existente:
+            # Remover like (toggle off)
+            like_existente.delete()
+            liked = False
+        else:
+            # Adicionar like (toggle on)
+            LikeCritica.objects.create(
+                usuario=request.user,
+                critica=critica
+            )
+            liked = True
+
+        # Contar total de likes
+        total_likes = critica.likes.count()
+
+        return JsonResponse({
+            'success': True,
+            'liked': liked,
+            'total_likes': total_likes
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao processar like: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['POST'])
+def toggle_like_critica_serie(request, critica_id):
+    """API para dar ou remover like de uma crítica de série"""
+    try:
+        from .models import LikeCriticaSerie, CriticaSerie
+
+        # Buscar a crítica
+        critica = get_object_or_404(CriticaSerie, id=critica_id)
+
+        # Verificar se o usuário já deu like
+        like_existente = LikeCriticaSerie.objects.filter(
+            usuario=request.user,
+            critica=critica
+        ).first()
+
+        if like_existente:
+            # Remover like (toggle off)
+            like_existente.delete()
+            liked = False
+        else:
+            # Adicionar like (toggle on)
+            LikeCriticaSerie.objects.create(
+                usuario=request.user,
+                critica=critica
+            )
+            liked = True
+
+        # Contar total de likes
+        total_likes = critica.likes.count()
+
+        return JsonResponse({
+            'success': True,
+            'liked': liked,
+            'total_likes': total_likes
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao processar like: {str(e)}'
+        }, status=500)

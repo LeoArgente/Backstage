@@ -448,7 +448,11 @@
                   {% endif %}
                 </p>
                 <div class="review-actions">
-                  <button class="review-action">👍 0</button>
+                  <button class="review-action like-btn {% if critica.usuario_deu_like %}liked{% endif %}"
+                          data-critica-id="{{ critica.id }}"
+                          onclick="toggleLike(this)">
+                    👍 <span class="like-count">{{ critica.total_likes|default:0 }}</span>
+                  </button>
                   <button class="review-action">💬 0</button>
                 </div>
               </article>
@@ -1047,6 +1051,27 @@ document.addEventListener('DOMContentLoaded', function() {
     initListPopup();
 });
 </script>
+
+<!-- CSS para Sistema de Likes -->
+<style>
+  .like-btn {
+    transition: all 0.3s ease;
+  }
+
+  .like-btn.liked {
+    color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .like-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .like-count {
+    margin-left: 4px;
+  }
+</style>
 
 <!-- CSS para Menu de Usuário -->
 <style>

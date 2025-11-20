@@ -19,6 +19,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Check URL hash and open corresponding tab
+  const hash = window.location.hash.substring(1); // Remove '#' from hash
+  if (hash === 'buscar') {
+    // Use setTimeout to ensure DOM is fully ready
+    setTimeout(() => {
+      const buscarTab = document.querySelector('[data-tab="buscar"]');
+      if (buscarTab) {
+        // Manually trigger tab change
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        buscarTab.classList.add('active');
+        const buscarContent = document.getElementById('buscar');
+        if (buscarContent) {
+          buscarContent.classList.add('active');
+        }
+
+        // Remove hash from URL without reloading the page
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }, 100);
+  }
+
   // Search on Enter key
   const searchInput = document.getElementById('searchFriendsInput');
   if (searchInput) {

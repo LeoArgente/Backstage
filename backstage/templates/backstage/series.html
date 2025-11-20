@@ -143,11 +143,11 @@
     <section class="series-grid-section">
       <div class="series-grid" id="series-grid">
         {% for serie in series %}
-        <div class="series-card" onclick="window.location.href='{% url 'backstage:detalhes_serie' serie.tmdb_id %}'" style="cursor: pointer;">
-          <div class="series-poster">
+        <div class="movie-card" onclick="window.location.href='{% url 'backstage:detalhes_serie' serie.tmdb_id %}'" style="cursor: pointer;">
+          <div class="movie-card-poster">
             <img src="{{ tmdb_image_base }}w500{{ serie.poster_path }}" alt="{{ serie.titulo }}" />
-            <div class="series-overlay">
-              <div class="series-rating">
+            <div class="movie-card-overlay">
+              <div class="movie-card-rating">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
@@ -155,9 +155,9 @@
               </div>
             </div>
           </div>
-          <div class="series-info">
-            <h3 class="series-title">{{ serie.titulo }}</h3>
-            <span class="series-year">{{ serie.ano_lancamento }}</span>
+          <div class="movie-card-info">
+            <h3 class="movie-card-title">{{ serie.titulo }}</h3>
+            <span class="movie-card-year">{{ serie.ano_lancamento }}</span>
           </div>
         </div>
         {% empty %}

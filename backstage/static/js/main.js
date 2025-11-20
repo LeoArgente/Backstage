@@ -621,121 +621,127 @@ function createMovieCard(movie) {
 // ===== Carousel Controls =====
 function initCarouselControls() {
   const carousels = document.querySelectorAll('.carousel');
-  
+
   carousels.forEach(carousel => {
     const track = carousel.querySelector('.carousel-track');
     const prevBtn = carousel.querySelector('.carousel-btn.prev');
     const nextBtn = carousel.querySelector('.carousel-btn.next');
-    
+
     if (!track) return;
-    
-    // Configurar scroll suave nativo
+
+    // Use native smooth scroll (more reliable)
     track.style.scrollBehavior = 'smooth';
-    
-    // Auto-scroll functionality com animação suave e contínua
+
+    // Auto-scroll state
     let autoScrollInterval = null;
-    let isScrolling = false;
-    
-    const smoothScroll = (distance, duration) => {
-      return new Promise((resolve) => {
-        const start = track.scrollLeft;
-        const startTime = performance.now();
-        
-        const easeInOutCubic = (t) => {
-          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        };
-        
-        const animateScroll = (currentTime) => {
-          const elapsed = currentTime - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          const easeProgress = easeInOutCubic(progress);
-          
-          track.scrollLeft = start + (distance * easeProgress);
-          
-          if (progress < 1) {
-            requestAnimationFrame(animateScroll);
-          } else {
-            isScrolling = false;
-            resolve();
-          }
-        };
-        
-        isScrolling = true;
-        requestAnimationFrame(animateScroll);
-      });
-    };
-    
+    let isUserInteracting = false;
+
     const startAutoScroll = () => {
-      autoScrollInterval = setInterval(async () => {
-        if (isScrolling) return;
-        
-        const cardWidth = 240; // Largura do card
+      // Clear any existing interval first
+      if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+      }
+
+      autoScrollInterval = setInterval(() => {
+        if (isUserInteracting) return;
+
+        const cardWidth = 240; // Width of one card
+        const gap = 20; // Gap between cards
+        const scrollAmount = cardWidth + gap;
         const maxScroll = track.scrollWidth - track.clientWidth;
-        
-        if (track.scrollLeft >= maxScroll - 10) {
-          // Volta suavemente para o início
-          await smoothScroll(-track.scrollLeft, 1200);
+
+        // Check if at the end
+        if (track.scrollLeft >= maxScroll - 5) {
+          // Smoothly return to start
+          track.scrollLeft = 0;
         } else {
-          // Avança suavemente um card por vez
-          await smoothScroll(cardWidth, 800);
+          // Scroll one card forward
+          track.scrollLeft += scrollAmount;
         }
-      }, 4000);
+      }, 3000); // Scroll every 3 seconds
     };
-    
+
     const stopAutoScroll = () => {
       if (autoScrollInterval) {
         clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
       }
     };
-    
-    // Start auto-scroll
-    startAutoScroll();
-    
-    // Pause on hover
-    carousel.addEventListener('mouseenter', stopAutoScroll);
-    carousel.addEventListener('mouseleave', startAutoScroll);
-    
-    // Manual controls com feedback visual melhorado
+
+    // Pause auto-scroll on hover
+    carousel.addEventListener('mouseenter', () => {
+      isUserInteracting = true;
+      stopAutoScroll();
+    });
+
+    carousel.addEventListener('mouseleave', () => {
+      isUserInteracting = false;
+      startAutoScroll();
+    });
+
+    // Manual navigation buttons
     if (prevBtn) {
-      prevBtn.addEventListener('click', async () => {
+      prevBtn.addEventListener('click', () => {
         stopAutoScroll();
-        await smoothScroll(-720, 600); // 3 cards para trás
-        setTimeout(startAutoScroll, 5000);
+        isUserInteracting = true;
+
+        const scrollAmount = 720; // 3 cards
+        track.scrollLeft -= scrollAmount;
+
+        // Resume auto-scroll after 5 seconds
+        setTimeout(() => {
+          isUserInteracting = false;
+          startAutoScroll();
+        }, 5000);
       });
     }
-    
+
     if (nextBtn) {
-      nextBtn.addEventListener('click', async () => {
+      nextBtn.addEventListener('click', () => {
         stopAutoScroll();
-        await smoothScroll(720, 600); // 3 cards para frente
-        setTimeout(startAutoScroll, 5000);
+        isUserInteracting = true;
+
+        const scrollAmount = 720; // 3 cards
+        track.scrollLeft += scrollAmount;
+
+        // Resume auto-scroll after 5 seconds
+        setTimeout(() => {
+          isUserInteracting = false;
+          startAutoScroll();
+        }, 5000);
       });
     }
-    
+
     // Update button visibility based on scroll position
     const updateButtonVisibility = () => {
-      if (prevBtn) {
-        // Esconde o botão esquerdo quando está no início
-        if (track.scrollLeft <= 10) {
-          prevBtn.classList.add('hidden');
-        } else {
-          prevBtn.classList.remove('hidden');
-        }
+      if (!prevBtn || !nextBtn) return;
+
+      const maxScroll = track.scrollWidth - track.clientWidth;
+
+      // Show/hide prev button
+      if (track.scrollLeft <= 5) {
+        prevBtn.classList.add('hidden');
+      } else {
+        prevBtn.classList.remove('hidden');
       }
-      if (nextBtn) {
-        const maxScroll = track.scrollWidth - track.clientWidth;
-        // Esconde o botão direito quando chega ao fim
-        if (track.scrollLeft >= maxScroll - 10) {
-          nextBtn.classList.add('hidden');
-        } else {
-          nextBtn.classList.remove('hidden');
-        }
+
+      // Show/hide next button
+      if (track.scrollLeft >= maxScroll - 5) {
+        nextBtn.classList.add('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
       }
     };
-    
+
+    // Listen to scroll events
     track.addEventListener('scroll', updateButtonVisibility);
-    // Verifica visibilidade inicial
-    setTimeout(updateButtonVisibility, 100);
+
+    // Initial setup
+    setTimeout(() => {
+      updateButtonVisibility();
+      startAutoScroll();
+    }, 100);
   });
 }
 
@@ -871,18 +877,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.target.onerror = () => handleImageError(e.target);
     }
   }, true);
-  
-  // Add hover effect for movie cards
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('.movie-card')) {
-      const card = e.target.closest('.movie-card');
-      const movieId = card.dataset.id;
-      
-      // Redirect to movie detail page
-      window.location.href = `/filmes/${movieId}/`;
-    }
-  });
-  
+
   // Initialize news dropdown
   initNewsDropdown();
 });

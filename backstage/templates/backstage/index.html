@@ -139,7 +139,6 @@
           </svg>
           GOATS
         </h2>
-        <a href="#" class="section-link">Ver todos →</a>
       </div>
       <div class="carousel">
         <button class="carousel-btn prev">
@@ -169,7 +168,6 @@
           </svg>
           Em Cartaz
         </h2>
-        <a href="#" class="section-link">Ver todos →</a>
       </div>
       <div class="carousel">
         <button class="carousel-btn prev">
@@ -198,7 +196,6 @@
           </svg>
           Clássicos Imperdíveis
         </h2>
-        <a href="#" class="section-link">Ver todos →</a>
       </div>
       <div class="carousel">
         <button class="carousel-btn prev">
@@ -262,7 +259,6 @@
           </svg>
           Atividade dos amigos
         </h2>
-        <a href="#" class="section-link">Ver toda atividade →</a>
       </div>
       <div class="activity-feed">
         {% if user.is_authenticated %}
@@ -287,22 +283,12 @@
             {% endfor %}
           {% else %}
             <div class="activity-empty">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
               <p>Nenhuma atividade dos seus amigos ainda.</p>
-              <a href="{% url 'backstage:amigos' %}" class="btn-primary">Adicionar Amigos</a>
+              <a href="{% url 'backstage:amigos' %}#buscar" class="btn-primary">Adicionar Amigos</a>
             </div>
           {% endif %}
         {% else %}
           <div class="activity-empty">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-            </svg>
             <p>Faça login para ver as atividades dos seus amigos!</p>
             <a href="{% url 'backstage:login' %}" class="btn-primary">Fazer Login</a>
           </div>

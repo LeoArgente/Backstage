@@ -205,6 +205,7 @@ async function initHomepage() {
 // ===== Set Featured Movies Carousel (TOP 5) =====
 let currentFeaturedIndex = 0;
 let featuredRotationInterval = null;
+let preloadedImages = new Map(); // Cache de imagens pré-carregadas
 
 async function setFeaturedMoviesCarousel() {
   const heroSection = document.querySelector('.hero');
@@ -221,12 +222,38 @@ async function setFeaturedMoviesCarousel() {
     heroSection.innerHTML = '<p>Nenhum filme disponível no momento.</p>';
     return;
   }
-  
+
   // Clear existing interval if any
   if (featuredRotationInterval) {
     clearInterval(featuredRotationInterval);
   }
-  
+
+  // Preload all hero images immediately to avoid loading flashes
+  function preloadImage(movie) {
+    return new Promise((resolve) => {
+      const imageUrl = getFullImageUrl(movie.backdrop_path, true);
+
+      // Check if already preloaded
+      if (preloadedImages.has(imageUrl)) {
+        resolve(preloadedImages.get(imageUrl));
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        preloadedImages.set(imageUrl, img);
+        resolve(img);
+      };
+      img.onerror = () => {
+        resolve(null); // Resolve anyway to not block
+      };
+      img.src = imageUrl;
+    });
+  }
+
+  // Preload all images at once
+  top5Movies.forEach(movie => preloadImage(movie));
+
   // Keep existing hero content structure
   const heroBackdropDesktop = heroSection.querySelector('.hero-backdrop-desktop');
   const heroBackdropMobile = heroSection.querySelector('.hero-backdrop-mobile');
@@ -234,113 +261,125 @@ async function setFeaturedMoviesCarousel() {
   const heroSynopsis = heroSection.querySelector('.hero-synopsis');
   const heroMeta = heroSection.querySelector('.hero-meta');
   const heroBadge = heroSection.querySelector('.hero-badge');
-  
-  // Function to update the featured movie display with ultra-smooth transition
+
+  // Get both image layers for crossfade
+  const desktopImg1 = heroBackdropDesktop?.querySelector('.hero-backdrop-img-1');
+  const desktopImg2 = heroBackdropDesktop?.querySelector('.hero-backdrop-img-2');
+  const mobileImg1 = heroBackdropMobile?.querySelector('.hero-backdrop-img-1');
+  const mobileImg2 = heroBackdropMobile?.querySelector('.hero-backdrop-img-2');
+
+  // Track which layer is currently visible
+  let currentLayer = 1; // 1 or 2
+
+  // Function to update the featured movie display with fast synchronized transitions
   function updateFeaturedMovie(index) {
     const movie = top5Movies[index];
+    const imageUrl = getFullImageUrl(movie.backdrop_path, true);
 
-    // Create subtle crossfade effect for both backdrop images (desktop and mobile)
-    if (heroBackdropDesktop) {
-      const imgElement = heroBackdropDesktop.querySelector('img');
-      if (imgElement) {
-        const newImg = new Image();
-        newImg.onload = function() {
-          // Fade out current image
-          imgElement.style.transition = 'opacity 0.5s ease';
-          imgElement.style.opacity = '0';
+    // Determine which layer to use for the new image
+    const isLayer1Active = currentLayer === 1;
+    const nextLayer = isLayer1Active ? 2 : 1;
 
-          setTimeout(() => {
-            // Update desktop backdrop (horizontal)
-            imgElement.src = getFullImageUrl(movie.backdrop_path, true);
-            imgElement.alt = movie.titulo;
-            // Fade in new image
-            imgElement.style.opacity = '1';
-          }, 500);
-        };
-        newImg.src = getFullImageUrl(movie.backdrop_path, true);
-      }
+    // Get the layers
+    const activeDesktopImg = isLayer1Active ? desktopImg1 : desktopImg2;
+    const nextDesktopImg = isLayer1Active ? desktopImg2 : desktopImg1;
+    const activeMobileImg = isLayer1Active ? mobileImg1 : mobileImg2;
+    const nextMobileImg = isLayer1Active ? mobileImg2 : mobileImg1;
+
+    // Load the new image into the hidden layer FIRST (preloaded so instant)
+    if (nextDesktopImg) {
+      nextDesktopImg.src = imageUrl;
+      nextDesktopImg.alt = movie.titulo;
+    }
+    if (nextMobileImg) {
+      nextMobileImg.src = imageUrl;
+      nextMobileImg.alt = movie.titulo;
     }
 
-    if (heroBackdropMobile) {
-      const imgElement = heroBackdropMobile.querySelector('img');
-      if (imgElement) {
-        const newImg = new Image();
-        newImg.onload = function() {
-          // Fade out current image
-          imgElement.style.transition = 'opacity 0.5s ease';
-          imgElement.style.opacity = '0';
+    // Phase 1: Fade out all elements simultaneously (faster - 300ms)
+    const fadeOutDuration = 300;
+    const transition = `opacity ${fadeOutDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
 
-          setTimeout(() => {
-            // Update mobile backdrop (mesma imagem horizontal do desktop)
-            imgElement.src = getFullImageUrl(movie.backdrop_path, true);
-            imgElement.alt = movie.titulo;
-            // Fade in new image
-            imgElement.style.opacity = '1';
-          }, 500);
-        };
-        newImg.src = getFullImageUrl(movie.backdrop_path, true);
-      }
+    // Crossfade: Fade out active layer, fade in next layer
+    if (activeDesktopImg && nextDesktopImg) {
+      activeDesktopImg.style.transition = transition;
+      nextDesktopImg.style.transition = transition;
+      activeDesktopImg.style.opacity = '0';
+      nextDesktopImg.style.opacity = '1';
     }
-    
-    // Stagger text changes for seamless transition
+
+    if (activeMobileImg && nextMobileImg) {
+      activeMobileImg.style.transition = transition;
+      nextMobileImg.style.transition = transition;
+      activeMobileImg.style.opacity = '0';
+      nextMobileImg.style.opacity = '1';
+    }
+
+    // Toggle current layer
+    currentLayer = nextLayer;
+
+    // Fade out badge
+    if (heroBadge) {
+      heroBadge.style.transition = transition;
+      heroBadge.style.transform = 'translateY(-10px)';
+      heroBadge.style.opacity = '0';
+    }
+
+    // Fade out title
+    if (heroTitle) {
+      heroTitle.style.transition = transition;
+      heroTitle.style.transform = 'translateX(-20px)';
+      heroTitle.style.opacity = '0';
+    }
+
+    // Fade out meta
+    if (heroMeta) {
+      heroMeta.style.transition = transition;
+      heroMeta.style.transform = 'scale(0.95)';
+      heroMeta.style.opacity = '0';
+    }
+
+    // Phase 2: Update text content and fade in (after fade out completes)
     setTimeout(() => {
+      // Images already updated via crossfade - no need to update here
+
+      // Update badge
       if (heroBadge) {
-        heroBadge.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-        heroBadge.style.transform = 'translateY(-10px)';
-        heroBadge.style.opacity = '0';
-        
-        setTimeout(() => {
-          heroBadge.innerHTML = `TOP ${index + 1} DE HOJE`;
-          heroBadge.style.transform = 'translateY(0)';
-          heroBadge.style.opacity = '1';
-        }, 200);
+        heroBadge.innerHTML = `TOP ${index + 1} DA SEMANA`;
+        heroBadge.style.transform = 'translateY(0)';
+        heroBadge.style.opacity = '1';
       }
-    }, 200);
-    
-    setTimeout(() => {
-      if (heroTitle) {
-        heroTitle.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-        heroTitle.style.transform = 'translateX(-20px)';
-        heroTitle.style.opacity = '0';
-        
-        setTimeout(() => {
-          heroTitle.textContent = movie.titulo;
-          heroTitle.style.transform = 'translateX(0)';
-          heroTitle.style.opacity = '1';
-        }, 200);
-      }
-    }, 400);
-    
-    // Sinopse removida da hero section
-    
-    setTimeout(() => {
-      if (heroMeta) {
-        heroMeta.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-        heroMeta.style.transform = 'scale(0.95)';
-        heroMeta.style.opacity = '0';
-        
-        setTimeout(() => {
-          // Converter nota da escala 10 para escala 5 com 1 casa decimal
-          const notaEscala10 = movie.nota || movie.nota_estrelas * 2 || 0;
-          const notaEscala5 = (notaEscala10 / 2).toFixed(1);
 
-          heroMeta.innerHTML = `
-            <span class="hero-year">${movie.ano}</span>
-            <span class="hero-duration">${movie.duracao}</span>
-            <span class="hero-rating">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              ${notaEscala5}
-            </span>
-          `;
-          heroMeta.style.transform = 'scale(1)';
-          heroMeta.style.opacity = '1';
-        }, 200);
+      // Update title
+      if (heroTitle) {
+        heroTitle.textContent = movie.titulo;
+        heroTitle.style.transform = 'translateX(0)';
+        heroTitle.style.opacity = '1';
       }
-    }, 800);
-    
-    updateIndicators(index);
+
+      // Update meta
+      if (heroMeta) {
+        // Converter nota da escala 10 para escala 5 com 1 casa decimal
+        const notaEscala10 = movie.nota || movie.nota_estrelas * 2 || 0;
+        const notaEscala5 = (notaEscala10 / 2).toFixed(1);
+
+        heroMeta.innerHTML = `
+          <span class="hero-year">${movie.ano || '2024'}</span>
+          ${movie.duracao ? `<span class="hero-duration">${movie.duracao}</span>` : ''}
+          <span class="hero-rating">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            ${notaEscala5}
+          </span>
+        `;
+        heroMeta.style.transform = 'scale(1)';
+        heroMeta.style.opacity = '1';
+      }
+
+      // Update indicators
+      updateIndicators(index);
+    }, fadeOutDuration);
   }
   
   // Add navigation indicators
@@ -362,11 +401,8 @@ async function setFeaturedMoviesCarousel() {
       const index = parseInt(indicator.dataset.index);
       currentFeaturedIndex = index;
       updateFeaturedMovie(index);
-      
-      // Reset the interval
-      if (featuredRotationInterval) {
-        clearInterval(featuredRotationInterval);
-      }
+
+      // Reset the interval (startRotation already clears old interval)
       startRotation();
     });
   });
@@ -385,6 +421,12 @@ async function setFeaturedMoviesCarousel() {
   
   // Function to start automatic rotation
   function startRotation() {
+    // IMPORTANT: Always clear existing interval first to prevent multiple intervals
+    if (featuredRotationInterval) {
+      clearInterval(featuredRotationInterval);
+      featuredRotationInterval = null;
+    }
+
     featuredRotationInterval = setInterval(() => {
       currentFeaturedIndex = (currentFeaturedIndex + 1) % top5Movies.length;
       updateFeaturedMovie(currentFeaturedIndex);
@@ -436,8 +478,9 @@ async function setFeaturedMoviesCarousel() {
   heroSection.addEventListener('mouseenter', () => {
     if (featuredRotationInterval) {
       clearInterval(featuredRotationInterval);
+      featuredRotationInterval = null;
     }
-    
+
     // Show click overlay apenas
     const overlay = heroSection.querySelector('.hero-click-overlay');
     if (overlay) {

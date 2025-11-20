@@ -485,6 +485,17 @@ def obter_trending(limit=20, usar_cache=True):
     # Formatar
     trending_movies = []
     for filme in filmes:
+        # Buscar detalhes do filme para obter duração e gêneros
+        duracao_formatada = ""
+        generos = []
+        try:
+            detalhes = buscar_detalhes_filme(filme.get('id'))
+            duracao_min = detalhes.get('runtime')
+            duracao_formatada = formatar_duracao(duracao_min)
+            generos = [g['name'] for g in detalhes.get('genres', [])]
+        except:
+            pass
+
         trending_movies.append({
             'tmdb_id': filme.get('id'),
             'titulo': filme.get('title'),
@@ -494,7 +505,8 @@ def obter_trending(limit=20, usar_cache=True):
             'poster_path': filme.get('poster_path'),
             'backdrop_path': filme.get('backdrop_path'),
             'sinopse': filme.get('overview', ''),
-            'generos': []  # Seria necessário buscar detalhes para ter gêneros
+            'generos': generos,
+            'duracao': duracao_formatada
         })
 
     # Salvar no cache

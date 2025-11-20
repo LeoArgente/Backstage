@@ -73,27 +73,33 @@
 
 <!-- Hero Section -->
   <section class="hero">
-    {% if filme_destaque %}
+    <!-- Desktop backdrop with dual layers for smooth crossfade -->
     <div class="hero-backdrop-desktop">
-      <img src="{{ tmdb_image_base }}original{{ filme_destaque.backdrop_path|default:filme_destaque.poster_path }}" alt="{{ filme_destaque.titulo }}" />
+      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
+      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
       <div class="hero-gradient"></div>
     </div>
+
+    <!-- Mobile backdrop with dual layers for smooth crossfade -->
     <div class="hero-backdrop-mobile">
-      <img src="{{ tmdb_image_base }}original{{ filme_destaque.backdrop_path|default:filme_destaque.poster_path }}" alt="{{ filme_destaque.titulo }}" />
+      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
+      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
       <div class="hero-gradient"></div>
     </div>
+
+    <!-- Hero content -->
     <div class="container hero-content">
       <div class="hero-info">
-        <span class="hero-badge">Em Destaque</span>
-        <h1 class="hero-title">{{ filme_destaque.titulo }}</h1>
+        <span class="hero-badge">Carregando...</span>
+        <h1 class="hero-title">Carregando os filmes em alta...</h1>
         <div class="hero-meta">
-          <span class="hero-year">{{ filme_destaque.ano_lancamento|default:"2024" }}</span>
-          <span class="hero-duration">{{ filme_destaque.duracao_min|default:"120" }} min</span>
+          <span class="hero-year">2024</span>
+          <span class="hero-duration">120 min</span>
           <span class="hero-rating">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            {{ filme_destaque.nota_escala_5|default:"4.0" }}
+            4.5
           </span>
         </div>
         <div class="hero-actions">
@@ -117,22 +123,9 @@
         </div>
       </div>
     </div>
-    {% else %}
-    <div class="hero-backdrop-desktop">
-      <div class="hero-gradient"></div>
-    </div>
-    <div class="hero-backdrop-mobile">
-      <div class="hero-gradient"></div>
-    </div>
-    <div class="container hero-content">
-      <div class="hero-info">
-        <h1 class="hero-title">Bem-vindo ao Backstage</h1>
-        <p class="hero-synopsis">
-          Descubra os melhores filmes e séries.
-        </p>
-      </div>
-    </div>
-    {% endif %}
+
+    <!-- Navigation indicators (will be populated by JS) -->
+    <div class="hero-indicators"></div>
   </section>
 
   <main class="container">

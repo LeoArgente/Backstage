@@ -1654,6 +1654,8 @@ def buscar_sugestoes(request):
 @login_required(login_url='backstage:login')
 def perfil(request, username=None):
     """Página de perfil do usuário"""
+    from .services.tmdb import buscar_detalhes_filme, buscar_detalhes_serie
+    
     if username:
         usuario_perfil = get_object_or_404(User, username=username)
     else:
@@ -1661,9 +1663,40 @@ def perfil(request, username=None):
     
     is_own_profile = (request.user == usuario_perfil)
     
-    # Buscar reviews do usuário (mostrando 12 em vez de 6)
-    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').order_by('-criado_em')[:12]
-    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').order_by('-criado_em')[:12]
+    # Buscar reviews do usuário com contagem de likes
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')[:12]
+    
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')[:12]
+    
+    # Enriquecer críticas de filmes com dados do TMDB
+    for critica in criticas_filmes:
+        if critica.filme.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_filme(critica.filme.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.filme.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('release_date'):
+                    from datetime import datetime
+                    critica.filme.data_lancamento = datetime.strptime(detalhes['release_date'], '%Y-%m-%d').date()
+            except:
+                pass
+    
+    # Enriquecer críticas de séries com dados do TMDB
+    for critica in criticas_series:
+        if critica.serie.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_serie(critica.serie.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.serie.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('first_air_date'):
+                    from datetime import datetime
+                    critica.serie.data_primeira_exibicao = datetime.strptime(detalhes['first_air_date'], '%Y-%m-%d').date()
+            except:
+                pass
     
     # Buscar listas - se for perfil de amigo, mostrar todas as listas públicas
     listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itens__filme').order_by('-atualizada_em')

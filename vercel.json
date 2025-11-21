@@ -1,4 +1,5 @@
 {
+    "buildCommand": "bash build.sh",
     "builds": [{
       "src": "setup/wsgi.py",
       "use": "@vercel/python",

@@ -188,3 +188,5 @@ cython_debug/
 
 # Cypress
 node_modules/
+
+staticfiles/

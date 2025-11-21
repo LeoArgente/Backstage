@@ -24,6 +24,7 @@ urlpatterns = [
     path("pesquisar/", views.barra_buscar, name="barra_buscar"),
     path("filmes/<int:tmdb_id>/relatorio/", views.relatorio, name="relatorio"),
     path('api/filmes-home/', views.filmes_home, name='filmes_home'),
+    path('api/filmes/', views.filmes_api, name='filmes_api'),
     path('api/filme/<int:tmdb_id>/videos/', views.filme_videos, name='filme_videos'),
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
@@ -52,6 +53,7 @@ urlpatterns = [
     path('criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
     path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
     path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
+    path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
     
     # APIs de Chat da Comunidade

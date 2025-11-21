@@ -614,6 +614,33 @@ def sair_comunidade(request):
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
+def deletar_comunidade(request):
+    """API para deletar uma comunidade (apenas criador)"""
+    try:
+        data = json.loads(request.body)
+        slug = data.get('slug')
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é o criador
+        if comunidade.criador != request.user:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Apenas o criador pode deletar a comunidade.'
+            }, status=403)
+        
+        nome_comunidade = comunidade.nome
+        comunidade.delete()  # Isso deletará em cascata membros e mensagens
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Comunidade "{nome_comunidade}" deletada com sucesso.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
 def convidar_amigo(request):
     """API para convidar amigo via email"""
     try:
@@ -1076,6 +1103,68 @@ def filme_videos(request, tmdb_id):
             'success': False,
             'error': str(e),
             'videos': []
+        }, status=500)
+
+
+def filmes_api(request):
+    """API endpoint para carregar filmes com paginação"""
+    try:
+        # Obter parâmetros
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB
+        generos_map = {
+            'action': 28,
+            'adventure': 12,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 878,
+            'thriller': 53,
+            'horror': 27,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 14,
+            'history': 36,
+            'music': 10402,
+            'mystery': 9648,
+            'war': 10752,
+            'western': 37
+        }
+
+        # Buscar filmes conforme filtros
+        from .services.tmdb import buscar_filmes_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        filmes = buscar_filmes_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+        
+        # Verificar se há mais filmes
+        # A API da TMDB geralmente retorna 20 filmes por página, até 500 páginas
+        has_more = len(filmes) > 0 and page < 500
+
+        return JsonResponse({
+            'success': True,
+            'filmes': filmes,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar filmes na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'filmes': [],
+            'has_more': False
         }, status=500)
 
 

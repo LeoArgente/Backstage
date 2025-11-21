@@ -899,3 +899,21 @@ def buscar_serie_por_titulo(query, page=1):
         'nota_tmdb': serie.get('vote_average'),
         'tipo': 'serie'
     } for serie in series]
+
+
+def obter_videos_filme(tmdb_id):
+    """Busca vídeos (trailers, teasers, etc) de um filme"""
+    try:
+        # Buscar vídeos do filme
+        data = _get(f"/movie/{tmdb_id}/videos", params={"language": "pt-BR"})
+        videos = data.get('results', [])
+        
+        # Se não houver vídeos em português, buscar em inglês
+        if not videos:
+            data = _get(f"/movie/{tmdb_id}/videos", params={"language": "en-US"})
+            videos = data.get('results', [])
+        
+        return videos
+    except Exception as e:
+        print(f"Erro ao buscar vídeos do filme {tmdb_id}: {str(e)}")
+        return []

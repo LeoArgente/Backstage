@@ -24,6 +24,7 @@ urlpatterns = [
     path("pesquisar/", views.barra_buscar, name="barra_buscar"),
     path("filmes/<int:tmdb_id>/relatorio/", views.relatorio, name="relatorio"),
     path('api/filmes-home/', views.filmes_home, name='filmes_home'),
+    path('api/filmes/', views.filmes_api, name='filmes_api'),
     path('api/filme/<int:tmdb_id>/videos/', views.filme_videos, name='filme_videos'),
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),

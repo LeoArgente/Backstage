@@ -1145,22 +1145,17 @@
 }
 
 .social-link {
-  background: var(--surface);
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
   transition: all var(--transition-base);
-  border: 1px solid var(--border);
 }
 
 .social-link:hover {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
   color: white;
-  border-color: #dc2626;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }

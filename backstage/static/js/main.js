@@ -604,7 +604,7 @@ function createMovieCard(movie) {
   const notaEscala5 = (notaEscala10 / 2).toFixed(1);
 
   return `
-    <div class="movie-card" data-id="${movie.tmdb_id}">
+    <div class="movie-card" data-id="${movie.tmdb_id}" onclick="window.location.href='/filmes/${movie.tmdb_id}/'">
       <div class="movie-card-poster">
         <img src="${posterUrl}" alt="${movie.titulo}" loading="lazy" />
         <div class="movie-card-overlay">

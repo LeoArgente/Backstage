@@ -206,45 +206,59 @@
     }
 
     .chat-message {
-      padding: 1px 16px;
-      margin-bottom: 1px;
+      padding: 4px 16px;
+      margin-bottom: 4px;
       transition: background 0.2s ease;
       animation: fadeIn 0.3s ease;
+      display: flex;
+      width: 100%;
     }
 
-    .chat-message.grouped {
-      padding: 1px 16px;
-      margin-bottom: 1px;
-    }
-
-    /* Espaçamento entre grupos de mensagens de usuários diferentes */
+    /* Primeira mensagem de um grupo tem mais espaço acima */
     .chat-message:not(.grouped) {
       margin-top: 8px;
     }
 
-    /* Mensagens próprias (enviadas pelo usuário logado) */
+    /* Mensagens agrupadas (sem avatar) */
+    .chat-message.grouped .message-wrapper {
+      margin-left: 40px; /* Tamanho do avatar (32px) + gap (8px) */
+    }
+
+    .chat-message.own-message.grouped .message-wrapper {
+      margin-left: 0;
+      margin-right: 40px;
+    }
+
+    /* Mensagens de outros usuários - LADO ESQUERDO */
+    .chat-message:not(.own-message) {
+      justify-content: flex-start;
+    }
+
+    /* Mensagens próprias (enviadas pelo usuário logado) - LADO DIREITO */
+    .chat-message.own-message {
+      justify-content: flex-end;
+    }
+
+    .chat-message.own-message .message-wrapper {
+      flex-direction: row-reverse;
+    }
+
     .chat-message.own-message .message-body {
       align-items: flex-end;
     }
 
     .chat-message.own-message .message-header {
-      flex-direction: row-reverse;
+      justify-content: flex-end;
     }
 
     .chat-message.own-message .message-content {
       background: rgba(220, 38, 38, 0.25);
-      border-color: rgba(220, 38, 38, 0.3);
+      border-left: 3px solid rgba(220, 38, 38, 0.5);
     }
 
-    .chat-message.own-message.grouped .message-content {
-      border-top-right-radius: 3px;
-      border-top-left-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 3px;
-    }
-
-    .chat-message.own-message:not(.grouped) .message-content {
-      border-top-right-radius: 10px;
+    .chat-message:not(.own-message) .message-content {
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 3px solid rgba(255, 255, 255, 0.1);
     }
 
     @keyframes fadeIn {
@@ -260,8 +274,31 @@
 
     .message-wrapper {
       display: flex;
-      gap: 4px;
+      gap: 8px;
       align-items: flex-start;
+      max-width: 70%;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .message-avatar-placeholder {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #dc2626;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
     }
 
     .message-body {
@@ -269,14 +306,13 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      gap: 2px;
     }
 
     .message-header {
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-bottom: 4px;
       font-size: 0.8rem;
     }
 
@@ -339,29 +375,14 @@
     }
 
     .message-content {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 6px 10px;
-      border-radius: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
       color: var(--text-primary);
       line-height: 1.4;
       word-wrap: break-word;
       font-size: 0.95rem;
       white-space: pre-wrap;
-      max-width: 600px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Mensagens consecutivas têm border-radius diferente */
-    .chat-message.grouped .message-content {
-      border-top-left-radius: 3px;
-      border-top-right-radius: 10px;
-      border-bottom-right-radius: 10px;
-      border-bottom-left-radius: 3px;
-    }
-
-    /* Primeira mensagem do grupo */
-    .chat-message:not(.grouped) .message-content {
-      border-top-left-radius: 10px;
     }
 
     .message-actions {
@@ -550,14 +571,18 @@
         padding: 2px 12px;
       }
 
-      .header-avatar,
-      .header-avatar-placeholder {
-        width: 18px;
-        height: 18px;
+      .message-avatar,
+      .message-avatar-placeholder {
+        width: 28px;
+        height: 28px;
+        font-size: 0.7rem;
+      }
+
+      .message-wrapper {
+        max-width: 85%;
       }
 
       .message-content {
-        max-width: 85%;
         font-size: 0.9rem;
       }
 
@@ -714,16 +739,16 @@
           {% if mensagens %}
             {% for mensagem in mensagens %}
               {% if mensagem.mostrar_header %}
-                {# Primeira mensagem do usuário ou usuário diferente do anterior #}
+                {# Primeira mensagem do usuário - mostra avatar #}
                 <div class="chat-message {% if mensagem.is_own %}own-message{% endif %}" data-message-id="{{ mensagem.id }}" data-usuario="{{ mensagem.usuario.username }}">
                   <div class="message-wrapper">
+                    {% if mensagem.usuario.profile.foto_perfil %}
+                      <img src="{{ mensagem.usuario.profile.foto_perfil.url }}" alt="{{ mensagem.usuario.username }}" class="message-avatar">
+                    {% else %}
+                      <div class="message-avatar-placeholder">{{ mensagem.usuario.username|first|upper }}</div>
+                    {% endif %}
                     <div class="message-body">
                       <div class="message-header">
-                        {% if mensagem.usuario.profile.foto_perfil %}
-                          <img src="{{ mensagem.usuario.profile.foto_perfil.url }}" alt="{{ mensagem.usuario.username }}" class="header-avatar">
-                        {% else %}
-                          <div class="header-avatar-placeholder">{{ mensagem.usuario.username|first|upper }}</div>
-                        {% endif %}
                         <span class="message-username">{{ mensagem.usuario.username }}</span>
                         {% if mensagem.usuario == comunidade.criador %}
                           <span class="message-role-badge badge-admin">Admin</span>
@@ -734,7 +759,7 @@
                   </div>
                 </div>
               {% else %}
-                {# Mensagem consecutiva do mesmo usuário - sem avatar e header #}
+                {# Mensagem consecutiva do mesmo usuário - sem avatar #}
                 <div class="chat-message grouped {% if mensagem.is_own %}own-message{% endif %}" data-message-id="{{ mensagem.id }}" data-usuario="{{ mensagem.usuario.username }}">
                   <div class="message-wrapper">
                     <div class="message-body">
@@ -816,16 +841,16 @@
       messageDiv.className = 'chat-message' + (sameUser ? ' grouped' : '') + (mensagem.is_owner ? ' own-message' : '');
       messageDiv.dataset.messageId = mensagem.id;
       messageDiv.dataset.usuario = mensagem.usuario;
-      
+
       const firstLetter = mensagem.usuario.charAt(0).toUpperCase();
-      
-      // Avatar HTML (com foto ou inicial) para o header
-      const headerAvatarHTML = mensagem.foto_perfil 
-        ? `<img src="${mensagem.foto_perfil}" alt="${escapeHtml(mensagem.usuario)}" class="header-avatar">`
-        : `<div class="header-avatar-placeholder">${firstLetter}</div>`;
-      
+
+      // Avatar HTML (com foto ou inicial)
+      const avatarHTML = mensagem.foto_perfil
+        ? `<img src="${mensagem.foto_perfil}" alt="${escapeHtml(mensagem.usuario)}" class="message-avatar">`
+        : `<div class="message-avatar-placeholder">${firstLetter}</div>`;
+
       if (sameUser) {
-        // Mensagem consecutiva do mesmo usuário - sem avatar e header
+        // Mensagem consecutiva do mesmo usuário - sem avatar
         messageDiv.innerHTML = `
           <div class="message-wrapper">
             <div class="message-body">
@@ -834,12 +859,12 @@
           </div>
         `;
       } else {
-        // Primeira mensagem do usuário - com avatar e header
+        // Primeira mensagem do usuário ou usuário diferente - com avatar e header
         messageDiv.innerHTML = `
           <div class="message-wrapper">
+            ${avatarHTML}
             <div class="message-body">
               <div class="message-header">
-                ${headerAvatarHTML}
                 <span class="message-username">${escapeHtml(mensagem.usuario)}</span>
               </div>
               <div class="message-content">${escapeHtml(mensagem.conteudo)}</div>
@@ -847,7 +872,7 @@
           </div>
         `;
       }
-      
+
       chatMessages.appendChild(messageDiv);
       scrollToBottom();
     }
@@ -1047,6 +1072,8 @@
       });
     }
   </script>
+
+  <script src="{% static 'js/profile_menu.js' %}"></script>
 
   {% include 'backstage/_mobile_bottom_nav.html' %}
 </body>

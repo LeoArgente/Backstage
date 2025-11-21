@@ -67,30 +67,30 @@ jobs:
             .
             !venv/
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   permissions:
-  #     id-token: write #This is required for requesting the JWT
-  #     contents: read #This is required for actions/checkout
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
-  #   steps:
-  #     - name: Download artifact from build job
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: python-app
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
 
-  #     - name: Login to Azure
-  #       uses: azure/login@v2
-  #       with:
-  #         client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_40284C8989CA47EE8BB7C9B8FFBB554A }}
-  #         tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2A87C252F9BA4AE4B9E5399751EE506F }}
-  #         subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BF3D86CA8E8341BD8F0C1B6E6A9E560E }}
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_40284C8989CA47EE8BB7C9B8FFBB554A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2A87C252F9BA4AE4B9E5399751EE506F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BF3D86CA8E8341BD8F0C1B6E6A9E560E }}
 
-  #     - name: 'Deploy to Azure Web App'
-  #       uses: azure/webapps-deploy@v3
-  #       id: deploy-to-webapp
-  #       with:
-  #         app-name: 'backstage-fds'
-  #         slot-name: 'Production'
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'backstage-fds'
+          slot-name: 'Production'
           

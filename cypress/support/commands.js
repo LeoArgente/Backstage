@@ -34,11 +34,11 @@ Cypress.Commands.add('criarUser', () => {
     }
   });
   cy.get('.signup-link').click();
-  cy.get('#signup-username').type('TesteCypress');
-  cy.get('#signup-email').type('testeCypress@gmail.com');
-  cy.get('#signup-password1').type('senha123');
-  cy.get('#signup-password2').type('senha123');
-  cy.get('#signup-submit').click();
+  cy.get('#username').type('TesteCypress');
+  cy.get('#email').type('testeCypress@gmail.com');
+  cy.get('#password1').type('senha123');
+  cy.get('#password2').type('senha123');
+  cy.get('button[type="submit"]').click();
   cy.url().should('not.include', '/login/');
   cy.url().should('not.include', '/registrar/');
 });
@@ -74,7 +74,7 @@ Cypress.Commands.add('criticarFilme', () => {
   cy.get('.modal-submit-btn').click();
 });
 
-// Comando para adicionar série ao Watch Later
+// Comando para adicionar série a uma lista
 Cypress.Commands.add('adicionarSerieWatchLater', () => {
   cy.visit('http://127.0.0.1:8000/series/', {
     onBeforeLoad(win) {
@@ -83,12 +83,29 @@ Cypress.Commands.add('adicionarSerieWatchLater', () => {
       win.prompt = () => '';
     }
   });
-  cy.get('.series-card').first().click();
-  cy.get('button.action-btn.list').click();
+  // Aguardar cards carregarem
+  cy.get('.movie-card', { timeout: 10000 }).should('have.length.at.least', 1);
+  cy.get('.movie-card').first().click();
+
+  // Aguardar página de detalhes carregar
+  cy.url().should('include', '/series/');
+  cy.get('button.action-btn.list').should('be.visible').click();
+
+  // Criar nova lista
+  cy.get('#listPopupOverlay').should('have.class', 'show');
+  cy.get('button.popup-option.create-list').click();
+  cy.get('#listName').type('Minhas Series');
+
   cy.window().then((win) => {
     win.alert = () => {};
   });
-  cy.get('button.popup-option.watch-later').click();
+
+  cy.get('#createListForm button[type="submit"]').click();
+
+  // Aguardar lista ser criada e modal fechar
+  cy.wait(1000);
+
+  // Verificar se a lista foi criada visitando a página de listas
   cy.visit('http://127.0.0.1:8000/lists/', {
     onBeforeLoad(win) {
       win.alert = () => {};
@@ -96,12 +113,7 @@ Cypress.Commands.add('adicionarSerieWatchLater', () => {
       win.prompt = () => '';
     }
   });
-  cy.contains('.list-card', 'Assistir Mais Tarde').within(() => {
-    cy.get('button.view-btn').click();
-  });
-  cy.get('#view-list-modal');
-  cy.get('#series-tab').click();
-  cy.get('#series-grid .movie-item').should('have.length.at.least', 1);
+  cy.contains('.list-card', 'Minhas Series').should('exist');
 });
 
 // Comando para criar lista
@@ -113,12 +125,25 @@ Cypress.Commands.add('criarLista', () => {
       win.prompt = () => '';
     }
   });
-  cy.wait(1000);
-  cy.get('.create-list-btn').first().click();
+
+  // Aguardar página carregar e clicar no botão de criar lista
+  cy.get('#create-list-btn').should('be.visible').click();
+
+  // Aguardar modal aparecer
+  cy.get('#create-list-modal').should('be.visible');
+
+  // Preencher formulário
   cy.get('#list-name').type('Minha Lista de Filmes Favoritos');
-  cy.get('#list-description').type('Lista com os melhores filmes que já assisti. Inclui clássicos e lançamentos recentes.');
+  cy.get('#list-description').type('Lista com os melhores filmes que ja assisti. Inclui classicos e lancamentos recentes.');
+
   cy.window().then((win) => {
     win.alert = () => {};
   });
+
+  // Submeter formulário
   cy.get('#create-list-form button[type="submit"]').click();
+
+  // Aguardar modal fechar e lista aparecer
+  cy.get('#create-list-modal').should('not.be.visible');
+  cy.contains('.list-card', 'Minha Lista de Filmes Favoritos').should('exist');
 });

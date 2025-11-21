@@ -2155,6 +2155,7 @@ def diario_adicionar(request):
         data_assistido = data.get('data')
         nota = data.get('nota')
         assistido_com = data.get('assistido_com', '')
+        notas = data.get('notas', '').strip()
         
         if not filme_id or not data_assistido or not nota:
             return JsonResponse({
@@ -2219,6 +2220,18 @@ def diario_adicionar(request):
                 'assistido_com': assistido_com
             }
         )
+        
+        # Se houver notas/review, criar ou atualizar a crítica
+        if notas:
+            Critica.objects.update_or_create(
+                usuario=request.user,
+                filme=filme,
+                defaults={
+                    'texto': notas,
+                    'nota': nota,
+                    'tem_spoiler': False
+                }
+            )
         
         return JsonResponse({
             'success': True,

@@ -94,7 +94,7 @@ Cypress.Commands.add('adicionarSerieWatchLater', () => {
   // Criar nova lista
   cy.get('#listPopupOverlay').should('have.class', 'show');
   cy.get('button.popup-option.create-list').click();
-  cy.get('#listName').type('Minhas Séries');
+  cy.get('#listName').type('Minhas Series');
 
   cy.window().then((win) => {
     win.alert = () => {};
@@ -113,7 +113,7 @@ Cypress.Commands.add('adicionarSerieWatchLater', () => {
       win.prompt = () => '';
     }
   });
-  cy.contains('.list-card', 'Minhas Séries').should('exist');
+  cy.contains('.list-card', 'Minhas Series').should('exist');
 });
 
 // Comando para criar lista
@@ -134,7 +134,7 @@ Cypress.Commands.add('criarLista', () => {
 
   // Preencher formulário
   cy.get('#list-name').type('Minha Lista de Filmes Favoritos');
-  cy.get('#list-description').type('Lista com os melhores filmes que já assisti. Inclui clássicos e lançamentos recentes.');
+  cy.get('#list-description').type('Lista com os melhores filmes que ja assisti. Inclui classicos e lancamentos recentes.');
 
   cy.window().then((win) => {
     win.alert = () => {};

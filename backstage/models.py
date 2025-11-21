@@ -347,10 +347,21 @@ class MensagemComunidade(models.Model):
         on_delete=models.CASCADE,
         related_name='mensagens_comunidade'
     )
-    conteudo = models.TextField(verbose_name="Mensagem")
+    conteudo = models.TextField(verbose_name="Mensagem", blank=True, null=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
     editado = models.BooleanField(default=False)
+    
+    # Campos para recomendação de filme
+    tipo_mensagem = models.CharField(
+        max_length=20,
+        choices=[('texto', 'Texto'), ('recomendacao', 'Recomendação de Filme')],
+        default='texto'
+    )
+    filme_tmdb_id = models.IntegerField(blank=True, null=True, verbose_name="ID do Filme (TMDB)")
+    filme_titulo = models.CharField(max_length=255, blank=True, null=True)
+    filme_poster = models.URLField(blank=True, null=True)
+    filme_trailer = models.URLField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Mensagem da Comunidade"

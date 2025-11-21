@@ -353,6 +353,7 @@ async function setFeaturedMoviesCarousel() {
       // Update title
       if (heroTitle) {
         heroTitle.textContent = movie.titulo;
+        heroTitle.dataset.movieId = movie.tmdb_id; // Usar tmdb_id ao invés de id
         heroTitle.style.transform = 'translateX(0)';
         heroTitle.style.opacity = '1';
       }
@@ -502,6 +503,11 @@ async function setFeaturedMoviesCarousel() {
   heroSection.addEventListener('click', (e) => {
     // Ignore clicks on indicators
     if (e.target.closest('.hero-indicators')) {
+      return;
+    }
+    
+    // Ignore clicks on buttons (hero-actions)
+    if (e.target.closest('.hero-actions')) {
       return;
     }
     

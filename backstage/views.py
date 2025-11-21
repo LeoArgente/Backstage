@@ -1055,6 +1055,30 @@ def filmes_home(request):
         }, status=500)
 
 
+def filme_videos(request, tmdb_id):
+    """API endpoint que retorna vídeos (trailers) de um filme"""
+    try:
+        from .services.tmdb import obter_videos_filme
+        
+        print(f"[DEBUG] Buscando vídeos para filme TMDb ID: {tmdb_id}")
+        videos = obter_videos_filme(tmdb_id)
+        print(f"[DEBUG] Vídeos encontrados: {len(videos)}")
+        
+        return JsonResponse({
+            'success': True,
+            'videos': videos
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar vídeos: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'videos': []
+        }, status=500)
+
+
 def relatorio(request):
     # Pega as 10 críticas mais recentes
     criticas = Critica.objects.select_related("filme").all().order_by("-criado_em")[:10]
@@ -1708,22 +1732,43 @@ def reviews(request):
 
 @login_required(login_url='backstage:login')
 def watchlist(request):
-    """Página da watchlist (assistir mais tarde)"""
-    try:
-        lista_watchlist = Lista.objects.get(usuario=request.user, nome="Assistir Mais Tarde")
-    except Lista.DoesNotExist:
-        lista_watchlist = Lista.objects.create(
-            usuario=request.user,
-            nome="Assistir Mais Tarde",
-            descricao="Filmes e séries para assistir mais tarde"
-        )
+    """Página de listas do usuário"""
+    # Buscar todas as listas do usuário ordenadas por data de criação
+    listas = Lista.objects.filter(usuario=request.user).order_by('-criada_em')
+    
+    # Preparar dados de cada lista com contagem de itens
+    listas_data = []
+    for lista in listas:
+        total_filmes = lista.itens.count()
+        total_series = lista.itens_serie.count()
+        total_itens = total_filmes + total_series
+        
+        listas_data.append({
+            'lista': lista,
+            'total_filmes': total_filmes,
+            'total_series': total_series,
+            'total_itens': total_itens,
+        })
+    
+    context = {
+        'listas_data': listas_data,
+    }
+    
+    return render(request, 'backstage/watchlist.html', context)
+
+
+@login_required(login_url='backstage:login')
+def lista_detalhes(request, lista_id):
+    """Página de detalhes de uma lista específica"""
+    from itertools import chain
+    
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
     
     # Buscar itens de filmes e séries
-    itens_filmes = lista_watchlist.itens.all().select_related('filme')
-    itens_series = lista_watchlist.itens_serie.all().select_related('serie')
+    itens_filmes = lista.itens.all().select_related('filme')
+    itens_series = lista.itens_serie.all().select_related('serie')
     
     # Combinar e ordenar por data de adição
-    from itertools import chain
     itens = sorted(
         chain(itens_filmes, itens_series),
         key=lambda x: x.adicionado_em,
@@ -1731,11 +1776,11 @@ def watchlist(request):
     )
     
     context = {
-        'lista': lista_watchlist,
+        'lista': lista,
         'itens': itens,
     }
     
-    return render(request, 'backstage/watchlist.html', context)
+    return render(request, 'backstage/lista_detalhes.html', context)
 
 
 @login_required(login_url='backstage:login')

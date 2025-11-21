@@ -53,6 +53,7 @@ urlpatterns = [
     path('criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
     path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
     path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
+    path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
     
     # APIs de Chat da Comunidade

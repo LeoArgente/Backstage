@@ -371,15 +371,24 @@ def detalhes_comunidade(request, slug):
     ).select_related('usuario').order_by('role', '-data_entrada')
     
     # Buscar mensagens recentes do chat (últimas 50)
-    mensagens = MensagemComunidade.objects.filter(
+    mensagens_list = list(MensagemComunidade.objects.filter(
         comunidade=comunidade
-    ).select_related('usuario').order_by('criado_em')[:50]
+    ).select_related('usuario', 'usuario__profile').order_by('criado_em')[:50])
+    
+    # Adicionar flag para identificar se deve mostrar header (primeira mensagem ou usuário diferente)
+    for i, mensagem in enumerate(mensagens_list):
+        if i == 0:
+            mensagem.mostrar_header = True
+        else:
+            mensagem.mostrar_header = mensagens_list[i-1].usuario != mensagem.usuario
+        # Adicionar flag para identificar mensagens do usuário logado
+        mensagem.is_own = mensagem.usuario == request.user
     
     context = {
         'comunidade': comunidade,
         'meu_papel': meu_papel,
         'membros': membros,
-        'mensagens': mensagens,
+        'mensagens': mensagens_list,
     }
     return render(request, "backstage/community_details.html", context)
 
@@ -413,6 +422,14 @@ def enviar_mensagem_comunidade(request, slug):
             conteudo=conteudo
         )
         
+        # Buscar foto de perfil
+        foto_perfil_url = None
+        try:
+            if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+                foto_perfil_url = request.user.profile.foto_perfil.url
+        except:
+            pass
+        
         return JsonResponse({
             'success': True,
             'mensagem': {
@@ -420,7 +437,8 @@ def enviar_mensagem_comunidade(request, slug):
                 'usuario': mensagem.usuario.username,
                 'conteudo': mensagem.conteudo,
                 'criado_em': mensagem.criado_em.strftime('%d/%m %H:%M'),
-                'is_owner': True
+                'is_owner': True,
+                'foto_perfil': foto_perfil_url
             }
         })
         
@@ -450,15 +468,25 @@ def buscar_mensagens_comunidade(request, slug):
         mensagens = MensagemComunidade.objects.filter(
             comunidade=comunidade,
             id__gt=ultima_mensagem_id
-        ).select_related('usuario').order_by('criado_em')
+        ).select_related('usuario', 'usuario__profile').order_by('criado_em')
         
-        mensagens_data = [{
-            'id': msg.id,
-            'usuario': msg.usuario.username,
-            'conteudo': msg.conteudo,
-            'criado_em': msg.criado_em.strftime('%d/%m %H:%M'),
-            'is_owner': msg.usuario == request.user
-        } for msg in mensagens]
+        mensagens_data = []
+        for msg in mensagens:
+            foto_perfil_url = None
+            try:
+                if hasattr(msg.usuario, 'profile') and msg.usuario.profile.foto_perfil:
+                    foto_perfil_url = msg.usuario.profile.foto_perfil.url
+            except:
+                pass
+            
+            mensagens_data.append({
+                'id': msg.id,
+                'usuario': msg.usuario.username,
+                'conteudo': msg.conteudo,
+                'criado_em': msg.criado_em.strftime('%d/%m %H:%M'),
+                'is_owner': msg.usuario == request.user,
+                'foto_perfil': foto_perfil_url
+            })
         
         return JsonResponse({
             'success': True,
@@ -583,6 +611,33 @@ def sair_comunidade(request):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def deletar_comunidade(request):
+    """API para deletar uma comunidade (apenas criador)"""
+    try:
+        data = json.loads(request.body)
+        slug = data.get('slug')
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é o criador
+        if comunidade.criador != request.user:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Apenas o criador pode deletar a comunidade.'
+            }, status=403)
+        
+        nome_comunidade = comunidade.nome
+        comunidade.delete()  # Isso deletará em cascata membros e mensagens
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Comunidade "{nome_comunidade}" deletada com sucesso.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])

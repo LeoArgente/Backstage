@@ -236,7 +236,7 @@
 
 .calendar-header-row {
   display: grid;
-  grid-template-columns: 80px 60px 100px 1fr 150px 180px;
+  grid-template-columns: 80px 60px 100px 1fr 150px 180px 60px;
   gap: 1rem;
   padding: 1rem;
   background: var(--background);
@@ -282,7 +282,7 @@
 
 .calendar-day-row {
   display: grid;
-  grid-template-columns: 80px 60px 100px 1fr 150px 180px;
+  grid-template-columns: 80px 60px 100px 1fr 150px 180px 60px;
   gap: 1rem;
   padding: 1.25rem;
   background: linear-gradient(90deg, 
@@ -403,6 +403,41 @@
 .calendar-watched-with {
   font-size: 0.875rem;
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 60px;
+}
+
+.delete-diary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 23, 68, 0.1);
+  border: 1px solid rgba(255, 23, 68, 0.3);
+  border-radius: 8px;
+  color: #ff1744;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-diary-btn:hover {
+  background: rgba(255, 23, 68, 0.2);
+  border-color: #ff1744;
+  transform: scale(1.1);
+}
+
+.delete-diary-btn:active {
+  transform: scale(0.95);
 }
 
 /* Filters Sidebar */

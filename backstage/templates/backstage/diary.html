@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/diary.css' %}">
-  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/diary.css' %}?v=2.1">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}"
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
@@ -119,6 +119,7 @@
               <div class="calendar-day-header">Filme</div>
               <div class="calendar-day-header">Avaliação</div>
               <div class="calendar-day-header">Assistido com</div>
+              <div class="calendar-day-header">Ações</div>
             </div>
 
             <div id="calendarDays">
@@ -247,7 +248,7 @@
   <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
   <script src="{% static 'js/search-suggestions.js' %}" defer></script>
   <script src="{% static 'js/profile_menu.js' %}" defer></script>
-  <script src="{% static 'js/diary.js' %}" defer></script>
+  <script src="{% static 'js/diary.js' %}?v=2.0" defer></script>
   <script src="{% static 'js/notifications.js' %}" defer></script>
 </body>
 </html>

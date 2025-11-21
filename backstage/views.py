@@ -103,6 +103,8 @@ def salvar_critica(request):
             return redirect(f'/filmes/{filme_id}/')
 
         try:
+            from datetime import date
+            
             # Validar nota
             nota_int = int(float(nota))
             if nota_int < 1 or nota_int > 5:
@@ -134,6 +136,17 @@ def salvar_critica(request):
                 texto=texto,
                 nota=nota_int,
                 tem_spoiler=tem_spoiler
+            )
+            
+            # Adicionar também ao diário com a data de hoje
+            DiarioFilme.objects.update_or_create(
+                usuario=request.user,
+                filme=filme,
+                data_assistido=date.today(),
+                defaults={
+                    'nota': nota_int,
+                    'assistido_com': ''
+                }
             )
 
             messages.success(request, 'Sua avaliação foi salva com sucesso!')
@@ -872,9 +885,19 @@ def detalhes_filme(request, tmdb_id):
 
     # Buscar críticas locais com contagem de likes
     from .models import LikeCritica
+    from django.db.models import Avg
+    
     criticas = Critica.objects.filter(filme=filme_local).annotate(
         total_likes=Count('likes', distinct=True)
     )
+
+    # Calcular média das notas do Backstage
+    media_backstage = criticas.aggregate(Avg('nota'))['nota__avg']
+    total_avaliacoes = criticas.count()
+    
+    # Formatar média para 1 casa decimal, ou None se não houver avaliações
+    if media_backstage is not None:
+        media_backstage = round(media_backstage, 1)
 
     # Adicionar informação se o usuário atual deu like em cada crítica
     if request.user.is_authenticated:
@@ -905,6 +928,8 @@ def detalhes_filme(request, tmdb_id):
         'filme': dados_filme,
         'filme_local': filme_local,
         'criticas': criticas,
+        'media_backstage': media_backstage,
+        'total_avaliacoes': total_avaliacoes,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'crew_data_json': json.dumps(equipe),
         'cast_data_json': json.dumps(elenco_principal)
@@ -2247,7 +2272,7 @@ def diario_adicionar(request):
 
 
 @api_login_required
-@require_http_methods(['POST'])
+@require_http_methods(['DELETE', 'POST'])
 def diario_remover(request, entrada_id):
     """API para remover entrada do diário"""
     try:

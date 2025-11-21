@@ -1,0 +1,720 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ comunidade.nome }} - Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/community.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <style>
+    .community-details {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .community-content {
+      width: 100%;
+    }
+
+    .chat-container {
+      background: var(--bg-primary);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px);
+      min-height: 600px;
+    }
+
+    .chat-header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .community-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: white;
+    }
+
+    .chat-header-info h2 {
+      font-size: 1.25rem;
+      margin: 0;
+      color: var(--text-primary);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .chat-header-info p {
+      display: none;
+    }
+
+    .chat-header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .header-stat svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+    }
+
+    .header-stat strong {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-message {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s ease;
+      animation: fadeIn 0.3s ease;
+      cursor: pointer;
+    }
+
+    .chat-message:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-wrapper {
+      display: flex;
+      gap: 12px;
+    }
+
+    .message-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+
+    .message-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .message-username {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    .message-username:hover {
+      text-decoration: underline;
+    }
+
+    .message-time {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .message-time::before {
+      content: '·';
+      margin: 0 4px;
+    }
+
+    .message-role-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-admin {
+      background: var(--red);
+      color: white;
+    }
+
+    .badge-mod {
+      background: var(--blue);
+      color: white;
+    }
+
+    .message-content {
+      color: var(--text-primary);
+      line-height: 1.4;
+      word-wrap: break-word;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 40px;
+      margin-top: 12px;
+    }
+
+    .message-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      font-weight: 400;
+    }
+
+    .message-action-btn:hover {
+      color: var(--blue-light);
+    }
+
+    .message-action-btn:hover svg {
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .message-action-btn svg {
+      width: 18px;
+      height: 18px;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.2s ease;
+    }
+
+    .chat-input-container {
+      padding: 16px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      position: sticky;
+      bottom: 0;
+    }
+
+    .chat-input-form {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .chat-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .chat-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 20px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      resize: none;
+      max-height: 120px;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      background: var(--bg-tertiary);
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .chat-send-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn:hover:not(:disabled) {
+      background: var(--blue-light);
+    }
+
+    .chat-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .chat-send-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .empty-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 60px 40px;
+    }
+
+    .empty-chat svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+      color: var(--text-muted);
+    }
+
+    .empty-chat h3 {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .empty-chat p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      .community-details {
+        padding: 10px;
+      }
+
+      .chat-container {
+        height: calc(100vh - 140px);
+        min-height: 500px;
+        border-radius: 12px;
+      }
+
+      .chat-header {
+        padding: 12px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .chat-header-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .header-stat {
+        font-size: 0.8rem;
+      }
+
+      .community-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+      }
+
+      .chat-header-info h2 {
+        font-size: 1.1rem;
+      }
+
+      .chat-message {
+        padding: 12px 16px;
+      }
+
+      .message-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+      }
+
+      .chat-input-container {
+        padding: 12px 16px;
+      }
+
+      .chat-input {
+        font-size: 16px; /* Previne zoom no iOS */
+      }
+    }
+
+    /* Scrollbar personalizada */
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--border-hover);
+      border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  {% csrf_token %}
+  {% include 'backstage/_mobile_header.html' %}
+  
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+        <a class="brand" href="{% url 'backstage:index' %}">
+          <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+               alt="Backstage Logo"
+               width="250">
+        </a>
+
+        <div class="nav-menu">
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link active">Comunidade</a>
+        </div>
+
+        <div class="nav-actions">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+          </form>
+
+          {% include 'backstage/_notifications.html' %}
+          {% include 'backstage/_user_dropdown.html' %}
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="community-details">
+    <div class="community-content">
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="community-icon">
+              {{ comunidade.nome|first|upper }}
+            </div>
+            <div class="chat-header-info">
+              <h2>{{ comunidade.nome }}</h2>
+            </div>
+          </div>
+          <div class="chat-header-right">
+            <div class="header-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span><strong>{{ membros.count }}</strong> membros</span>
+            </div>
+            {% if meu_papel %}
+              <div class="header-stat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+                <span>{{ meu_papel|upper }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+          {% if mensagens %}
+            {% for mensagem in mensagens %}
+              <div class="chat-message" data-message-id="{{ mensagem.id }}">
+                <div class="message-wrapper">
+                  <div class="message-avatar">
+                    {{ mensagem.usuario.username|first|upper }}
+                  </div>
+                  <div class="message-body">
+                    <div class="message-header">
+                      <span class="message-username">{{ mensagem.usuario.username }}</span>
+                      {% if mensagem.usuario == comunidade.criador %}
+                        <span class="message-role-badge badge-admin">Admin</span>
+                      {% endif %}
+                      <span class="message-time">{{ mensagem.criado_em|date:"d/m H:i" }}</span>
+                    </div>
+                    <div class="message-content">{{ mensagem.conteudo }}</div>
+                    <div class="message-actions">
+                      <button class="message-action-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Responder
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-chat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <h3>Seja o primeiro!</h3>
+              <p>Nenhuma mensagem ainda.<br>Comece a conversa agora.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if meu_papel %}
+          <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+              {% csrf_token %}
+              <div class="chat-input-wrapper">
+                <input 
+                  type="text" 
+                  class="chat-input" 
+                  id="chatInput" 
+                  name="conteudo"
+                  placeholder="Escreva uma mensagem..." 
+                  maxlength="2000"
+                />
+              </div>
+              <button type="submit" class="chat-send-btn" id="sendBtn" aria-label="Enviar mensagem">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        {% else %}
+          <div class="chat-input-container">
+            <p style="text-align: center; color: var(--text-muted); margin: 0;">Você precisa ser membro para enviar mensagens</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const comunidadeSlug = '{{ comunidade.slug }}';
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    let ultimaMensagemId = {% if mensagens and mensagens.last %}{{ mensagens.last.id }}{% else %}0{% endif %};
+    let polling = null;
+
+    // Função para rolar para o final do chat
+    function scrollToBottom() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Função para adicionar mensagem ao chat
+    function adicionarMensagem(mensagem) {
+      // Remover mensagem de "chat vazio" se existir
+      const emptyChat = chatMessages.querySelector('.empty-chat');
+      if (emptyChat) {
+        emptyChat.remove();
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'chat-message';
+      messageDiv.dataset.messageId = mensagem.id;
+      
+      const firstLetter = mensagem.usuario.charAt(0).toUpperCase();
+      
+      messageDiv.innerHTML = `
+        <div class="message-wrapper">
+          <div class="message-avatar">
+            ${firstLetter}
+          </div>
+          <div class="message-body">
+            <div class="message-header">
+              <span class="message-username">${escapeHtml(mensagem.usuario)}</span>
+              <span class="message-time">${mensagem.criado_em}</span>
+            </div>
+            <div class="message-content">${escapeHtml(mensagem.conteudo)}</div>
+            <div class="message-actions">
+              <button class="message-action-btn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Responder
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      chatMessages.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    // Função para escapar HTML e prevenir XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Função para buscar novas mensagens
+    async function buscarNovasMensagens() {
+      try {
+        const response = await fetch(`/comunidade/${comunidadeSlug}/buscar-mensagens/?ultima_mensagem_id=${ultimaMensagemId}`);
+        const data = await response.json();
+        
+        if (data.success && data.mensagens.length > 0) {
+          data.mensagens.forEach(mensagem => {
+            adicionarMensagem(mensagem);
+            ultimaMensagemId = mensagem.id;
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar mensagens:', error);
+      }
+    }
+
+    // Enviar mensagem
+    if (chatForm) {
+      chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const conteudo = chatInput.value.trim();
+        console.log('Tentando enviar mensagem:', conteudo);
+        
+        if (!conteudo) {
+          console.log('Mensagem vazia, cancelando');
+          return;
+        }
+        
+        sendBtn.disabled = true;
+        chatInput.disabled = true;
+        
+        try {
+          const formData = new FormData();
+          formData.append('conteudo', conteudo);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+          
+          console.log('Enviando para:', `/comunidade/${comunidadeSlug}/enviar-mensagem/`);
+          
+          const response = await fetch(`/comunidade/${comunidadeSlug}/enviar-mensagem/`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          console.log('Status da resposta:', response.status);
+          
+          const data = await response.json();
+          console.log('Dados recebidos:', data);
+          
+          if (data.success) {
+            chatInput.value = '';
+            adicionarMensagem(data.mensagem);
+            ultimaMensagemId = data.mensagem.id;
+            console.log('Mensagem adicionada com sucesso!');
+          } else {
+            console.error('Erro do servidor:', data.error);
+            alert(data.error || 'Erro ao enviar mensagem');
+          }
+        } catch (error) {
+          console.error('Erro ao enviar mensagem:', error);
+          alert('Erro ao enviar mensagem');
+        } finally {
+          sendBtn.disabled = false;
+          chatInput.disabled = false;
+          chatInput.focus();
+        }
+      });
+    }
+
+    // Iniciar polling para novas mensagens a cada 3 segundos
+    {% if meu_papel %}
+      polling = setInterval(buscarNovasMensagens, 3000);
+      
+      // Limpar polling quando sair da página
+      window.addEventListener('beforeunload', () => {
+        if (polling) clearInterval(polling);
+      });
+    {% endif %}
+
+    // Scroll inicial para o final
+    scrollToBottom();
+  </script>
+
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+</body>
+</html>

@@ -334,3 +334,28 @@ class LikeCriticaSerie(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} curtiu crítica de série de {self.critica.usuario.username}"
+
+
+class MensagemComunidade(models.Model):
+    comunidade = models.ForeignKey(
+        Comunidade,
+        on_delete=models.CASCADE,
+        related_name='mensagens'
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='mensagens_comunidade'
+    )
+    conteudo = models.TextField(verbose_name="Mensagem")
+    criado_em = models.DateTimeField(auto_now_add=True)
+    editado_em = models.DateTimeField(auto_now=True)
+    editado = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Mensagem da Comunidade"
+        verbose_name_plural = "Mensagens da Comunidade"
+        ordering = ['criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} em {self.comunidade.nome}: {self.conteudo[:50]}"

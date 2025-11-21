@@ -53,6 +53,10 @@ urlpatterns = [
     path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
     
+    # APIs de Chat da Comunidade
+    path('comunidade/<slug:slug>/enviar-mensagem/', views.enviar_mensagem_comunidade, name='enviar_mensagem_comunidade'),
+    path('comunidade/<slug:slug>/buscar-mensagens/', views.buscar_mensagens_comunidade, name='buscar_mensagens_comunidade'),
+    
     # URLs do menu do usuário
     path('perfil/', views.perfil, name='perfil'),
     path('perfil/<str:username>/', views.perfil, name='perfil_usuario'),

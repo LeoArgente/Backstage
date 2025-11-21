@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, MensagemComunidade
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -370,16 +370,107 @@ def detalhes_comunidade(request, slug):
         comunidade=comunidade
     ).select_related('usuario').order_by('role', '-data_entrada')
     
-    # Buscar atividades recentes (implementar depois se necessário)
-    atividades = []
+    # Buscar mensagens recentes do chat (últimas 50)
+    mensagens = MensagemComunidade.objects.filter(
+        comunidade=comunidade
+    ).select_related('usuario').order_by('criado_em')[:50]
     
     context = {
         'comunidade': comunidade,
         'meu_papel': meu_papel,
         'membros': membros,
-        'atividades': atividades,
+        'mensagens': mensagens,
     }
     return render(request, "backstage/community_details.html", context)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def enviar_mensagem_comunidade(request, slug):
+    """API para enviar mensagem no chat da comunidade"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+    
+    try:
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+        
+        conteudo = request.POST.get('conteudo', '').strip()
+        
+        if not conteudo:
+            return JsonResponse({'success': False, 'error': 'Mensagem vazia'}, status=400)
+        
+        if len(conteudo) > 2000:
+            return JsonResponse({'success': False, 'error': 'Mensagem muito longa (máximo 2000 caracteres)'}, status=400)
+        
+        # Criar a mensagem
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            conteudo=conteudo
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': mensagem.usuario.username,
+                'conteudo': mensagem.conteudo,
+                'criado_em': mensagem.criado_em.strftime('%d/%m %H:%M'),
+                'is_owner': True
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'error': f'Erro ao enviar mensagem: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url='backstage:login')
+def buscar_mensagens_comunidade(request, slug):
+    """API para buscar mensagens do chat"""
+    try:
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+        
+        # Pegar o ID da última mensagem que o cliente tem
+        ultima_mensagem_id = request.GET.get('ultima_mensagem_id', 0)
+        
+        # Buscar mensagens mais recentes
+        mensagens = MensagemComunidade.objects.filter(
+            comunidade=comunidade,
+            id__gt=ultima_mensagem_id
+        ).select_related('usuario').order_by('criado_em')
+        
+        mensagens_data = [{
+            'id': msg.id,
+            'usuario': msg.usuario.username,
+            'conteudo': msg.conteudo,
+            'criado_em': msg.criado_em.strftime('%d/%m %H:%M'),
+            'is_owner': msg.usuario == request.user
+        } for msg in mensagens]
+        
+        return JsonResponse({
+            'success': True,
+            'mensagens': mensagens_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Erro ao buscar mensagens: {str(e)}'
+        }, status=500)
+
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])

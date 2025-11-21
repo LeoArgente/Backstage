@@ -1,0 +1,273 @@
+/* Chat da Comunidade - Estilos Adicionais */
+
+.chat-container {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.chat-messages {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.chat-message {
+  transition: transform 0.2s ease;
+}
+
+.chat-message:hover {
+  transform: translateX(2px);
+}
+
+.message-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-input:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.chat-send-btn {
+  transition: all 0.2s ease;
+}
+
+.chat-send-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.chat-send-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Animação de typing */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #2a2a40;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+/* Melhorias para mobile */
+@media (max-width: 768px) {
+  .community-details {
+    padding: 20px 10px;
+  }
+
+  .community-header {
+    padding: 25px 20px;
+  }
+
+  .community-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .chat-container {
+    height: 450px;
+  }
+
+  .chat-message {
+    max-width: 85%;
+  }
+
+  .message-content {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+
+  .chat-input {
+    font-size: 16px; /* Previne zoom no iOS */
+  }
+
+  .sidebar {
+    padding: 20px;
+  }
+
+  .members-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+}
+
+/* Animação suave ao carregar */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.community-header,
+.chat-container,
+.sidebar {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.chat-container {
+  animation-delay: 0.1s;
+}
+
+.sidebar {
+  animation-delay: 0.2s;
+}
+
+/* Estado de loading */
+.chat-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #888;
+}
+
+.chat-loading::after {
+  content: '...';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+/* Badge de contador de membros online (futuro) */
+.member-status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4ade80;
+  border: 2px solid #16213e;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.member-status.offline {
+  background: #888;
+}
+
+/* Tooltip para mensagens */
+.message-actions {
+  display: none;
+  position: absolute;
+  top: -30px;
+  right: 10px;
+  background: #2a2a40;
+  border-radius: 6px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.chat-message:hover .message-actions {
+  display: flex;
+}
+
+.message-action-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.message-action-btn:hover {
+  color: #fff;
+  background: #3a3a50;
+}
+
+/* Indicador de mensagens não lidas */
+.unread-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ef4444;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Estilo para links nas mensagens */
+.message-content a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.message-content a:hover {
+  color: #93c5fd;
+}
+
+/* Estilo para code blocks nas mensagens */
+.message-content code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Feedback visual ao enviar */
+@keyframes sendPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+  }
+}
+
+.chat-send-btn.sending {
+  animation: sendPulse 0.6s;
+}

@@ -245,6 +245,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 1.5rem;
+  margin-top: 40px;
 }
 
 .review-card {
@@ -396,6 +397,70 @@
 
 .review-like-btn:hover {
   color: var(--text-primary, #ffffff);
+}
+
+/* Page header for Reviews - match Series page header */
+.page-header-reviews {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%) !important;
+  padding: 120px 0 80px !important;
+  border-bottom: 1px solid var(--border) !important;
+  animation: fadeIn 0.8s ease !important;
+  margin-bottom: 24px !important;
+}
+
+.page-header-reviews .page-header-content {
+  text-align: center !important;
+  display: block !important;
+  gap: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.page-header-reviews .page-title {
+  font-size: 3rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 16px !important;
+  color: var(--red) !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+
+.page-header-reviews .page-description {
+  font-size: 1.125rem !important;
+  color: var(--text-secondary) !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+  line-height: 1.6 !important;
+}
+
+.page-header-reviews .back-link {
+  color: #ffffff !important;
+}
+
+/* Position back-link fixed at top-left of the viewport for Reviews page */
+.page-header-reviews .back-link {
+  position: fixed !important;
+  top: 16px !important;
+  left: 16px !important;
+  z-index: 1500 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
+}
+
+@media (max-width: 600px) {
+  .page-header-reviews .back-link {
+    top: 10px !important;
+    left: 10px !important;
+    padding: 6px 10px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Stronger selector to override community.css .page-header rules */
+.page-header.page-header-reviews {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%) !important;
+  padding: 120px 0 80px !important;
 }
 
 .review-like-btn svg {
@@ -649,4 +714,20 @@
 /* Reviews page header sizing (match series page) */
 .page-header-reviews {
   padding: 120px 0 80px;
+  margin-bottom: 24px !important;
+}
+
+/* Ensure profile pages use the same footer style as the rest of the site */
+.profile-page .site-footer {
+  background: var(--bg-secondary) !important;
+  border-top: 1px solid var(--border) !important;
+  padding: 48px 0 24px !important;
+  margin-top: 96px !important;
+}
+
+.profile-page .footer-content {
+  display: grid !important;
+  grid-template-columns: 2fr 1fr 1fr 1fr !important;
+  gap: 48px !important;
+  margin-bottom: 32px !important;
 }

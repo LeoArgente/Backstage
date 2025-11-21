@@ -2284,26 +2284,45 @@ button {
   transform: translateX(4px);
 }
 
+
 .social-links {
   display: flex;
-  gap: 12px;
+  gap: 14px;
 }
 
 .social-link {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
   transition: all var(--transition-base);
+  border-radius: 8px;
+  background: transparent;
+}
+
+.social-link svg {
+  width: 28px;
+  height: 28px;
 }
 
 .social-link:hover {
   background: var(--btn-gradient);
   color: white;
-  transform: scale(1.1) rotate(5deg);
+  transform: scale(1.06) rotate(3deg);
   box-shadow: var(--shadow-red);
+}
+
+@media (max-width: 480px) {
+  .social-link {
+    width: 44px;
+    height: 44px;
+  }
+  .social-link svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .footer-bottom {

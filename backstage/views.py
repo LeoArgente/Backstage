@@ -1904,14 +1904,14 @@ def perfil(request, username=None):
     
     is_own_profile = (request.user == usuario_perfil)
     
-    # Buscar reviews do usuário com contagem de likes
+    # Buscar reviews do usuário com contagem de likes (últimas 4)
     criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
         total_likes=Count('likes', distinct=True)
-    ).order_by('-criado_em')[:12]
+    ).order_by('-criado_em')[:4]
     
     criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
         total_likes=Count('likes', distinct=True)
-    ).order_by('-criado_em')[:12]
+    ).order_by('-criado_em')[:4]
     
     # Enriquecer críticas de filmes com dados do TMDB
     for critica in criticas_filmes:
@@ -1991,14 +1991,58 @@ def meu_diario(request):
 
 
 @login_required(login_url='backstage:login')
-def reviews(request):
+def reviews(request, username=None):
     """Página com todas as reviews do usuário"""
-    criticas_filmes = Critica.objects.filter(usuario=request.user).select_related('filme').order_by('-data_criacao')
-    criticas_series = CriticaSerie.objects.filter(usuario=request.user).select_related('serie').order_by('-data_criacao')
+    from .services.tmdb import buscar_detalhes_filme, buscar_detalhes_serie
+    
+    # Determinar qual usuário mostrar
+    if username:
+        usuario_perfil = get_object_or_404(User, username=username)
+    else:
+        usuario_perfil = request.user
+    
+    is_own_profile = (request.user == usuario_perfil)
+    
+    # Buscar todas as reviews do usuário com contagem de likes
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+    
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+    
+    # Enriquecer críticas de filmes com dados do TMDB
+    for critica in criticas_filmes:
+        if critica.filme.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_filme(critica.filme.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.filme.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('release_date'):
+                    from datetime import datetime
+                    critica.filme.data_lancamento = datetime.strptime(detalhes['release_date'], '%Y-%m-%d').date()
+            except:
+                pass
+    
+    # Enriquecer críticas de séries com dados do TMDB
+    for critica in criticas_series:
+        if critica.serie.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_serie(critica.serie.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.serie.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('first_air_date'):
+                    from datetime import datetime
+                    critica.serie.data_primeira_exibicao = datetime.strptime(detalhes['first_air_date'], '%Y-%m-%d').date()
+            except:
+                pass
     
     context = {
         'criticas_filmes': criticas_filmes,
         'criticas_series': criticas_series,
+        'usuario_perfil': usuario_perfil,
+        'is_own_profile': is_own_profile,
     }
     
     return render(request, 'backstage/reviews.html', context)

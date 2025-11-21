@@ -126,7 +126,7 @@
         <div class="tab-content active" id="tab-reviews">
           <div class="section-header">
             <h2>Reviews Recentes</h2>
-            <a href="{% url 'backstage:reviews' %}" class="link-more">Ver todas</a>
+            <a href="{% if is_own_profile %}{% url 'backstage:reviews' %}{% else %}{% url 'backstage:reviews_usuario' username=usuario_perfil.username %}{% endif %}" class="link-more">Ver todas</a>
           </div>
 
           {% if criticas_filmes or criticas_series %}

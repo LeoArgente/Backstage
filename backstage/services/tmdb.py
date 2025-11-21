@@ -158,14 +158,35 @@ def buscar_filme_destaque():
     filmes = buscar_filmes_em_cartaz()
     if filmes:
         import random
-        filme = random.choice(filmes[:5])  # Escolhe entre os 5 primeiros
-        # Já vem padronizado da função buscar_filmes_em_cartaz
-        filme['duracao_min'] = 120  # Valor padrão
+        # Filtra filmes que têm tanto backdrop quanto poster
+        filmes_com_imagens = [f for f in filmes[:10] if f.get('backdrop_path') and f.get('poster_path')]
+        if not filmes_com_imagens:
+            filmes_com_imagens = filmes[:5]  # Fallback se nenhum tiver ambas
+        
+        filme = random.choice(filmes_com_imagens)
+        
+        # Busca detalhes completos do filme para garantir que temos backdrop e poster corretos
+        try:
+            detalhes = buscar_detalhes_filme(filme['tmdb_id'])
+            # Atualiza com dados completos
+            filme['backdrop_path'] = detalhes.get('backdrop_path')
+            filme['poster_path'] = detalhes.get('poster_path')
+            filme['duracao_min'] = detalhes.get('runtime', 120)
+            filme['sinopse'] = detalhes.get('overview', filme.get('sinopse', ''))
+        except:
+            filme['duracao_min'] = 120  # Valor padrão se falhar
+        
         # Converter nota da escala 10 para escala 5 com 1 casa decimal
         if filme.get('nota_tmdb'):
             filme['nota_escala_5'] = round(filme['nota_tmdb'] / 2, 1)
         else:
             filme['nota_escala_5'] = 4.0  # Valor padrão
+        
+        print(f"DEBUG - Filme destaque: {filme['titulo']}")
+        print(f"DEBUG - TMDB ID: {filme['tmdb_id']}")
+        print(f"DEBUG - Backdrop: {filme.get('backdrop_path')}")
+        print(f"DEBUG - Poster: {filme.get('poster_path')}")
+        
         return filme
     return None
 
@@ -173,6 +194,96 @@ def buscar_series_populares(page=1):
     data = _get("/tv/popular", params={"language": "pt-BR", "page": page})
     series = data.get("results", [])
     # Padroniza os campos para séries
+    return [{
+        'tmdb_id': serie.get('id'),
+        'titulo': serie.get('name'),
+        'sinopse': serie.get('overview'),
+        'poster_path': serie.get('poster_path'),
+        'backdrop_path': serie.get('backdrop_path'),
+        'ano_lancamento': serie.get('first_air_date', '')[:4] if serie.get('first_air_date') else '',
+        'nota_tmdb': serie.get('vote_average')
+    } for serie in series]
+
+def buscar_filmes_por_filtros(genero_id=None, ordenacao='popular', page=1):
+    """
+    Busca filmes com filtros de gênero e ordenação
+    genero_id: ID do gênero da TMDB (None para todos)
+    ordenacao: 'popular', 'rating', 'recent', 'alphabetical'
+    """
+    params = {
+        "language": "pt-BR",
+        "page": page,
+        "region": "BR"
+    }
+
+    # Adicionar filtro de gênero se especificado
+    if genero_id:
+        params["with_genres"] = genero_id
+
+    # Definir endpoint e ordenação conforme tipo
+    if ordenacao == 'rating':
+        params["sort_by"] = "vote_average.desc"
+        params["vote_count.gte"] = 100  # Filtrar filmes com pelo menos 100 votos
+        endpoint = "/discover/movie"
+    elif ordenacao == 'recent':
+        params["sort_by"] = "release_date.desc"
+        endpoint = "/discover/movie"
+    elif ordenacao == 'alphabetical':
+        params["sort_by"] = "title.asc"
+        endpoint = "/discover/movie"
+    else:  # popular (padrão)
+        params["sort_by"] = "popularity.desc"
+        endpoint = "/discover/movie"
+
+    data = _get(endpoint, params=params)
+    filmes = data.get("results", [])
+
+    # Padronizar campos
+    return [{
+        'tmdb_id': filme.get('id'),
+        'titulo': filme.get('title'),
+        'sinopse': filme.get('overview'),
+        'poster_path': filme.get('poster_path'),
+        'backdrop_path': filme.get('backdrop_path'),
+        'ano_lancamento': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+        'nota_tmdb': filme.get('vote_average')
+    } for filme in filmes]
+
+def buscar_series_por_filtros(genero_id=None, ordenacao='popular', page=1):
+    """
+    Busca séries com filtros de gênero e ordenação
+    genero_id: ID do gênero da TMDB (None para todos)
+    ordenacao: 'popular', 'rating', 'recent', 'alphabetical'
+    """
+    params = {
+        "language": "pt-BR",
+        "page": page,
+        "region": "BR"
+    }
+
+    # Adicionar filtro de gênero se especificado
+    if genero_id:
+        params["with_genres"] = genero_id
+
+    # Definir endpoint e ordenação conforme tipo
+    if ordenacao == 'rating':
+        params["sort_by"] = "vote_average.desc"
+        params["vote_count.gte"] = 100  # Filtrar séries com pelo menos 100 votos
+        endpoint = "/discover/tv"
+    elif ordenacao == 'recent':
+        params["sort_by"] = "first_air_date.desc"
+        endpoint = "/discover/tv"
+    elif ordenacao == 'alphabetical':
+        params["sort_by"] = "name.asc"
+        endpoint = "/discover/tv"
+    else:  # popular (padrão)
+        params["sort_by"] = "popularity.desc"
+        endpoint = "/discover/tv"
+
+    data = _get(endpoint, params=params)
+    series = data.get("results", [])
+
+    # Padronizar campos
     return [{
         'tmdb_id': serie.get('id'),
         'titulo': serie.get('name'),
@@ -257,7 +368,11 @@ def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str 
     except FilmeCache.DoesNotExist:
         fc = None
 
-    payload = montar_payload_agregado(id_tmdb, region=region)
+    try:
+        payload = montar_payload_agregado(id_tmdb, region=region)
+    except Exception as e:
+        print(f"[ERRO] Falha ao buscar detalhes do filme {id_tmdb}: {e}")
+        return None
 
     if fc:
         # Cache existe mas está expirado - atualizar
@@ -370,6 +485,17 @@ def obter_trending(limit=20, usar_cache=True):
     # Formatar
     trending_movies = []
     for filme in filmes:
+        # Buscar detalhes do filme para obter duração e gêneros
+        duracao_formatada = ""
+        generos = []
+        try:
+            detalhes = buscar_detalhes_filme(filme.get('id'))
+            duracao_min = detalhes.get('runtime')
+            duracao_formatada = formatar_duracao(duracao_min)
+            generos = [g['name'] for g in detalhes.get('genres', [])]
+        except:
+            pass
+
         trending_movies.append({
             'tmdb_id': filme.get('id'),
             'titulo': filme.get('title'),
@@ -379,7 +505,8 @@ def obter_trending(limit=20, usar_cache=True):
             'poster_path': filme.get('poster_path'),
             'backdrop_path': filme.get('backdrop_path'),
             'sinopse': filme.get('overview', ''),
-            'generos': []  # Seria necessário buscar detalhes para ter gêneros
+            'generos': generos,
+            'duracao': duracao_formatada
         })
 
     # Salvar no cache

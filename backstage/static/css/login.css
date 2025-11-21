@@ -43,9 +43,11 @@ body::before {
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 3rem;
+  padding: 2rem;
   width: 100%;
   max-width: 420px;
+  max-height: 95vh;
+  overflow-y: auto;
   box-shadow: var(--shadow-xl);
   transition: all var(--transition-slow);
 }
@@ -58,7 +60,7 @@ body::before {
 /* Header */
 .login-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .logo {
@@ -66,7 +68,7 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .logo-icon {
@@ -108,13 +110,13 @@ body::before {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .form-label {
@@ -125,7 +127,7 @@ body::before {
 }
 
 .form-input {
-  padding: 0.875rem 1rem;
+  padding: 0.65rem 1rem;
   background: rgba(51, 65, 85, 0.6);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -147,7 +149,7 @@ body::before {
 
 /* Buttons */
 .btn {
-  padding: 0.875rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.875rem;
@@ -191,10 +193,10 @@ body::before {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-md);
-  padding: 0.875rem;
+  padding: 0.65rem;
   color: var(--error);
   font-size: 0.875rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   animation: errorSlide 0.3s ease-out;
 }
 
@@ -211,7 +213,7 @@ body::before {
 
 /* Footer Actions */
 .login-footer {
-  margin-top: 2rem;
+  margin-top: 1rem;
   text-align: center;
 }
 
@@ -355,13 +357,13 @@ body::before {
 /* Responsive Design */
 @media (max-width: 640px) {
   .login-container {
-    margin: 1rem;
-    padding: 2rem;
+    margin: 0.5rem;
+    padding: 1.5rem;
   }
 
   .modal-content {
-    margin: 1rem;
-    padding: 2rem;
+    margin: 0.5rem;
+    padding: 1.5rem;
   }
 
   .logo-text {
@@ -396,4 +398,23 @@ body::before {
   color: var(--success);
   font-size: 0.75rem;
   margin-top: 0.25rem;
+}
+
+/* Scrollbar customization */
+.login-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.login-container::-webkit-scrollbar-track {
+  background: rgba(51, 65, 85, 0.3);
+  border-radius: 3px;
+}
+
+.login-container::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 3px;
+}
+
+.login-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
 }

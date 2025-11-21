@@ -4,14 +4,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ serie.titulo }} — Backstage</title>
+  <title>{{ serie.titulo }} - Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/series_details.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -23,18 +27,6 @@
 
         <div class="nav-menu">
           <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
-          <div class="nav-link-wrapper">
-            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
-            <div class="news-dropdown">
-              <div class="dropdown-header">
-                <h3>Últimas Notícias</h3>
-                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
-              </div>
-              <div class="news-dropdown-content">
-                <!-- News items will be populated by JS -->
-              </div>
-            </div>
-          </div>
           <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link active">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
@@ -51,115 +43,9 @@
             <input type="hidden" name="tipo" value="titulo" />
           </form>
 
-          <button class="icon-btn notification-btn" aria-label="Notificações">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span class="notification-badge">3</span>
-          </button>
+          {% include 'backstage/_notifications.html' %}
 
-          {% if user.is_authenticated %}
-          <div class="user-menu">
-            <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
-              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
-            </button>
-            
-            <!-- Letterboxd-Style Dropdown Menu -->
-            <div class="user-dropdown" id="userDropdown" role="menu">
-              <div class="user-dropdown-header">
-                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
-                <div class="user-dropdown-info">
-                  <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
-                  <p class="user-dropdown-email">{{ user.email|default:"visitante@backstage.com" }}</p>
-                </div>
-              </div>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                Perfil
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Meu Diário
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Reviews
-              </a>
-              
-              <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Listas
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Watchlist
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Favoritos
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Configurações
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Ajuda
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:sair' %}" class="user-dropdown-item logout-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Sair
-              </a>
-            </div>
-          </div>
-          {% else %}
-          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
-          {% endif %}
+          {% include 'backstage/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
@@ -392,13 +278,6 @@
           <span class="icon">+</span>
           <span>Criar Nova Lista</span>
         </button>
-        <button class="popup-option watch-later" onclick="addToWatchLater()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <span>Assistir Mais Tarde</span>
-        </button>
       </div>
 
       <!-- Formulário de criar lista -->
@@ -487,6 +366,14 @@
                   </div>
                 </div>
                 <p class="review-text">{{ critica.texto }}</p>
+                <div class="review-actions">
+                  <button class="review-action like-btn {% if critica.usuario_deu_like %}liked{% endif %}"
+                          data-critica-id="{{ critica.id }}"
+                          onclick="toggleLikeSerie(this)">
+                    👍 <span class="like-count">{{ critica.total_likes|default:0 }}</span>
+                  </button>
+                  <button class="review-action">💬 0</button>
+                </div>
               </article>
               {% empty %}
               <div class="no-reviews">
@@ -1054,7 +941,98 @@
     });
   </script>
 
+  <!-- CSS para Sistema de Likes -->
+  <style>
+    .like-btn {
+      transition: all 0.3s ease;
+    }
+
+    .like-btn.liked {
+      color: #3b82f6 !important;
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .like-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .like-count {
+      margin-left: 4px;
+    }
+  </style>
+
+  <!-- JavaScript para Sistema de Likes em Séries -->
+  <script>
+    // Função para toggle de like em críticas de séries
+    function toggleLikeSerie(button) {
+      const criticaId = button.dataset.criticaId;
+      const likeCountSpan = button.querySelector('.like-count');
+
+      // Fazer requisição AJAX
+      fetch(`/api/critica-serie/${criticaId}/like/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => {
+        if (response.status === 401) {
+          // Usuário não está autenticado, redirecionar para login
+          window.location.href = '/login/';
+          return null;
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data) return; // Se redirecionou, não processar
+
+        if (data.success) {
+          // Atualizar contagem de likes
+          likeCountSpan.textContent = data.total_likes;
+
+          // Atualizar classe liked
+          if (data.liked) {
+            button.classList.add('liked');
+          } else {
+            button.classList.remove('liked');
+          }
+        } else {
+          console.error('Erro ao processar like:', data.message);
+          alert('Erro ao processar like. Tente novamente.');
+        }
+      })
+      .catch(error => {
+        console.error('Erro na requisição:', error);
+        alert('Erro ao processar like. Tente novamente.');
+      });
+    }
+
+    // Função auxiliar para obter CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
+
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/series_details.js' %}" defer></script>
+  <script src="{% static 'js/profile_menu.js' %}"></script>
+  <script src="{% static 'js/notifications.js' %}" defer></script>
 </body>
 </html>

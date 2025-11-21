@@ -4,14 +4,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Backstage — Sua jornada cinematográfica</title>
+  <title>Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  
+  <link rel="stylesheet" href="{% static 'css/search.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
     <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -50,168 +54,100 @@
             <input type="search" class="search-input" placeholder="Buscar séries, filmes por categoria..." />
           </div>
 
-          <button class="icon-btn notification-btn" aria-label="Notificações">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span class="notification-badge">3</span>
-          </button>
+          {% include 'backstage/_notifications.html' %}
 
-          {% if user.is_authenticated %}
-          <div class="user-menu">
-            <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
-              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
-            </button>
-            
-            <!-- Letterboxd-Style Dropdown Menu -->
-            <div class="user-dropdown" id="userDropdown" role="menu">
-              <div class="user-dropdown-header">
-                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
-                <div class="user-dropdown-info">
-                  <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
-                  <p class="user-dropdown-email">{{ user.email|default:"visitante@backstage.com" }}</p>
-                </div>
-              </div>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                Perfil
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Meu Diário
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Reviews
-              </a>
-              
-              <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Listas
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Watchlist
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Favoritos
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Configurações
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Ajuda
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:sair' %}" class="user-dropdown-item logout-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Sair
-              </a>
-            </div>
-          </div>
-          {% else %}
-          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
-          {% endif %}
+          {% include 'backstage/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
   </header>
 
-  <div class="container" style="padding: 20px; margin-top: 80px;">
-    <!-- Formulário de busca -->
-    <div class="search-form-container" style="margin-bottom: 30px;">
-      <h1>Buscar Filmes e Séries</h1>
-      
+  <main class="search-results-page">
+    <div class="container">
+      <!-- Search Header -->
+      <div class="search-header">
+        <h1>Buscar Filmes e Séries</h1>
+        {% if query %}
+          <p class="search-subtitle">Resultados para: <span class="search-query">"{{ query }}"</span></p>
+          {% if resultados_filmes or resultados_pessoas %}
+            <span class="results-count">
+              {{ total_resultados }} resultado{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}
+            </span>
+          {% endif %}
+        {% else %}
+          <p class="search-subtitle">Digite algo para começar sua busca</p>
+        {% endif %}
+      </div>
+
+      <!-- Search Form -->
       <form method="get" action="{% url 'backstage:buscar' %}" class="advanced-search-form">
         <div class="search-input-group">
           <input 
             type="text" 
             name="q" 
+            id="searchInput"
             value="{{ query }}" 
             placeholder="Digite o título, nome do ator/diretor ou gênero..." 
             class="search-input"
-            style="width: 100%; padding: 12px; border: 1px solid #333; border-radius: 8px; background: #1a1a1a; color: white;"
           />
         </div>
         
-        <div class="search-filters" style="margin: 15px 0;">
-          <label style="margin-right: 20px;">
-            <input type="radio" name="tipo" value="titulo" {% if tipo_busca == 'titulo' %}checked{% endif %}> Título
-          </label>
-          <label style="margin-right: 20px;">
-            <input type="radio" name="tipo" value="pessoa" {% if tipo_busca == 'pessoa' %}checked{% endif %}> Ator/Diretor
+        <div class="search-filters">
+          <label>
+            <input type="radio" name="tipo" value="titulo" {% if tipo_busca == 'titulo' %}checked{% endif %} id="radioTitulo"> Título
           </label>
           <label>
-            <input type="radio" name="tipo" value="genero" {% if tipo_busca == 'genero' %}checked{% endif %}> Gênero
+            <input type="radio" name="tipo" value="pessoa" {% if tipo_busca == 'pessoa' %}checked{% endif %} id="radioPessoa"> Ator/Diretor
+          </label>
+          <label>
+            <input type="radio" name="tipo" value="genero" {% if tipo_busca == 'genero' %}checked{% endif %} id="radioGenero"> Gênero
           </label>
         </div>
+
+        <!-- Dropdown de Gêneros -->
+        <div id="generoDropdown" class="genero-dropdown" style="display: none;">
+          <p class="genero-dropdown-label">Selecione um gênero:</p>
+          <div class="genero-dropdown-grid">
+            {% for genero in generos %}
+            <button type="button" class="genero-dropdown-item" data-genero="{{ genero.name }}">
+              {{ genero.name }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
         
-        <button type="submit" class="btn btn-primary">Buscar</button>
+        <button type="submit" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Buscar
+        </button>
       </form>
-    </div>
 
     {% if query %}
-    <div class="search-results">
-      <h2>Resultados para "{{ query }}"</h2>
       
       {% if resultados_pessoas %}
-      <div class="pessoas-section" style="margin-bottom: 30px;">
-        <h3>Pessoas encontradas:</h3>
-        <div class="pessoas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+      <div class="pessoas-section">
+        <div class="section-header">
+          <h3>Pessoas</h3>
+          <span class="section-badge">{{ resultados_pessoas|length }}</span>
+        </div>
+        <div class="pessoas-grid">
           {% for pessoa in resultados_pessoas %}
-          <div class="pessoa-card" style="padding: 15px; background: #222; border-radius: 8px;">
+          <div class="pessoa-card">
             {% if pessoa.profile_path %}
-            <img src="{{ tmdb_image_base }}w200{{ pessoa.profile_path }}" alt="{{ pessoa.name }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+            <img src="{{ tmdb_image_base }}w200{{ pessoa.profile_path }}" alt="{{ pessoa.name }}">
+            {% else %}
+            <div class="pessoa-card-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </div>
             {% endif %}
-            <h4 style="margin: 10px 0 5px;">{{ pessoa.name }}</h4>
-            <p style="color: #888; font-size: 14px;">{{ pessoa.known_for_department|default:"Ator/Atriz" }}</p>
+            <h4>{{ pessoa.name }}</h4>
+            <p>{{ pessoa.known_for_department|default:"Ator/Atriz" }}</p>
           </div>
           {% endfor %}
         </div>
@@ -220,39 +156,44 @@
 
       {% if resultados_filmes %}
       <div class="filmes-section">
-        <h3>Filmes encontrados:</h3>
-        <div class="movies-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        <div class="section-header">
+          <h3>Filmes e Séries</h3>
+          <span class="section-badge">{{ resultados_filmes|length }}</span>
+        </div>
+        <div class="movies-grid">
           {% for filme in resultados_filmes %}
-          <div class="movie-card" style="background: #222; border-radius: 8px; overflow: hidden;">
-              {% if filme.tipo == 'serie' %}
-              <a href="{% url 'backstage:detalhes_serie' filme.tmdb_id %}" style="text-decoration: none; color: inherit;">
-              {% else %}
-              <a href="{% url 'backstage:detalhes_filme' filme.tmdb_id %}" style="text-decoration: none; color: inherit;">
-              {% endif %}
+          <div class="movie-card" onclick="window.location.href='{% if filme.tipo == 'serie' %}{% url 'backstage:detalhes_serie' filme.tmdb_id %}{% else %}{% url 'backstage:detalhes_filme' filme.tmdb_id %}{% endif %}'">
+            <div class="movie-card-poster">
               {% if filme.poster_path %}
-              <img src="{{ tmdb_image_base }}w500{{ filme.poster_path }}" alt="{{ filme.titulo }}" style="width: 100%; height: 300px; object-fit: cover;">
+              <img src="{{ tmdb_image_base }}w500{{ filme.poster_path }}" alt="{{ filme.titulo }}" />
               {% else %}
-              <div style="width: 100%; height: 300px; background: #333; display: flex; align-items: center; justify-content: center; color: #666;">
-                Sem imagem
+              <div class="movie-card-placeholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="7" width="20" height="15" rx="2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M16 3v4M8 3v4M2 11h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
               </div>
               {% endif %}
-              
-              <div style="padding: 15px;">
-                <h4 style="margin: 0 0 8px; font-size: 16px;">
-                  {{ filme.titulo }}
-                  {% if filme.tipo == 'serie' %}
-                  <span style="background: #667eea; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 5px;">SÉRIE</span>
-                  {% endif %}
-                </h4>
-                <p style="color: #888; font-size: 14px; margin: 0 0 8px;">{{ filme.ano_lancamento }}</p>
+              <div class="movie-card-overlay">
                 {% if filme.nota_tmdb %}
-                <div style="display: flex; align-items: center; gap: 5px;">
-                  <span style="color: #ffd700;">★</span>
-                  <span>{{ filme.nota_tmdb|floatformat:1 }}</span>
+                <div class="movie-card-rating">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                  {{ filme.nota_tmdb|floatformat:1 }}
                 </div>
                 {% endif %}
               </div>
-            </a>
+            </div>
+            <div class="movie-card-info">
+              <h3 class="movie-card-title">
+                {{ filme.titulo }}
+                {% if filme.tipo == 'serie' %}
+                <span class="media-type-badge">SÉRIE</span>
+                {% endif %}
+              </h3>
+              <span class="movie-card-year">{{ filme.ano_lancamento }}</span>
+            </div>
           </div>
           {% endfor %}
         </div>
@@ -260,20 +201,28 @@
       {% endif %}
 
       {% if not resultados_filmes and not resultados_pessoas %}
-      <div class="no-results" style="text-align: center; padding: 40px; color: #666;">
+      <div class="no-results">
+        <svg class="no-results-icon" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="8" y1="11" x2="14" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
         <h3>Nenhum resultado encontrado</h3>
         <p>Tente buscar com outros termos ou mude o tipo de busca.</p>
+        <div class="no-results-suggestions">
+          <a href="?tipo=titulo" class="suggestion-tag">Buscar por título</a>
+          <a href="?tipo=pessoa" class="suggestion-tag">Buscar pessoa</a>
+          <a href="?tipo=genero" class="suggestion-tag">Buscar gênero</a>
+        </div>
       </div>
       {% endif %}
 
-    </div>
     {% else %}
-    <div class="suggestions" style="margin-top: 30px;">
-      <h3>Gêneros populares:</h3>
-      <div class="generos-list" style="display: flex; flex-wrap: wrap; gap: 10px;">
+    <div class="suggestions-section">
+      <h3>Gêneros populares</h3>
+      <div class="generos-list">
         {% for genero in generos|slice:":10" %}
-        <a href="?q={{ genero.name }}&tipo=genero" class="genero-tag" 
-           style="padding: 8px 15px; background: #333; color: white; text-decoration: none; border-radius: 20px; font-size: 14px;">
+        <a href="?q={{ genero.name }}&tipo=genero" class="genero-tag">
           {{ genero.name }}
         </a>
         {% endfor %}
@@ -281,165 +230,87 @@
     </div>
     {% endif %}
 
-  </div>
+    </div>
+  </main>
 
-  <!-- CSS para Menu de Usuário -->
-  <style>
-    .user-menu {
-      position: relative;
-    }
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
 
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: none;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .user-avatar:hover {
-      border-color: var(--red);
-      transform: scale(1.05);
-    }
-
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .user-dropdown {
-      position: absolute;
-      top: calc(100% + 10px);
-      right: 0;
-      background: rgba(17, 24, 39, 0.98);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      min-width: 220px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
-      z-index: 1000;
-      backdrop-filter: blur(10px);
-    }
-
-    .user-dropdown.active {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-
-    .user-dropdown-header {
-      padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .user-dropdown-name {
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 600;
-      margin: 0 0 4px 0;
-    }
-
-    .user-dropdown-email {
-      color: #9ca3af;
-      font-size: 12px;
-      margin: 0;
-    }
-
-    .user-dropdown-divider {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.1);
-      margin: 8px 0;
-    }
-
-    .user-dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      color: #ffffff;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      font-size: 14px;
-    }
-
-    .user-dropdown-item:hover {
-      background: rgba(220, 38, 38, 0.1);
-      color: var(--red);
-    }
-
-    .user-dropdown-item svg {
-      width: 18px;
-      height: 18px;
-      stroke: currentColor;
-    }
-
-    /* Seta do dropdown */
-    .user-dropdown::before {
-      content: '';
-      position: absolute;
-      top: -6px;
-      right: 12px;
-      width: 12px;
-      height: 12px;
-      background: rgba(17, 24, 39, 0.98);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      transform: rotate(45deg);
-    }
-  </style>
-
-  <!-- JavaScript para Toggle do Menu -->
+  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/profile_menu.js' %}"></script>
+  <script src="{% static 'js/notifications.js' %}" defer></script>
+  
   <script>
+    // Controlar exibição do dropdown de gêneros
     document.addEventListener('DOMContentLoaded', function() {
-      const userMenuBtn = document.getElementById('userMenuBtn');
-      const userDropdown = document.getElementById('userDropdown');
+      const radioGenero = document.getElementById('radioGenero');
+      const radioTitulo = document.getElementById('radioTitulo');
+      const radioPessoa = document.getElementById('radioPessoa');
+      const generoDropdown = document.getElementById('generoDropdown');
+      const searchInput = document.getElementById('searchInput');
+      const generoItems = document.querySelectorAll('.genero-dropdown-item');
+      let dropdownManualmenteFechado = false;
 
-      if (userMenuBtn && userDropdown) {
-        // Toggle dropdown ao clicar no avatar
-        userMenuBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          userDropdown.classList.toggle('active');
+      // Mostrar/ocultar dropdown quando selecionar gênero
+      function toggleGeneroDropdown() {
+        if (radioGenero && radioGenero.checked) {
+          generoDropdown.style.display = 'block';
+          dropdownManualmenteFechado = false;
+        } else {
+          generoDropdown.style.display = 'none';
+          dropdownManualmenteFechado = false;
+        }
+      }
+
+      // Adicionar listeners aos radio buttons
+      if (radioGenero) {
+        radioGenero.addEventListener('change', function() {
+          dropdownManualmenteFechado = false;
+          toggleGeneroDropdown();
         });
-
-        // Fechar dropdown ao clicar fora
-        document.addEventListener('click', function(e) {
-          if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-            userDropdown.classList.remove('active');
-          }
-        });
-
-        // Fechar dropdown ao pressionar ESC
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') {
-            userDropdown.classList.remove('active');
+        
+        // Reabrir ao clicar novamente no radio Gênero
+        radioGenero.addEventListener('click', function() {
+          if (this.checked && generoDropdown.style.display === 'none') {
+            generoDropdown.style.display = 'block';
+            dropdownManualmenteFechado = false;
           }
         });
       }
-
-      // Funcionalidade de busca
-      const searchInput = document.querySelector('.search-input');
-      if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const searchTerm = searchInput.value.trim();
-            if (searchTerm) {
-              window.location.href = `{% url 'backstage:buscar' %}?q=${encodeURIComponent(searchTerm)}&tipo=titulo`;
-            }
-          }
-        });
+      if (radioTitulo) {
+        radioTitulo.addEventListener('change', toggleGeneroDropdown);
       }
+      if (radioPessoa) {
+        radioPessoa.addEventListener('change', toggleGeneroDropdown);
+      }
+
+      // Verificar estado inicial
+      toggleGeneroDropdown();
+
+      // Preencher input ao clicar em um gênero
+      generoItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const generoNome = this.getAttribute('data-genero');
+          searchInput.value = generoNome;
+          searchInput.focus();
+          
+          // Highlight visual temporário
+          this.style.background = 'var(--blue)';
+          this.style.color = 'white';
+          setTimeout(() => {
+            this.style.background = '';
+            this.style.color = '';
+          }, 200);
+
+          // Fechar dropdown após selecionar
+          dropdownManualmenteFechado = true;
+          setTimeout(() => {
+            generoDropdown.style.display = 'none';
+          }, 250);
+        });
+      });
     });
   </script>
-
-  <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
 </body>
 </html>

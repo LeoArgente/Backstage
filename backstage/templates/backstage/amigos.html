@@ -1,0 +1,315 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amigos - Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/friends.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+</head>
+<body>
+  {% include 'backstage/_mobile_header.html' %}
+    <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+        <a class="brand" href="{% url 'backstage:index' %}">
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
+        </a>
+
+        <div class="nav-menu">
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
+        </div>
+
+        <div class="nav-actions">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
+
+          <div class="filter-controls header-filter-controls">
+            <button type="button" class="filter-btn" id="filterBtn" aria-label="Filtros">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+
+            <div class="filter-popup" id="filterPopup">
+              <div class="filter-content">
+                <h3>Filtros de busca</h3>
+                <form method="get" action="{% url 'backstage:buscar' %}">
+                  <select name="tipo" id="tipoSelect">
+                    <option value="">Escolha o tipo de filtro</option>
+                    <option value="titulo">Título</option>
+                    <option value="genero">Gênero</option>
+                    <option value="ano">Ano</option>
+                  </select>
+                  <div id="filtroAno" style="display:none;">
+                    <label for="anoInput">Ano:</label>
+                    <input type="number" name="ano" placeholder="Ex: 2024" id="anoInput">
+                  </div>
+                  <div id="filtroGenero" style="display:none;">
+                    <label for="generoSelect">Gênero:</label>
+                    <select name="genero" id="generoSelect">
+                      <option value="">Selecione um gênero</option>
+                      <option value="Ação">Ação</option>
+                      <option value="Aventura">Aventura</option>
+                      <option value="Comédia">Comédia</option>
+                      <option value="Drama">Drama</option>
+                      <option value="Fantasia">Fantasia</option>
+                      <option value="Ficção Científica">Ficção Científica</option>
+                      <option value="Romance">Romance</option>
+                      <option value="Suspense">Suspense</option>
+                      <option value="Terror">Terror</option>
+                      <option value="Animação">Animação</option>
+                      <option value="Documentário">Documentário</option>
+                    </select>
+                  </div>
+                  <button type="submit">Aplicar filtros</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {% include 'backstage/_notifications.html' %}
+
+          {% if user.is_authenticated %}
+          {% include 'backstage/_user_dropdown.html' %}
+          {% else %}
+          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
+          {% endif %}
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-header">
+    <div class="container">
+      <h1>Amigos</h1>
+      <p class="page-description">Conecte-se com outros cinéfilos e compartilhe suas paixões</p>
+    </div>
+  </div>
+
+  <div class="friends-container">
+    <div class="container">
+      <!-- Tabs de Navegação -->
+      <div class="friends-tabs">
+        <button class="friends-tab active" data-tab="meus-amigos">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Meus Amigos
+          <span class="badge">{{ amigos_count }}</span>
+        </button>
+        
+        <button class="friends-tab" data-tab="solicitacoes">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Solicitações
+          {% if solicitacoes_pendentes_count > 0 %}
+          <span class="badge badge-alert">{{ solicitacoes_pendentes_count }}</span>
+          {% endif %}
+        </button>
+        
+        <button class="friends-tab" data-tab="buscar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Buscar Amigos
+        </button>
+      </div>
+
+      <!-- Conteúdo das Tabs -->
+      <div class="friends-content">
+        <!-- Tab: Meus Amigos -->
+        <div class="friends-tab-content active" id="meus-amigos">
+          {% if amigos %}
+          <div class="friends-grid">
+            {% for amigo in amigos %}
+            <div class="friend-card">
+              <div class="friend-avatar">
+                <img src="https://ui-avatars.com/api/?name={{ amigo.username }}&background=00d9ff&color=0a0e27&size=100" alt="{{ amigo.username }}">
+              </div>
+              <div class="friend-info">
+                <h3 class="friend-name">{{ amigo.username }}</h3>
+                <p class="friend-stats">{{ amigo.criticas_count|default:0 }} reviews</p>
+              </div>
+              <div class="friend-actions">
+                <a href="{% url 'backstage:perfil_usuario' amigo.username %}" class="btn-friend-action btn-view-profile">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                    <path d="M20 12c-2 4-4 6-8 6s-6-2-8-6c2-4 4-6 8-6s6 2 8 6z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Ver Perfil
+                </a>
+                <button class="btn-friend-action btn-remove" data-user-id="{{ amigo.id }}" onclick="removerAmigo({{ amigo.id }}, '{{ amigo.username }}')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    <line x1="18" y1="8" x2="23" y2="13" stroke="currentColor" stroke-width="2"/>
+                    <line x1="23" y1="8" x2="18" y2="13" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Remover
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+              <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <h3>Você ainda não tem amigos</h3>
+            <p>Comece a buscar outros usuários para adicionar!</p>
+            <button class="btn-primary" onclick="document.querySelector('[data-tab=buscar]').click()">Buscar Amigos</button>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Tab: Solicitações -->
+        <div class="friends-tab-content" id="solicitacoes">
+          {% if solicitacoes_recebidas %}
+          <h2 class="section-title">Solicitações Recebidas</h2>
+          <div class="friends-grid">
+            {% for solicitacao in solicitacoes_recebidas %}
+            <div class="friend-card friend-request">
+              <div class="friend-avatar">
+                <img src="https://ui-avatars.com/api/?name={{ solicitacao.remetente.username }}&background=00d9ff&color=0a0e27&size=100" alt="{{ solicitacao.remetente.username }}">
+              </div>
+              <div class="friend-info">
+                <h3 class="friend-name">{{ solicitacao.remetente.username }}</h3>
+                <p class="friend-date">{{ solicitacao.data_criacao|timesince }} atrás</p>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-friend-action btn-accept" onclick="aceitarSolicitacao({{ solicitacao.id }})">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Aceitar
+                </button>
+                <button class="btn-friend-action btn-reject" onclick="rejeitarSolicitacao({{ solicitacao.id }})">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Rejeitar
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if solicitacoes_enviadas %}
+          <h2 class="section-title">Solicitações Enviadas</h2>
+          <div class="friends-grid">
+            {% for solicitacao in solicitacoes_enviadas %}
+            <div class="friend-card friend-request-sent">
+              <div class="friend-avatar">
+                <img src="https://ui-avatars.com/api/?name={{ solicitacao.destinatario.username }}&background=00d9ff&color=0a0e27&size=100" alt="{{ solicitacao.destinatario.username }}">
+              </div>
+              <div class="friend-info">
+                <h3 class="friend-name">{{ solicitacao.destinatario.username }}</h3>
+                <p class="friend-date">Enviada {{ solicitacao.data_criacao|timesince }} atrás</p>
+                <span class="status-badge status-pending">Pendente</span>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-friend-action btn-cancel" onclick="cancelarSolicitacao({{ solicitacao.id }})">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if not solicitacoes_recebidas and not solicitacoes_enviadas %}
+          <div class="empty-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <h3>Nenhuma solicitação</h3>
+            <p>Você não tem solicitações de amizade pendentes</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Tab: Buscar Amigos -->
+        <div class="friends-tab-content" id="buscar">
+          <!-- Busca em tempo real -->
+          <div class="search-container-realtime">
+            <div class="search-input-wrapper">
+              <svg class="search-icon-realtime" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <input 
+                type="text" 
+                id="search-input-realtime" 
+                class="search-friends-input-realtime" 
+                placeholder="Digite o nome do usuário..."
+                autocomplete="off"
+              >
+              <div id="search-loading" class="search-loading" style="display: none;">
+                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Resultados em tempo real -->
+            <div id="search-results-realtime" class="search-results-realtime">
+              <!-- Resultados serão inseridos aqui via JavaScript -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
+
+  <script src="{% static 'js/profile_menu.js' %}"></script>
+  <script src="{% static 'js/search-suggestions.js' %}"></script>
+  <script src="{% static 'js/friends.js' %}"></script>
+  <script src="{% static 'js/friends-realtime-search.js' %}"></script>
+  <script src="{% static 'js/notifications.js' %}" defer></script>
+</body>
+</html>

@@ -1,0 +1,737 @@
+/* ==========================================
+   MOBILE NAVIGATION STYLES
+   ========================================== */
+
+/* Hide mobile elements on desktop by default */
+.mobile-header,
+.mobile-search-overlay,
+.floating-bottom-nav {
+  display: none;
+}
+
+/* ==========================================
+   MOBILE HEADER
+   ========================================== */
+@media (max-width: 768px) {
+  /* Hide desktop header on mobile */
+  .site-header {
+    display: none;
+  }
+
+  /* Show mobile header */
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 16px;
+    z-index: 1000;
+  }
+
+  /* Mobile User Avatar / Login Link */
+  .mobile-user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-user-avatar:active {
+    transform: scale(0.95);
+    border-color: var(--red, #dc2626);
+  }
+
+  .mobile-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mobile-login-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-login-link:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-login-link svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Mobile User Menu Dropdown */
+  .mobile-user-menu {
+    position: relative;
+  }
+
+  .mobile-user-dropdown {
+    position: fixed;
+    top: 88px;
+    right: 16px;
+    background: #182231 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    min-width: 240px;
+    max-width: 280px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1002;
+    backdrop-filter: blur(10px);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  .mobile-user-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .mobile-user-dropdown-header {
+    padding: 16px;
+    background: #1e293b !important;
+    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mobile-user-dropdown-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .mobile-user-dropdown-info {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .mobile-user-dropdown-name {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-user-dropdown-email {
+    color: #9ca3af;
+    font-size: 12px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-user-dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 8px 0;
+  }
+
+  .mobile-user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 14px;
+  }
+
+  .mobile-user-dropdown-item:active {
+    background: rgba(220, 38, 38, 0.15);
+    color: var(--red, #dc2626);
+  }
+
+  .mobile-user-dropdown-item svg,
+  .mobile-user-dropdown-item img {
+    flex-shrink: 0;
+  }
+
+  .mobile-user-dropdown-item svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+
+  .mobile-user-dropdown-item svg[width="20"],
+  .mobile-user-dropdown-item svg[height="20"] {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .mobile-logout-item {
+    color: #ef4444;
+  }
+
+  .mobile-logout-item:active {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+  }
+
+  /* Arrow for dropdown */
+  .mobile-user-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 12px;
+    width: 12px;
+    height: 12px;
+    background: #182231 !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+  }
+
+  /* Mobile Brand Logo */
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-brand img {
+    height: 76px;
+    width: auto;
+  }
+
+  /* Mobile Search Button */
+  .mobile-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-search-btn:active {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+
+  /* Slightly larger search icon for improved tap target and visibility */
+  .mobile-search-btn .mobile-search-icon {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+
+  /* ==========================================
+     MOBILE SEARCH OVERLAY
+     ========================================== */
+
+  .mobile-search-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1003;
+  }
+
+  .mobile-search-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-search-container {
+    padding: 20px;
+  }
+
+  .mobile-search-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+
+  .mobile-search-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .mobile-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+  }
+
+  .mobile-search-input::placeholder {
+    color: #9ca3af;
+  }
+
+  .mobile-search-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--red, #dc2626);
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-search-submit:active {
+    transform: scale(0.95);
+    background: #b91c1c;
+  }
+
+  /* ==========================================
+     FLOATING BOTTOM NAVIGATION BAR
+     ========================================== */
+
+  .floating-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 75px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 0;
+    z-index: 999;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .bottom-nav-item svg {
+    width: 28px;
+    height: 28px;
+    stroke: currentColor;
+    transition: all 0.2s ease;
+  }
+
+  /* Make the home icon slightly larger than other nav icons */
+  .bottom-nav-item .home-icon {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .bottom-nav-item span {
+    transition: all 0.2s ease;
+  }
+
+  .bottom-nav-item:active {
+    transform: scale(0.95);
+  }
+
+  .bottom-nav-item.active {
+    color: var(--red, #dc2626);
+  }
+
+
+
+  .bottom-nav-item.active span::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -6px;
+    width: 6px;
+    height: 6px;
+    background: var(--red, #dc2626);
+    border-radius: 50%;
+    display: block;
+  }
+
+  /* Slight increase for the community icon to match visual weight */
+  .floating-bottom-nav .bottom-nav-item .community-icon {
+    transform: scale(1.25);
+  }
+
+
+  /* ==========================================
+     LAYOUT ADJUSTMENTS FOR MOBILE
+     ========================================== */
+
+  /* Add padding to body to account for fixed headers/footers */
+  body {
+    padding-top: 80px;
+    padding-bottom: 75px;
+  }
+
+  /* Adjust hero section for mobile */
+  .hero {
+    margin-top: 0;
+  }
+
+  /* Hero backdrop - show poster vertical on mobile, hide desktop backdrop */
+  .hero-backdrop-desktop {
+    display: none !important;
+  }
+
+  .hero-backdrop-mobile {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Adjust hero content positioning for vertical poster */
+  .hero-content {
+    padding: 24px 16px;
+  }
+
+  /* Hero actions - stack buttons on mobile */
+  .hero-actions {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    position: relative;
+    z-index: 15; /* Above indicators */
+    margin-bottom: 60px; /* Space for indicators below */
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Reposition hero indicators on mobile - below buttons */
+  .hero-indicators {
+    bottom: 16px !important;
+    z-index: 10;
+  }
+
+  .hero-indicator {
+    width: 32px;
+    height: 3px;
+  }
+
+  /* Hero title - reduce size on mobile */
+  .hero-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  /* Hero meta - adjust spacing */
+  .hero-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Adjust container padding for mobile */
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Make sure content doesn't hide behind bottom nav */
+  main.container {
+    padding-bottom: 32px;
+  }
+
+  /* Adjust footer for mobile */
+  .site-footer {
+    margin-bottom: 0;
+  }
+
+  /* ==========================================
+     RESPONSIVE ADJUSTMENTS FOR SMALLER PHONES
+     ========================================== */
+
+  @media (max-width: 480px) {
+    .mobile-header {
+      height: 72px;
+      padding: 0 12px;
+    }
+
+    .mobile-brand img {
+      height: 64px;
+    }
+
+    .floating-bottom-nav {
+      height: 70px;
+      padding: 8px 0;
+    }
+
+    .bottom-nav-item {
+      font-size: 11px;
+      gap: 5px;
+    }
+
+    .bottom-nav-item svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    body {
+      padding-top: 72px;
+      padding-bottom: 70px;
+    }
+
+    /* Adjust mobile dropdown for smaller screens */
+    .mobile-user-dropdown {
+      top: 80px;
+      right: 12px;
+      min-width: 220px;
+      max-width: calc(100vw - 24px);
+    }
+
+    .mobile-user-dropdown-item {
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+  }
+
+  /* ==========================================
+     LANDSCAPE MODE ADJUSTMENTS
+     ========================================== */
+
+  @media (max-width: 768px) and (orientation: landscape) {
+    .floating-bottom-nav {
+      height: 64px;
+      padding: 6px 0;
+    }
+
+    .bottom-nav-item svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .bottom-nav-item span {
+      font-size: 11px;
+    }
+
+    .bottom-nav-item {
+      gap: 4px;
+    }
+
+    body {
+      padding-bottom: 64px;
+    }
+  }
+
+  /* ==========================================
+     MOVIE/SERIES DETAILS - REVIEW FORM
+     ========================================== */
+
+  .textarea-controls {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .textarea-controls-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: auto !important;
+    margin-right: 32px !important;
+  }
+
+  .send-review-btn {
+    min-width: auto !important;
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+  }
+
+  .expand-review-btn {
+    padding: 8px !important;
+    width: 36px;
+    height: 36px;
+  }
+
+  .spoiler-checkbox-container {
+    flex: 0 0 auto;
+  }
+
+  /* Review modal on mobile */
+  .review-modal {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 20px !important;
+  }
+
+  .review-modal textarea {
+    min-height: 200px !important;
+  }
+
+  /* ==========================================
+     MOVIES/SERIES GRID ALIGNMENT
+     ========================================== */
+
+  .movies-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .movie-card {
+    width: 100%;
+  }
+
+  .movie-poster {
+    aspect-ratio: 2/3;
+    width: 100%;
+    height: auto !important;
+  }
+
+  .movie-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .movie-info {
+    padding: 12px !important;
+  }
+
+  .movie-title {
+    font-size: 0.875rem !important;
+    line-height: 1.3;
+  }
+
+  /* ==========================================
+     ACCESSIBILITY ENHANCEMENTS
+     ========================================== */
+
+  /* Focus states */
+  .bottom-nav-item:focus-visible,
+  .mobile-user-avatar:focus-visible,
+  .mobile-login-link:focus-visible,
+  .mobile-search-btn:focus-visible {
+    outline: 2px solid var(--red, #dc2626);
+    outline-offset: 2px;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-search-overlay,
+    .bottom-nav-item,
+    .mobile-user-avatar,
+    .mobile-login-link {
+      transition: none;
+    }
+  }
+
+  /* ==========================================
+     SAFE AREA INSETS FOR NOTCHED DEVICES
+     ========================================== */
+
+  @supports (padding: max(0px)) {
+    .mobile-header {
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      padding-top: env(safe-area-inset-top);
+    }
+
+    .floating-bottom-nav {
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+
+    body {
+      padding-top: calc(80px + env(safe-area-inset-top));
+      padding-bottom: calc(75px + env(safe-area-inset-bottom));
+    }
+  }
+}
+
+/* ==========================================
+   TABLET ADJUSTMENTS (768px - 1024px)
+   ========================================== */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* On tablets, show desktop nav but make it more compact */
+  .site-header {
+    padding: 12px 0;
+  }
+
+  .nav-primary {
+    gap: 20px;
+  }
+
+  .nav-link {
+    font-size: 14px;
+  }
+
+  /* Hide mobile elements on tablet */
+  .mobile-header,
+  .mobile-search-overlay,
+  .floating-bottom-nav {
+    display: none !important;
+  }
+}

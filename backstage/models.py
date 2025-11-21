@@ -95,10 +95,6 @@ class ItemListaSerie(models.Model):
     def __str__(self):
         return f"{self.serie.titulo} em {self.lista.nome}"
 
-
-
-
-
 class Comunidade(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Comunidade")
     slug = models.SlugField(max_length=120, unique=True, blank=True)
@@ -169,3 +165,172 @@ class MembroComunidade(models.Model):
     def __str__(self):
         return f"{self.usuario.username} em {self.comunidade.nome} ({self.get_role_display()})"
 
+
+class SolicitacaoAmizade(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('accepted', 'Aceita'),
+        ('rejected', 'Rejeitada'),
+    ]
+    
+    remetente = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='solicitacoes_enviadas'
+    )
+    destinatario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='solicitacoes_recebidas'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('remetente', 'destinatario')
+        verbose_name = "Solicitação de Amizade"
+        verbose_name_plural = "Solicitações de Amizade"
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return f"{self.remetente.username} → {self.destinatario.username} ({self.get_status_display()})"
+
+
+class Amizade(models.Model):
+    usuario1 = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='amizades_usuario1'
+    )
+    usuario2 = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='amizades_usuario2'
+    )
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario1', 'usuario2')
+        verbose_name = "Amizade"
+        verbose_name_plural = "Amizades"
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return f"{self.usuario1.username} ↔ {self.usuario2.username}"
+
+class DiarioFilme(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='diario_filmes'
+    )
+    filme = models.ForeignKey(Filme, on_delete=models.CASCADE)
+    data_assistido = models.DateField(verbose_name="Data que assistiu")
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        default=5,
+        verbose_name="Avaliação"
+    )
+    assistido_com = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Assistido com"
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('usuario', 'filme', 'data_assistido')
+        verbose_name = "Entrada do Diário"
+        verbose_name_plural = "Entradas do Diário"
+        ordering = ['-data_assistido', '-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.filme.titulo} ({self.data_assistido})"
+
+
+class Profile(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    foto_perfil = models.ImageField(
+        upload_to='perfis/',
+        blank=True,
+        null=True,
+        verbose_name="Foto de Perfil"
+    )
+    bio = models.TextField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="Biografia"
+    )
+    instagram = models.URLField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Instagram"
+    )
+    twitter = models.URLField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Twitter"
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Perfil"
+        verbose_name_plural = "Perfis"
+
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"
+
+class LikeCritica(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='likes_criticas'
+    )
+    critica = models.ForeignKey(
+        Critica,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'critica')
+        verbose_name = "Like em Crítica"
+        verbose_name_plural = "Likes em Críticas"
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} curtiu crítica de {self.critica.usuario.username}"
+
+class LikeCriticaSerie(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='likes_criticas_serie'
+    )
+    critica = models.ForeignKey(
+        CriticaSerie,
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'critica')
+        verbose_name = "Like em Crítica de Série"
+        verbose_name_plural = "Likes em Críticas de Séries"
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} curtiu crítica de série de {self.critica.usuario.username}"

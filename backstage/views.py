@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme
 from django.contrib import messages
 import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-#from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -19,6 +19,7 @@ from .services.tmdb import (
     obter_detalhes_com_cache,
     montar_payload_agregado,
     obter_top_filmes,
+    obter_trending,
     obter_recomendados,
     obter_goats,
     obter_em_cartaz,
@@ -32,7 +33,7 @@ from .services.tmdb import (
     buscar_filme_por_titulo,
 )
 #####################
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from rapidfuzz import fuzz
 
@@ -113,6 +114,18 @@ def salvar_critica(request):
                 tmdb_id=int(filme_id),
                 defaults={'titulo': f'Filme TMDb {filme_id}'}
             )
+            
+            # Backfill título se estiver vazio ou temporário
+            if not filme.titulo or filme.titulo.startswith('Filme TMDb'):
+                detalhes = obter_detalhes_com_cache(int(filme_id))
+                if detalhes and isinstance(detalhes, dict):
+                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or f'Filme TMDb {filme_id}'
+                    filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if detalhes.get('poster_path'):
+                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}"
+                    if detalhes.get('data_lancamento'):
+                        filme.data_lancamento = detalhes.get('data_lancamento')
+                    filme.save()
 
             # Criar a crítica
             critica = Critica.objects.create(
@@ -147,15 +160,56 @@ def pagina_login(request):
     return render(request, 'backstage/login.html')
 
 def index(request):
-    
-    try:
-        filme_destaque = buscar_filme_destaque()
-    except:
-        filme_destaque = None
+    # Buscar atividades dos amigos (críticas recentes)
+    atividades_amigos = []
+    if request.user.is_authenticated:
+        # Buscar amigos do usuário
+        amigos_ids = []
+        amizades_como_usuario1 = Amizade.objects.filter(usuario1=request.user).values_list('usuario2_id', flat=True)
+        amizades_como_usuario2 = Amizade.objects.filter(usuario2=request.user).values_list('usuario1_id', flat=True)
+        amigos_ids = list(amizades_como_usuario1) + list(amizades_como_usuario2)
+
+        if amigos_ids:
+            # Buscar críticas de filmes dos amigos
+            criticas_filmes = Critica.objects.filter(
+                usuario_id__in=amigos_ids
+            ).select_related('usuario', 'filme').order_by('-criado_em')[:10]
+
+            # Buscar críticas de séries dos amigos
+            criticas_series = CriticaSerie.objects.filter(
+                usuario_id__in=amigos_ids
+            ).select_related('usuario', 'serie').order_by('-criado_em')[:10]
+
+            # Combinar e ordenar todas as atividades
+            for critica in criticas_filmes:
+                atividades_amigos.append({
+                    'tipo': 'filme',
+                    'usuario': critica.usuario,
+                    'titulo': critica.filme.titulo,
+                    'nota': critica.nota,
+                    'data': critica.criado_em,
+                    'filme_id': critica.filme.id,
+                    'tmdb_id': critica.filme.tmdb_id,
+                })
+
+            for critica in criticas_series:
+                atividades_amigos.append({
+                    'tipo': 'serie',
+                    'usuario': critica.usuario,
+                    'titulo': critica.serie.titulo,
+                    'nota': critica.nota,
+                    'data': critica.criado_em,
+                    'serie_id': critica.serie.id,
+                    'tmdb_id': critica.serie.tmdb_id,
+                })
+
+            # Ordenar por data (mais recente primeiro)
+            atividades_amigos.sort(key=lambda x: x['data'], reverse=True)
+            atividades_amigos = atividades_amigos[:10]  # Limitar a 10 atividades
 
     context = {
-        'filme_destaque': filme_destaque,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'atividades_amigos': atividades_amigos,
     }
     return render(request, 'backstage/index.html', context)
 
@@ -215,7 +269,7 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
                         'errors': errors
                     })
                 else:
-                    return render(request, 'backstage/register.html', {
+                    return render(request, 'backstage/registrar.html', {
                         'errors': errors,
                         'username': username,
                         'email': email
@@ -249,11 +303,11 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
                     'errors': {'general': 'Erro interno do servidor'}
                 })
             else:
-                return render(request, 'backstage/register.html', {
+                return render(request, 'backstage/registrar.html', {
                     'errors': {'general': 'Erro ao criar conta. Tente novamente.'}
                 })
-    
-    return render(request, 'backstage/register.html')
+
+    return render(request, 'backstage/registrar.html')
 
 # chamadas das urls das páginas #################################################################################################
 # front nononha e liz + back leo e lou
@@ -538,15 +592,52 @@ def lists(request):
     return render(request, "backstage/lists.html", context)
 
 def movies(request):
-
     try:
-        filmes = buscar_filmes_populares()
-    except:
+        # Obter parâmetros de filtro
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB
+        generos_map = {
+            'action': 28,
+            'adventure': 12,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 878,
+            'thriller': 53,
+            'horror': 27,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 14,
+            'history': 36,
+            'music': 10402,
+            'mystery': 9648,
+            'war': 10752,
+            'western': 37
+        }
+
+        # Buscar filmes conforme filtros
+        from .services.tmdb import buscar_filmes_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        filmes = buscar_filmes_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+    except Exception as e:
+        print(f"Erro ao buscar filmes: {e}")
         filmes = []
 
     context = {
         'filmes': filmes,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'genero_atual': genero,
+        'ordenacao_atual': ordenacao
     }
     return render(request, "backstage/movies.html", context)
 
@@ -554,15 +645,54 @@ def noticias(request):
     return render(request, "backstage/noticias.html")
 
 def series(request):
-
     try:
-        series_list = buscar_series_populares()
-    except:
+        # Obter parâmetros de filtro
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB (séries)
+        generos_map = {
+            'action': 10759,  # Action & Adventure
+            'adventure': 10759,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 10765,  # Sci-Fi & Fantasy
+            'thriller': 9648,  # Mystery
+            'horror': 9648,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 10765,
+            'reality': 10764,
+            'news': 10763,
+            'kids': 10762,
+            'soap': 10766,
+            'talk': 10767,
+            'western': 37,
+            'war': 10768
+        }
+
+        # Buscar séries conforme filtros
+        from .services.tmdb import buscar_series_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        series_list = buscar_series_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+    except Exception as e:
+        print(f"Erro ao buscar séries: {e}")
         series_list = []
 
     context = {
         'series': series_list,
-        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
+        'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
+        'genero_atual': genero,
+        'ordenacao_atual': ordenacao
     }
     return render(request, "backstage/series.html", context)
 
@@ -594,8 +724,22 @@ def detalhes_filme(request, tmdb_id):
             'descricao': dados_filme.get('sinopse', ''),
         })
 
-    # Buscar críticas locais
-    criticas = Critica.objects.filter(filme=filme_local)
+    # Buscar críticas locais com contagem de likes
+    from .models import LikeCritica
+    criticas = Critica.objects.filter(filme=filme_local).annotate(
+        total_likes=Count('likes', distinct=True)
+    )
+
+    # Adicionar informação se o usuário atual deu like em cada crítica
+    if request.user.is_authenticated:
+        for critica in criticas:
+            critica.usuario_deu_like = LikeCritica.objects.filter(
+                usuario=request.user,
+                critica=critica
+            ).exists()
+    else:
+        for critica in criticas:
+            critica.usuario_deu_like = False
 
     # Passar dados de crew e cast para o JavaScript via JSON
     # Garantir que sempre sejam listas válidas, mesmo que vazias
@@ -685,11 +829,15 @@ def buscar(request):
             resultados_filmes = []
             resultados_pessoas = []
 
+    # Calcular total de resultados
+    total_resultados = len(resultados_filmes) + len(resultados_pessoas)
+
     context = {
         'query': query,
         'tipo_busca': tipo_busca,
         'resultados_filmes': resultados_filmes,
         'resultados_pessoas': resultados_pessoas,
+        'total_resultados': total_resultados,
         'generos': generos,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
@@ -742,7 +890,7 @@ def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:
         # Buscar dados com cache
-        hero_movies = obter_top_filmes(limit=5)
+        hero_movies = obter_trending(limit=5)
         goats = obter_goats(limit=20)
         recommended = obter_recomendados(limit=12)
         em_cartaz = obter_em_cartaz(limit=12)
@@ -909,10 +1057,22 @@ def buscar_listas_usuario(request):
 def adicionar_filme_lista(request, lista_id, tmdb_id):
     try:
         lista = Lista.objects.get(id=lista_id, usuario=request.user)
-        filme, _ = Filme.objects.get_or_create(
+        filme, created = Filme.objects.get_or_create(
             tmdb_id=tmdb_id,
             defaults={'titulo': 'Filme TMDB ' + str(tmdb_id)}
         )
+        
+        # Backfill título se estiver vazio ou temporário
+        if not filme.titulo or filme.titulo.startswith('Filme TMDB'):
+            detalhes = obter_detalhes_com_cache(tmdb_id)
+            if detalhes and isinstance(detalhes, dict):
+                filme.titulo = detalhes.get('titulo') or detalhes.get('title') or f'Filme TMDB {tmdb_id}'
+                filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                if detalhes.get('poster_path'):
+                    filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}"
+                if detalhes.get('data_lancamento'):
+                    filme.data_lancamento = detalhes.get('data_lancamento')
+                filme.save()
 
         item, created = ItemLista.objects.get_or_create(
             lista=lista,
@@ -1173,8 +1333,22 @@ def detalhes_serie(request, tmdb_id):
         }
     )
     
-    # Buscar críticas locais
-    criticas = CriticaSerie.objects.filter(serie=serie_local).order_by('-criado_em')
+    # Buscar críticas locais com contagem de likes
+    from .models import LikeCriticaSerie
+    criticas = CriticaSerie.objects.filter(serie=serie_local).annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+
+    # Adicionar informação se o usuário atual deu like em cada crítica
+    if request.user.is_authenticated:
+        for critica in criticas:
+            critica.usuario_deu_like = LikeCriticaSerie.objects.filter(
+                usuario=request.user,
+                critica=critica
+            ).exists()
+    else:
+        for critica in criticas:
+            critica.usuario_deu_like = False
 
     # Converter temporadas e vídeos para JSON
     import json
@@ -1254,8 +1428,11 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
 def buscar_sugestoes(request):
     """API para sugestões de busca em tempo real"""
     query = request.GET.get('q', '').strip()
+    print(f"\n=== BUSCAR_SUGESTOES ===")
+    print(f"Query recebida: '{query}'")
     
     if not query or len(query) < 2:
+        print("Query muito curta, retornando vazio")
         return JsonResponse({'sugestoes': []})
     
     try:
@@ -1270,8 +1447,11 @@ def buscar_sugestoes(request):
             'query': query,
             'page': 1
         }
+        print(f"Buscando filmes na TMDb: {url_filmes}")
         response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
+        print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
         filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
+        print(f"Filmes encontrados: {len(filmes)}")
         
         # Buscar séries
         url_series = f"https://api.themoviedb.org/3/search/tv"
@@ -1289,7 +1469,7 @@ def buscar_sugestoes(request):
         
         # Adicionar filmes
         for filme in filmes:
-            sugestoes.append({
+            filme_data = {
                 'id': filme.get('id'),
                 'tipo': 'filme',
                 'titulo': filme.get('title', 'Sem título'),
@@ -1298,11 +1478,13 @@ def buscar_sugestoes(request):
                 'descricao': filme.get('overview', 'Sem descrição disponível')[:150] + '...' if filme.get('overview') else 'Sem descrição disponível',
                 'nota': round(filme.get('vote_average', 0), 1),
                 'url': f"/filmes/{filme.get('id')}/"
-            })
+            }
+            sugestoes.append(filme_data)
+            print(f"  - Filme: {filme_data['titulo']} ({filme_data['ano']})")
         
         # Adicionar séries
         for serie in series:
-            sugestoes.append({
+            serie_data = {
                 'id': serie.get('id'),
                 'tipo': 'serie',
                 'titulo': serie.get('name', 'Sem título'),
@@ -1311,9 +1493,1028 @@ def buscar_sugestoes(request):
                 'descricao': serie.get('overview', 'Sem descrição disponível')[:150] + '...' if serie.get('overview') else 'Sem descrição disponível',
                 'nota': round(serie.get('vote_average', 0), 1),
                 'url': f"/series/{serie.get('id')}/"
-            })
+            }
+            sugestoes.append(serie_data)
+            print(f"  - Série: {serie_data['titulo']} ({serie_data['ano']})")
         
+        print(f"Total de sugestões retornadas: {len(sugestoes)}")
+        print("=== FIM BUSCAR_SUGESTOES ===\n")
         return JsonResponse({'sugestoes': sugestoes})
         
     except Exception as e:
+        print(f"❌ ERRO em buscar_sugestoes: {e}")
+        print("=== FIM BUSCAR_SUGESTOES (ERRO) ===\n")
         return JsonResponse({'sugestoes': [], 'erro': str(e)})
+
+
+# Views do menu do usuário
+@login_required(login_url='backstage:login')
+def perfil(request, username=None):
+    """Página de perfil do usuário"""
+    if username:
+        usuario_perfil = get_object_or_404(User, username=username)
+    else:
+        usuario_perfil = request.user
+    
+    is_own_profile = (request.user == usuario_perfil)
+    
+    # Buscar reviews do usuário (mostrando 12 em vez de 6)
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').order_by('-criado_em')[:12]
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').order_by('-criado_em')[:12]
+    
+    # Buscar listas - se for perfil de amigo, mostrar todas as listas públicas
+    listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itens__filme').order_by('-atualizada_em')
+    
+    # Estatísticas
+    total_filmes = Critica.objects.filter(usuario=usuario_perfil).count()
+    total_series = CriticaSerie.objects.filter(usuario=usuario_perfil).count()
+    total_listas = Lista.objects.filter(usuario=usuario_perfil).count()
+    
+    # Contar amigos
+    amigos_count = Amizade.objects.filter(
+        Q(usuario1=usuario_perfil) | Q(usuario2=usuario_perfil)
+    ).count()
+    
+    # Verificar se são amigos (se não for o próprio perfil)
+    sao_amigos = False
+    if not is_own_profile:
+        sao_amigos = Amizade.objects.filter(
+            Q(usuario1=request.user, usuario2=usuario_perfil) |
+            Q(usuario1=usuario_perfil, usuario2=request.user)
+        ).exists()
+    
+    context = {
+        'usuario_perfil': usuario_perfil,
+        'criticas_filmes': criticas_filmes,
+        'criticas_series': criticas_series,
+        'listas': listas,
+        'total_filmes': total_filmes,
+        'total_series': total_series,
+        'total_listas': total_listas,
+        'amigos_count': amigos_count,
+        'is_own_profile': is_own_profile,
+        'sao_amigos': sao_amigos,
+    }
+    
+    return render(request, 'backstage/perfil.html', context)
+
+
+@login_required(login_url='backstage:login')
+def meu_diario(request):
+    """Página do diário do usuário com atividades recentes"""
+    criticas_recentes = Critica.objects.filter(usuario=request.user).order_by('-data_criacao')[:20]
+    criticas_series = CriticaSerie.objects.filter(usuario=request.user).order_by('-data_criacao')[:20]
+    
+    context = {
+        'criticas_recentes': criticas_recentes,
+        'criticas_series': criticas_series,
+    }
+    
+    return render(request, 'backstage/meu_diario.html', context)
+
+
+@login_required(login_url='backstage:login')
+def reviews(request):
+    """Página com todas as reviews do usuário"""
+    criticas_filmes = Critica.objects.filter(usuario=request.user).select_related('filme').order_by('-data_criacao')
+    criticas_series = CriticaSerie.objects.filter(usuario=request.user).select_related('serie').order_by('-data_criacao')
+    
+    context = {
+        'criticas_filmes': criticas_filmes,
+        'criticas_series': criticas_series,
+    }
+    
+    return render(request, 'backstage/reviews.html', context)
+
+
+@login_required(login_url='backstage:login')
+def watchlist(request):
+    """Página da watchlist (assistir mais tarde)"""
+    try:
+        lista_watchlist = Lista.objects.get(usuario=request.user, nome="Assistir Mais Tarde")
+    except Lista.DoesNotExist:
+        lista_watchlist = Lista.objects.create(
+            usuario=request.user,
+            nome="Assistir Mais Tarde",
+            descricao="Filmes e séries para assistir mais tarde"
+        )
+    
+    # Buscar itens de filmes e séries
+    itens_filmes = lista_watchlist.itens.all().select_related('filme')
+    itens_series = lista_watchlist.itens_serie.all().select_related('serie')
+    
+    # Combinar e ordenar por data de adição
+    from itertools import chain
+    itens = sorted(
+        chain(itens_filmes, itens_series),
+        key=lambda x: x.adicionado_em,
+        reverse=True
+    )
+    
+    context = {
+        'lista': lista_watchlist,
+        'itens': itens,
+    }
+    
+    return render(request, 'backstage/watchlist.html', context)
+
+
+@login_required(login_url='backstage:login')
+def favoritos(request):
+    """Página de favoritos do usuário"""
+    # Filmes com nota máxima
+    filmes_favoritos = Critica.objects.filter(
+        usuario=request.user,
+        nota__gte=4.5
+    ).select_related('filme').order_by('-nota')
+    
+    # Séries com nota máxima
+    series_favoritas = CriticaSerie.objects.filter(
+        usuario=request.user,
+        nota__gte=4.5
+    ).select_related('serie').order_by('-nota')
+    
+    context = {
+        'filmes_favoritos': filmes_favoritos,
+        'series_favoritas': series_favoritas,
+    }
+    
+    return render(request, 'backstage/favoritos.html', context)
+
+
+@login_required(login_url='backstage:login')
+def configuracoes(request):
+    """Página de configurações do usuário"""
+    from .models import Profile
+
+    # Criar profile se não existir
+    profile, created = Profile.objects.get_or_create(usuario=request.user)
+
+    if request.method == 'POST':
+        secao = request.POST.get('secao')
+
+        # Seção Conta
+        if secao == 'conta':
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+
+            # Atualizar username
+            if username and username != request.user.username:
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, 'Este nome de usuário já está em uso.')
+                else:
+                    request.user.username = username
+                    request.user.save()
+                    messages.success(request, 'Nome de usuário atualizado com sucesso!')
+
+            # Atualizar email
+            if email and email != request.user.email:
+                if User.objects.filter(email=email).exists():
+                    messages.error(request, 'Este email já está em uso.')
+                else:
+                    request.user.email = email
+                    request.user.save()
+                    messages.success(request, 'Email atualizado com sucesso!')
+
+        # Seção Perfil
+        elif secao == 'perfil':
+            # Verificar se é uma solicitação de remoção de foto
+            if request.POST.get('remover_foto') == 'true':
+                if profile.foto_perfil:
+                    # Deletar o arquivo físico
+                    profile.foto_perfil.delete(save=False)
+                    profile.foto_perfil = None
+                    profile.save()
+                    messages.success(request, 'Foto de perfil removida com sucesso!')
+            else:
+                bio = request.POST.get('bio')
+                instagram = request.POST.get('instagram')
+                twitter = request.POST.get('twitter')
+
+                profile.bio = bio
+                profile.instagram = instagram
+                profile.twitter = twitter
+
+                # Upload de foto - deletar foto antiga se existir
+                if 'foto_perfil' in request.FILES:
+                    # Deletar foto antiga antes de adicionar nova
+                    if profile.foto_perfil:
+                        profile.foto_perfil.delete(save=False)
+                    profile.foto_perfil = request.FILES['foto_perfil']
+
+                profile.save()
+                messages.success(request, 'Perfil atualizado com sucesso!')
+
+        # Seção Resgatar Código
+        elif secao == 'codigo':
+            codigo = request.POST.get('codigo')
+            # TODO: Implementar lógica de resgate de código
+            messages.info(request, 'Funcionalidade de resgatar código em breve!')
+
+        return redirect('backstage:configuracoes')
+
+    context = {
+        'user': request.user,
+        'profile': profile,
+    }
+    return render(request, 'backstage/configuracoes.html', context)
+
+
+def ajuda(request):
+    """Página de ajuda"""
+    return render(request, 'backstage/ajuda.html')
+
+
+@login_required(login_url='backstage:login')
+@login_required(login_url='backstage:login')
+def amigos(request):
+    """Página de amigos"""
+    usuario = request.user
+    
+    # Buscar amigos do usuário
+    amizades = Amizade.objects.filter(
+        Q(usuario1=usuario) | Q(usuario2=usuario)
+    )
+    
+    # Extrair lista de amigos
+    amigos_list = []
+    for amizade in amizades:
+        amigo = amizade.usuario2 if amizade.usuario1 == usuario else amizade.usuario1
+        # Contar reviews do amigo
+        criticas_count = Critica.objects.filter(usuario=amigo).count()
+        amigo.criticas_count = criticas_count
+        amigos_list.append(amigo)
+    
+    # Buscar solicitações recebidas
+    solicitacoes_recebidas = SolicitacaoAmizade.objects.filter(
+        destinatario=usuario,
+        status='pending'
+    ).select_related('remetente').order_by('-data_criacao')
+    
+    # Buscar solicitações enviadas
+    solicitacoes_enviadas = SolicitacaoAmizade.objects.filter(
+        remetente=usuario,
+        status='pending'
+    ).select_related('destinatario').order_by('-data_criacao')
+    
+    context = {
+        'amigos': amigos_list,
+        'amigos_count': len(amigos_list),
+        'solicitacoes_recebidas': solicitacoes_recebidas,
+        'solicitacoes_enviadas': solicitacoes_enviadas,
+        'solicitacoes_pendentes_count': solicitacoes_recebidas.count(),
+    }
+    
+    return render(request, 'backstage/amigos.html', context)
+
+
+
+# ============================================================================
+# VIEWS DE DIÁRIO
+# ============================================================================
+
+@login_required(login_url='backstage:login')
+def diary(request):
+    """Página principal do diário de filmes"""
+    from datetime import datetime
+    from collections import Counter
+    
+    usuario = request.user
+    hoje = datetime.now()
+    
+    # Buscar todas as entradas do diário do usuário
+    entradas = DiarioFilme.objects.filter(usuario=usuario).select_related('filme')
+    
+    # Estatísticas
+    total_filmes = entradas.count()
+    filmes_mes = entradas.filter(
+        data_assistido__year=hoje.year,
+        data_assistido__month=hoje.month
+    ).count()
+    
+    # Gênero favorito (se tiver categorias no modelo Filme)
+    generos = []
+    for entrada in entradas:
+        if entrada.filme.categoria:
+            # categoria pode ser "Action, Drama, Thriller" - separar em lista
+            cats = [g.strip() for g in entrada.filme.categoria.split(',') if g.strip()]
+            generos.extend(cats)
+    
+    genero_favorito = None
+    if generos:
+        counter = Counter(generos)
+        genero_favorito = counter.most_common(1)[0][0]
+    
+    # Contadores de gênero e avaliação para os filtros
+    genre_counts = Counter(generos)
+    rating_counts = Counter([entrada.nota for entrada in entradas])
+    
+    context = {
+        'total_filmes': total_filmes,
+        'filmes_mes': filmes_mes,
+        'genero_favorito': genero_favorito,
+        'mes_atual': hoje.strftime('%B %Y'),
+        'genre_counts': dict(genre_counts),
+        'rating_counts': dict(rating_counts),
+    }
+    
+    return render(request, 'backstage/diary.html', context)
+
+
+@api_login_required
+def diario_entradas(request):
+    """API para buscar entradas do diário"""
+    from datetime import datetime
+    
+    usuario = request.user
+    ano = request.GET.get('ano')
+    mes = request.GET.get('mes')
+    
+    print(f"\n=== DIÁRIO ENTRADAS - Usuário: {usuario.username} ===")
+    
+    # Filtrar entradas
+    entradas = DiarioFilme.objects.filter(usuario=usuario).select_related('filme')
+    
+    if ano and mes:
+        entradas = entradas.filter(
+            data_assistido__year=int(ano),
+            data_assistido__month=int(mes)
+        )
+    
+    print(f"Total de entradas encontradas: {entradas.count()}")
+    
+    # Preparar dados
+    entradas_data = []
+    for entrada in entradas:
+        filme = entrada.filme
+        print(f"\nProcessando entrada ID {entrada.id}:")
+        print(f"  - Filme ID: {filme.id}")
+        print(f"  - TMDb ID: {filme.tmdb_id}")
+        print(f"  - Título atual: '{filme.titulo}'")
+        print(f"  - Poster: {filme.poster}")
+        
+        # Se o filme não tem título, buscar do TMDb (usando nosso payload normalizado)
+        if not filme.titulo and filme.tmdb_id:
+            print(f"  ⚠️  Filme sem título, buscando do TMDb...")
+            try:
+                detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                if detalhes and isinstance(detalhes, dict):
+                    # Atualizar o filme com os dados normalizados do TMDb
+                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
+                    filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if detalhes.get('poster_path'):
+                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    if detalhes.get('data_lancamento') or detalhes.get('release_date'):
+                        filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                    filme.save()
+                    print(f"  ✓ Filme atualizado: {filme.titulo}")
+            except Exception as e:
+                print(f"  ✗ Erro ao buscar detalhes: {e}")
+        
+        titulo_final = filme.titulo or 'Sem título'
+        print(f"  → Título final: '{titulo_final}'")
+        
+        entradas_data.append({
+            'id': entrada.id,
+            'filme_id': filme.tmdb_id or filme.id,
+            'titulo': titulo_final,
+            'poster': filme.poster or '/static/images/no-poster.png',
+            'ano': entrada.data_assistido.year,
+            'mes': entrada.data_assistido.month,
+            'dia': entrada.data_assistido.day,
+            'nota': entrada.nota,
+            'assistido_com': entrada.assistido_com or '',
+        })
+    
+    print(f"\n✓ Retornando {len(entradas_data)} entradas")
+    return JsonResponse({'success': True, 'entradas': entradas_data})
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def diario_adicionar(request):
+    """API para adicionar filme ao diário"""
+    from datetime import datetime
+    
+    try:
+        data = json.loads(request.body)
+        filme_id = data.get('filme_id')
+        data_assistido = data.get('data')
+        nota = data.get('nota')
+        assistido_com = data.get('assistido_com', '')
+        
+        if not filme_id or not data_assistido or not nota:
+            return JsonResponse({
+                'success': False,
+                'message': 'Dados incompletos'
+            })
+        
+        # Buscar ou criar o filme
+        filme = None
+        try:
+            # Tentar buscar pelo TMDB ID
+            filme = Filme.objects.get(tmdb_id=filme_id)
+        except Filme.DoesNotExist:
+            # Se não encontrar, buscar os detalhes do TMDB (payload normalizado) e criar
+            detalhes = obter_detalhes_com_cache(filme_id)
+            if detalhes and isinstance(detalhes, dict):
+                # generos já vem como lista de strings ['Action', 'Drama'], não como dicts
+                generos = detalhes.get('generos', []) or []
+                generos_str = ', '.join(generos[:3]) if generos else ''
+                
+                filme = Filme.objects.create(
+                    tmdb_id=filme_id,
+                    titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
+                    descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
+                    data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
+                    poster=f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}" if detalhes.get('poster_path') else None,
+                    categoria=generos_str
+                )
+
+        # Se encontrou um Filme existente mas sem título, tentar completar agora
+        if filme and (not filme.titulo) and filme.tmdb_id:
+            try:
+                detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                if detalhes and isinstance(detalhes, dict):
+                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo or 'Sem título'
+                    if not filme.descricao:
+                        filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if not filme.poster and detalhes.get('poster_path'):
+                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
+                        filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                    filme.save()
+            except Exception as e:
+                print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
+        
+        if not filme:
+            return JsonResponse({
+                'success': False,
+                'message': 'Filme não encontrado'
+            })
+        
+        # Converter string de data para objeto date
+        data_obj = datetime.strptime(data_assistido, '%Y-%m-%d').date()
+        
+        # Criar ou atualizar entrada do diário
+        entrada, created = DiarioFilme.objects.update_or_create(
+            usuario=request.user,
+            filme=filme,
+            data_assistido=data_obj,
+            defaults={
+                'nota': nota,
+                'assistido_com': assistido_com
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Filme adicionado ao diário!' if created else 'Entrada atualizada!',
+            'entrada_id': entrada.id
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao adicionar filme: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def diario_remover(request, entrada_id):
+    """API para remover entrada do diário"""
+    try:
+        entrada = get_object_or_404(
+            DiarioFilme,
+            id=entrada_id,
+            usuario=request.user
+        )
+        
+        entrada.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Entrada removida do diário'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+# ==================== FRIENDSHIP SYSTEM ====================
+
+@api_login_required
+@require_http_methods(['GET'])
+def buscar_usuarios_realtime(request):
+    """API para busca em tempo real de usuários"""
+    try:
+        query = request.GET.get('q', '').strip()
+        
+        # Mínimo de 2 caracteres para buscar
+        if len(query) < 2:
+            return JsonResponse({
+                'success': True,
+                'usuarios': []
+            })
+        
+        # Buscar usuários (exceto o usuário atual)
+        usuarios = User.objects.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
+        ).exclude(id=request.user.id)[:10]  # Limitar a 10 resultados
+        
+        resultados = []
+        for usuario in usuarios:
+            # Verificar status de amizade
+            ja_amigo = Amizade.objects.filter(
+                Q(usuario1=request.user, usuario2=usuario) |
+                Q(usuario1=usuario, usuario2=request.user)
+            ).exists()
+            
+            if ja_amigo:
+                status = 'amigo'
+                status_text = 'Amigo'
+            else:
+                # Verificar solicitação pendente
+                solicitacao_enviada = SolicitacaoAmizade.objects.filter(
+                    remetente=request.user,
+                    destinatario=usuario,
+                    status='pending'
+                ).exists()
+                
+                solicitacao_recebida = SolicitacaoAmizade.objects.filter(
+                    remetente=usuario,
+                    destinatario=request.user,
+                    status='pending'
+                ).exists()
+                
+                if solicitacao_enviada:
+                    status = 'pendente_enviada'
+                    status_text = 'Solicitação enviada'
+                elif solicitacao_recebida:
+                    status = 'pendente_recebida'
+                    status_text = 'Aceitar solicitação'
+                else:
+                    status = 'adicionar'
+                    status_text = 'Adicionar amigo'
+            
+            # Obter foto de perfil (se existir)
+            foto_perfil = None
+            if hasattr(usuario, 'profile') and hasattr(usuario.profile, 'foto_perfil'):
+                if usuario.profile.foto_perfil:
+                    foto_perfil = usuario.profile.foto_perfil.url
+            
+            resultados.append({
+                'id': usuario.id,
+                'username': usuario.username,
+                'nome': usuario.get_full_name() or usuario.username,
+                'foto_perfil': foto_perfil,
+                'status': status,
+                'status_text': status_text
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'usuarios': resultados
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar usuários: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def enviar_solicitacao(request):
+    """API para enviar solicitação de amizade"""
+    try:
+        data = json.loads(request.body)
+        destinatario_id = data.get('destinatario_id')
+        
+        if not destinatario_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID do destinatário não fornecido'
+            })
+        
+        destinatario = get_object_or_404(User, id=destinatario_id)
+        
+        # Não pode enviar solicitação para si mesmo
+        if request.user == destinatario:
+            return JsonResponse({
+                'success': False,
+                'message': 'Você não pode enviar solicitação para si mesmo'
+            })
+        
+        # Verificar se já são amigos
+        ja_amigo = Amizade.objects.filter(
+            Q(usuario1=request.user, usuario2=destinatario) |
+            Q(usuario1=destinatario, usuario2=request.user)
+        ).exists()
+        
+        if ja_amigo:
+            return JsonResponse({
+                'success': False,
+                'message': 'Vocês já são amigos'
+            })
+        
+        # Verificar se já existe solicitação (qualquer status, qualquer direção)
+        solicitacao_existente = SolicitacaoAmizade.objects.filter(
+            Q(remetente=request.user, destinatario=destinatario) |
+            Q(remetente=destinatario, destinatario=request.user)
+        ).first()
+        
+        if solicitacao_existente:
+            # Se existe solicitação pendente
+            if solicitacao_existente.status == 'pending':
+                if solicitacao_existente.remetente == request.user:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Você já enviou uma solicitação para este usuário'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Este usuário já te enviou uma solicitação. Verifique a aba de solicitações!'
+                    })
+            
+            # Se existe solicitação aceita
+            elif solicitacao_existente.status == 'accepted':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Já existe um registro de amizade aceita'
+                })
+            
+            # Se existe solicitação rejeitada, reenviar (atualizar para pendente)
+            elif solicitacao_existente.status == 'rejected':
+                # Se a solicitação rejeitada foi enviada pelo usuário atual, reativar
+                if solicitacao_existente.remetente == request.user:
+                    solicitacao_existente.status = 'pending'
+                    solicitacao_existente.save()
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Solicitação reenviada com sucesso!'
+                    })
+                # Se foi o outro que enviou e foi rejeitada, criar nova na direção oposta
+                # Mas não podemos por causa do unique_together, então deletamos a antiga
+                else:
+                    solicitacao_existente.delete()
+                    SolicitacaoAmizade.objects.create(
+                        remetente=request.user,
+                        destinatario=destinatario,
+                        status='pending'
+                    )
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Solicitação enviada com sucesso!'
+                    })
+        
+        # Se não existe nenhuma solicitação, criar nova
+        SolicitacaoAmizade.objects.create(
+            remetente=request.user,
+            destinatario=destinatario,
+            status='pending'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Solicitação enviada com sucesso!'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao enviar solicitação: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def aceitar_solicitacao(request):
+    """API para aceitar solicitação de amizade"""
+    try:
+        data = json.loads(request.body)
+        solicitacao_id = data.get('solicitacao_id')
+        remetente_id = data.get('remetente_id')
+        
+        # Aceitar por solicitacao_id (do botão na aba de solicitações)
+        if solicitacao_id:
+            solicitacao = get_object_or_404(
+                SolicitacaoAmizade,
+                id=solicitacao_id,
+                destinatario=request.user,
+                status='pending'
+            )
+        # Aceitar por remetente_id (da busca em tempo real)
+        elif remetente_id:
+            solicitacao = get_object_or_404(
+                SolicitacaoAmizade,
+                remetente_id=remetente_id,
+                destinatario=request.user,
+                status='pending'
+            )
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID da solicitação ou remetente não fornecido'
+            })
+        
+        # Verificar se já são amigos
+        ja_amigos = Amizade.objects.filter(
+            Q(usuario1=request.user, usuario2=solicitacao.remetente) |
+            Q(usuario1=solicitacao.remetente, usuario2=request.user)
+        ).exists()
+        
+        if ja_amigos:
+            return JsonResponse({
+                'success': False,
+                'message': 'Vocês já são amigos!'
+            })
+        
+        # Criar amizade
+        Amizade.objects.create(
+            usuario1=solicitacao.remetente,
+            usuario2=request.user
+        )
+        
+        # Atualizar status da solicitação
+        solicitacao.status = 'accepted'
+        solicitacao.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Solicitação aceita!'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao aceitar solicitação: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def rejeitar_solicitacao(request):
+    """API para rejeitar solicitação de amizade"""
+    try:
+        data = json.loads(request.body)
+        solicitacao_id = data.get('solicitacao_id')
+        
+        if not solicitacao_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID da solicitação não fornecido'
+            })
+        
+        solicitacao = get_object_or_404(
+            SolicitacaoAmizade,
+            id=solicitacao_id,
+            destinatario=request.user,
+            status='pending'
+        )
+        
+        # Atualizar status da solicitação
+        solicitacao.status = 'rejected'
+        solicitacao.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Solicitação rejeitada'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao rejeitar solicitação: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def cancelar_solicitacao(request):
+    """API para cancelar solicitação de amizade enviada"""
+    try:
+        data = json.loads(request.body)
+        solicitacao_id = data.get('solicitacao_id')
+        
+        if not solicitacao_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID da solicitação não fornecido'
+            })
+        
+        solicitacao = get_object_or_404(
+            SolicitacaoAmizade,
+            id=solicitacao_id,
+            remetente=request.user,
+            status='pending'
+        )
+        
+        # Deletar solicitação
+        solicitacao.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Solicitação cancelada'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao cancelar solicitação: {str(e)}'
+        })
+
+
+@api_login_required
+@require_http_methods(['POST'])
+def remover_amigo(request):
+    """API para remover amizade"""
+    try:
+        data = json.loads(request.body)
+        amigo_id = data.get('amigo_id')
+        
+        if not amigo_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID do amigo não fornecido'
+            })
+        
+        amigo = get_object_or_404(User, id=amigo_id)
+        
+        # Buscar e deletar amizade
+        amizade = Amizade.objects.filter(
+            Q(usuario1=request.user, usuario2=amigo) |
+            Q(usuario1=amigo, usuario2=request.user)
+        ).first()
+        
+        if not amizade:
+            return JsonResponse({
+                'success': False,
+                'message': 'Amizade não encontrada'
+            })
+        
+        amizade.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Amigo removido'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover amigo: {str(e)}'
+        })
+
+@login_required(login_url='backstage:login')
+def buscar_notificacoes(request):
+    """API para buscar notificações de solicitações de amizade pendentes"""
+    try:
+        # Buscar solicitações de amizade pendentes
+        solicitacoes = SolicitacaoAmizade.objects.filter(
+            destinatario=request.user,
+            status='pending'
+        ).select_related('remetente').order_by('-data_criacao')
+        
+        notificacoes = []
+        for solicitacao in solicitacoes:
+            notificacoes.append({
+                'id': solicitacao.id,
+                'tipo': 'solicitacao_amizade',
+                'remetente_id': solicitacao.remetente.id,
+                'remetente_username': solicitacao.remetente.username,
+                'remetente_nome': solicitacao.remetente.get_full_name() or solicitacao.remetente.username,
+                'mensagem': f'{solicitacao.remetente.username} enviou uma solicitação de amizade',
+                'data': solicitacao.data_criacao.isoformat(),
+                'tempo_relativo': calcular_tempo_relativo(solicitacao.data_criacao),
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'notificacoes': notificacoes,
+            'total': len(notificacoes)
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar notificações: {str(e)}'
+        })
+
+def calcular_tempo_relativo(data):
+    """Calcula o tempo relativo desde uma data"""
+    from django.utils import timezone
+    from datetime import timedelta
+
+    agora = timezone.now()
+    diferenca = agora - data
+
+    if diferenca < timedelta(minutes=1):
+        return 'agora'
+    elif diferenca < timedelta(hours=1):
+        minutos = int(diferenca.total_seconds() / 60)
+        return f'há {minutos} min'
+    elif diferenca < timedelta(days=1):
+        horas = int(diferenca.total_seconds() / 3600)
+        return f'há {horas}h'
+    elif diferenca < timedelta(days=7):
+        dias = diferenca.days
+        return f'há {dias}d'
+    else:
+        return data.strftime('%d/%m/%Y')
+
+# ==================== LIKES SYSTEM ====================
+
+@api_login_required
+@require_http_methods(['POST'])
+def toggle_like_critica(request, critica_id):
+    """API para dar ou remover like de uma crítica"""
+    try:
+        from .models import LikeCritica, Critica
+
+        # Buscar a crítica
+        critica = get_object_or_404(Critica, id=critica_id)
+
+        # Verificar se o usuário já deu like
+        like_existente = LikeCritica.objects.filter(
+            usuario=request.user,
+            critica=critica
+        ).first()
+
+        if like_existente:
+            # Remover like (toggle off)
+            like_existente.delete()
+            liked = False
+        else:
+            # Adicionar like (toggle on)
+            LikeCritica.objects.create(
+                usuario=request.user,
+                critica=critica
+            )
+            liked = True
+
+        # Contar total de likes
+        total_likes = critica.likes.count()
+
+        return JsonResponse({
+            'success': True,
+            'liked': liked,
+            'total_likes': total_likes
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao processar like: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['POST'])
+def toggle_like_critica_serie(request, critica_id):
+    """API para dar ou remover like de uma crítica de série"""
+    try:
+        from .models import LikeCriticaSerie, CriticaSerie
+
+        # Buscar a crítica
+        critica = get_object_or_404(CriticaSerie, id=critica_id)
+
+        # Verificar se o usuário já deu like
+        like_existente = LikeCriticaSerie.objects.filter(
+            usuario=request.user,
+            critica=critica
+        ).first()
+
+        if like_existente:
+            # Remover like (toggle off)
+            like_existente.delete()
+            liked = False
+        else:
+            # Adicionar like (toggle on)
+            LikeCriticaSerie.objects.create(
+                usuario=request.user,
+                critica=critica
+            )
+            liked = True
+
+        # Contar total de likes
+        total_likes = critica.likes.count()
+
+        return JsonResponse({
+            'success': True,
+            'liked': liked,
+            'total_likes': total_likes
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao processar like: {str(e)}'
+        }, status=500)

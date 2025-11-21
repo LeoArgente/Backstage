@@ -520,6 +520,7 @@ button {
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1211,10 +1212,10 @@ button {
 
 .movie-card-info {
   padding: 16px;
-  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100px; /* Altura fixa para evitar desalinhamento entre cards */
 }
 
 .movie-card-title {
@@ -1225,9 +1226,10 @@ button {
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.6rem;
+  height: 2.6rem; /* Altura fixa para garantir alinhamento */
 }
 
 .movie-card-year {
@@ -1301,11 +1303,23 @@ button {
 }
 
 .carousel-btn.prev {
-  left: 10px;
+  left: -60px; /* Botão completamente fora do carrossel */
 }
 
 .carousel-btn.next {
-  right: 10px;
+  right: -60px; /* Botão completamente fora do carrossel */
+}
+
+/* Esconder botões no mobile */
+@media (max-width: 768px) {
+  .carousel-btn {
+    display: none;
+  }
+
+  /* Altura menor para cards no mobile */
+  .movie-card-info {
+    height: 80px;
+  }
 }
 
 /* ===== Activity Feed ===== */
@@ -1366,6 +1380,41 @@ button {
 .activity-time {
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.activity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  gap: 20px;
+}
+
+.activity-empty p {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.activity-empty .btn-primary {
+  margin-top: 8px;
+  padding: 12px 32px;
+  font-size: 15px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50px; /* Botão bem arredondado */
+  transition: all 0.3s ease;
+}
+
+.activity-empty .btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+  color: white; /* Força texto branco no hover */
+  text-decoration: none; /* Remove qualquer sublinhado */
 }
 
 /* ===== Movie Detail Page ===== */

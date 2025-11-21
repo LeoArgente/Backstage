@@ -1,0 +1,21 @@
+{% load static %}
+<!-- Mobile Search Overlay -->
+<div class="mobile-search-overlay" id="mobileSearchOverlay">
+  <div class="mobile-search-container">
+    <form method="get" action="{% url 'backstage:buscar' %}" class="mobile-search-form">
+      <button type="button" class="mobile-search-close" id="mobileSearchClose">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+      <input type="search" name="q" class="mobile-search-input" placeholder="Buscar filmes, séries..." autocomplete="off" autofocus />
+      <input type="hidden" name="tipo" value="titulo" />
+      <button type="submit" class="mobile-search-submit">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>

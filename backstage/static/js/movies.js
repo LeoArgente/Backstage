@@ -251,3 +251,71 @@ function displaySearchResults(results, container) {
 
 // Initialize search when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeSearch);
+
+// ===== Filter Functionality =====
+document.addEventListener('DOMContentLoaded', () => {
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  const sortSelect = document.getElementById('sort-movies');
+
+  // Handle genre filter clicks
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs
+      filterTabs.forEach(t => t.classList.remove('active'));
+
+      // Add active class to clicked tab
+      tab.classList.add('active');
+
+      // Apply filter
+      applyFilters();
+    });
+  });
+
+  // Handle sort change
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      applyFilters();
+    });
+  }
+});
+
+function applyFilters() {
+  // Get current active genre
+  const activeTab = document.querySelector('.filter-tab.active');
+  const genre = activeTab ? activeTab.dataset.filter : 'all';
+
+  // Get current sort option
+  const sortSelect = document.getElementById('sort-movies');
+  const sort = sortSelect ? sortSelect.value : 'popular';
+
+  // Build URL with query parameters
+  const url = new URL(window.location.href);
+  url.searchParams.set('genre', genre);
+  url.searchParams.set('sort', sort);
+
+  // Reload page with new filters
+  window.location.href = url.toString();
+}
+
+// Set active tab on page load based on URL params
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const genreParam = urlParams.get('genre') || 'all';
+  const sortParam = urlParams.get('sort') || 'popular';
+
+  // Set active genre tab
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  filterTabs.forEach(tab => {
+    if (tab.dataset.filter === genreParam) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  // Set active sort option
+  const sortSelect = document.getElementById('sort-movies');
+  if (sortSelect) {
+    sortSelect.value = sortParam;
+  }
+});

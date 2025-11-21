@@ -4,15 +4,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Backstage — Sua jornada cinematográfica</title>
+  <title>Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <link rel="stylesheet" href="{% static 'css/intro.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+  <!-- Video Intro Overlay -->
+  <div class="intro-overlay">
+    <div class="intro-video-container">
+      <video class="intro-video" muted playsinline preload="auto">
+        <source src="{% static 'videos/intro.mp4' %}" type="video/mp4">
+        Seu navegador não suporta vídeo HTML5.
+      </video>
+      <button class="intro-skip-btn" aria-label="Pular introdução">
+        Pular
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="13 17 18 12 13 7"></polyline>
+          <polyline points="6 17 11 12 6 7"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  {% include 'backstage/_mobile_header.html' %}
     <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -24,18 +46,6 @@
 
         <div class="nav-menu">
           <a href="{% url 'backstage:index' %}" class="nav-link active">Início</a>
-          <div class="nav-link-wrapper">
-            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
-            <div class="news-dropdown">
-              <div class="dropdown-header">
-                <h3>Últimas Notícias</h3>
-                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
-              </div>
-              <div class="news-dropdown-content">
-                <!-- News items will be populated by JS -->
-              </div>
-            </div>
-          </div>
           <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
@@ -53,159 +63,9 @@
             <div class="search-suggestions"></div>
           </form>
 
-          <div class="filter-controls header-filter-controls">
-            <button type="button" class="filter-btn" id="filterBtn" aria-label="Filtros">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </button>
+          {% include 'backstage/_notifications.html' %}
 
-            <div class="filter-popup" id="filterPopup">
-              <div class="filter-content">
-                <h3>Filtros de busca</h3>
-                <form method="get" action="{% url 'backstage:buscar' %}">
-                  <select name="tipo" id="tipoSelect">
-                    <option value="">Escolha o tipo de filtro</option>
-                    <option value="titulo">Título</option>
-                    <option value="genero">Gênero</option>
-                    <option value="ano">Ano</option>
-                  </select>
-                  <div id="filtroAno" style="display:none;">
-                    <label for="anoInput">Ano:</label>
-                    <input type="number" name="ano" placeholder="Ex: 2024" id="anoInput">
-                  </div>
-                  <div id="filtroGenero" style="display:none;">
-                    <label for="generoSelect">Gênero:</label>
-                    <select name="genero" id="generoSelect">
-                      <option value="">Selecione um gênero</option>
-                      <option value="Ação">Ação</option>
-                      <option value="Aventura">Aventura</option>
-                      <option value="Comédia">Comédia</option>
-                      <option value="Drama">Drama</option>
-                      <option value="Fantasia">Fantasia</option>
-                      <option value="Ficção Científica">Ficção Científica</option>
-                      <option value="Romance">Romance</option>
-                      <option value="Suspense">Suspense</option>
-                      <option value="Terror">Terror</option>
-                      <option value="Animação">Animação</option>
-                      <option value="Documentário">Documentário</option>
-                    </select>
-                  </div>
-                  <button type="submit">Aplicar filtros</button>
-                </form>
-              </div>
-            </div>
-          </div>
-
-          <button class="icon-btn notification-btn" aria-label="Notificações">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span class="notification-badge">3</span>
-          </button>
-
-          {% if user.is_authenticated %}
-          <div class="user-menu">
-            <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
-              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
-            </button>
-            
-            <!-- Letterboxd-Style Dropdown Menu -->
-            <div class="user-dropdown" id="userDropdown" role="menu">
-              <div class="user-dropdown-header">
-                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
-                <div class="user-dropdown-info">
-                  <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
-                  <p class="user-dropdown-email">{{ user.email|default:"visitante@backstage.com" }}</p>
-                </div>
-              </div>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                Perfil
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Meu Diário
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Reviews
-              </a>
-              
-              <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Listas
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Watchlist
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Favoritos
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Configurações
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Ajuda
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:sair' %}" class="user-dropdown-item logout-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Sair
-              </a>
-            </div>
-          </div>
-          {% else %}
-          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
-          {% endif %}
+          {% include 'backstage/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
@@ -213,23 +73,33 @@
 
 <!-- Hero Section -->
   <section class="hero">
-    {% if filme_destaque %}
-    <div class="hero-backdrop">
-      <img src="{{ tmdb_image_base }}original{{ filme_destaque.backdrop_path|default:filme_destaque.poster_path }}" alt="{{ filme_destaque.titulo }}" />
+    <!-- Desktop backdrop with dual layers for smooth crossfade -->
+    <div class="hero-backdrop-desktop">
+      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
+      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
       <div class="hero-gradient"></div>
     </div>
+
+    <!-- Mobile backdrop with dual layers for smooth crossfade -->
+    <div class="hero-backdrop-mobile">
+      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
+      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
+      <div class="hero-gradient"></div>
+    </div>
+
+    <!-- Hero content -->
     <div class="container hero-content">
       <div class="hero-info">
-        <span class="hero-badge">Em Destaque</span>
-        <h1 class="hero-title">{{ filme_destaque.titulo }}</h1>
+        <span class="hero-badge">Carregando...</span>
+        <h1 class="hero-title">Carregando os filmes em alta...</h1>
         <div class="hero-meta">
-          <span class="hero-year">{{ filme_destaque.ano_lancamento|default:"2024" }}</span>
-          <span class="hero-duration">{{ filme_destaque.duracao_min|default:"120" }} min</span>
+          <span class="hero-year">2024</span>
+          <span class="hero-duration">120 min</span>
           <span class="hero-rating">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            {{ filme_destaque.nota_escala_5|default:"4.0" }}
+            4.5
           </span>
         </div>
         <div class="hero-actions">
@@ -253,104 +123,12 @@
         </div>
       </div>
     </div>
-    {% else %}
-    <div class="hero-backdrop">
-      <div class="hero-gradient"></div>
-    </div>
-    <div class="container hero-content">
-      <div class="hero-info">
-        <h1 class="hero-title">Bem-vindo ao Backstage</h1>
-        <p class="hero-synopsis">
-          Descubra os melhores filmes e séries.
-        </p>
-      </div>
-    </div>
-    {% endif %}
+
+    <!-- Navigation indicators (will be populated by JS) -->
+    <div class="hero-indicators"></div>
   </section>
 
   <main class="container">
-    <!-- Quick Stats -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">847</span>
-          <span class="stat-label">Filmes assistidos</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">126</span>
-          <span class="stat-label">Favoritos</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <path d="M7 7h10M7 12h10M7 17h7" stroke="white" stroke-width="1.5"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">23</span>
-          <span class="stat-label">Listas criadas</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">342</span>
-          <span class="stat-label">Seguidores</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Filtros avançados -->
-    <section class="filter-section">
-      <div class="filter-row">
-        <div class="filter-tabs">
-          <button class="filter-tab active">Todos</button>
-          <button class="filter-tab">Ação</button>
-          <button class="filter-tab">Drama</button>
-          <button class="filter-tab">Comédia</button>
-          <button class="filter-tab">Ficção Científica</button>
-          <button class="filter-tab">Terror</button>
-          <button class="filter-tab">Romance</button>
-        </div>
-        <div class="filter-controls">
-          <select class="filter-select">
-            <option>Mais populares</option>
-            <option>Melhor avaliados</option>
-            <option>Lançamentos</option>
-            <option>Alfabético</option>
-          </select>
-          <button class="filter-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="4" y1="6" x2="20" y2="6"/>
-              <line x1="4" y1="12" x2="20" y2="12"/>
-              <line x1="4" y1="18" x2="20" y2="18"/>
-              <circle cx="7" cy="6" r="2" fill="currentColor"/>
-              <circle cx="17" cy="12" r="2" fill="currentColor"/>
-              <circle cx="9" cy="18" r="2" fill="currentColor"/>
-            </svg>
-            Filtros
-          </button>
-        </div>
-      </div>
-    </section>
 
     <!-- GOATS (Greatest of All Time) -->
     <section class="section">
@@ -361,7 +139,6 @@
           </svg>
           GOATS
         </h2>
-        <a href="#" class="section-link">Ver todos →</a>
       </div>
       <div class="carousel">
         <button class="carousel-btn prev">
@@ -391,7 +168,6 @@
           </svg>
           Em Cartaz
         </h2>
-        <a href="#" class="section-link">Ver todos →</a>
       </div>
       <div class="carousel">
         <button class="carousel-btn prev">
@@ -420,7 +196,6 @@
           </svg>
           Clássicos Imperdíveis
         </h2>
-        <a href="#" class="section-link">Ver todos →</a>
       </div>
       <div class="carousel">
         <button class="carousel-btn prev">
@@ -484,73 +259,40 @@
           </svg>
           Atividade dos amigos
         </h2>
-        <a href="#" class="section-link">Ver toda atividade →</a>
       </div>
       <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-g6utg0zth2yzukhi.webp" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>LeoArgente01</strong> avaliou <a href="#">Vingadores: Era de Ultron</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 2 horas</span>
+        {% if user.is_authenticated %}
+          {% if atividades_amigos %}
+            {% for atividade in atividades_amigos %}
+            <div class="activity-item">
+              <img src="https://ui-avatars.com/api/?name={{ atividade.usuario.username }}&background=random&size=48" class="activity-avatar" alt="{{ atividade.usuario.username }}">
+              <div class="activity-content">
+                <p>
+                  <strong>{{ atividade.usuario.username }}</strong> avaliou 
+                  {% if atividade.tipo == 'filme' %}
+                    <a href="{% url 'backstage:detalhes_filme' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
+                  {% else %}
+                    <a href="{% url 'backstage:detalhes_serie' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
+                  {% endif %}
+                  com
+                  <span class="rating-stars">{% for i in "12345" %}{% if forloop.counter <= atividade.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
+                </p>
+                <span class="activity-time">{{ atividade.data|timesince }} atrás</span>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="activity-empty">
+              <p>Nenhuma atividade dos seus amigos ainda.</p>
+              <a href="{% url 'backstage:amigos' %}#buscar" class="btn-primary">Adicionar Amigos</a>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="activity-empty">
+            <p>Faça login para ver as atividades dos seus amigos!</p>
+            <a href="{% url 'backstage:login' %}" class="btn-primary">Fazer Login</a>
           </div>
-        </div>
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-vf5bica5zkhp2fxk.webp" class="activity-avatar" alt="João">
-          <div class="activity-content">
-            <p><strong>Lowzy</strong> adicionou <a href="#">Poor Things</a> à sua lista de favoritos</p>
-            <span class="activity-time">há 5 horas</span>
-          </div>
-        </div>
-        <div class="activity-item">
-          <img src="https://tse1.mm.bing.net/th/id/OIP.tLD7WGvJsZjVafaoK1n9EwHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3" class="activity-avatar" alt="Ana">
-          <div class="activity-content">
-            <p><strong>Fantasticmsliz</strong> avaliou <a href="#">Ruptura</a></p>
-            <span class="activity-time">há 1 dia</span>
-          </div>
-        </div>
-        <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-rrhxh9ll01td29ok.webp" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>Inconsistente</strong> avaliou <a href="#">Gen V</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 10 horas</span>
-          </div>
-        </div>
-        <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://tse3.mm.bing.net/th/id/OIP.3KREukHWrQYcIEyEni3DHQHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>Nononha123</strong> avaliou <a href="#">Game of Thrones</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 4 horas</span>
-          </div>
-        </div>
-        <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://tse2.mm.bing.net/th/id/OIP.J-TCe-ReFGDGhlmqbcZ-oQHaHa?pid=ImgDet&w=474&h=474&rs=1&o=7&rm=3" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>VictorExtreme97</strong> avaliou <a href="#">The Office</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 6 horas</span>
-          </div>
-        </div>
-      </div>
-      <div class="activity-feed">
-        <div class="activity-item">
-          <img src="https://wallpapers.com/images/high/xbox-360-profile-pictures-glvjkc137tsrudsw.webp" class="activity-avatar" alt="Maria">
-          <div class="activity-content">
-            <p><strong>RafaelBorba</strong> avaliou <a href="#">Breaking Bad</a> com
-              <span class="rating-stars">★★★★★</span>
-            </p>
-            <span class="activity-time">há 1 hora</span>
-          </div>
-        </div>
+        {% endif %}
       </div>
     </section>
   </main>
@@ -594,187 +336,54 @@
         <div class="footer-section">
           <h3 class="footer-title">Conecte-se</h3>
           <div class="social-links">
+            <a href="#" class="social-link" aria-label="TikTok">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2v10.5A4.5 4.5 0 1 0 16.5 16V8h3V2h-7.5z"/>
+              </svg>
+            </a>
             <a href="#" class="social-link" aria-label="Twitter">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
               </svg>
             </a>
-            <a href="#" class="social-link" aria-label="Instagram">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            <a href="#" class="social-link" aria-label="Facebook">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 12a10 10 0 1 0-11.5 9.9V14.9h-2v-2.5h2v-1.9c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.8h2.2L18 14.9h-2v6.9A10 10 0 0 0 22 12z"/>
               </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="YouTube">
+              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="6" width="20" height="12" rx="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M10 9l6 3-6 3V9z" fill="currentColor"/>
+              </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="LinkedIn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M7 9h2v8H7zM8 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM11 9h2v1.1c.3-.6 1-1.1 2-1.1 2 0 3 1.2 3 3.6V17h-2v-4c0-1-0.5-1.9-1.7-1.9-1 0-1.6.7-1.9 1.4-.1.2-.1.5-.1.8V17h-2V9z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
             </a>
           </div>
         </div>
       </div>
       
       <div class="footer-bottom">
-        <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
+        <p>&copy; 2025 Backstage. Todos os direitos reservados.</p>
       </div>
     </div>
   </footer>
 
-  <!-- CSS para Menu de Usuário -->
-  <style>
-    .user-menu {
-      position: relative;
-    }
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
 
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: none;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .user-avatar:hover {
-      border-color: var(--red);
-      transform: scale(1.05);
-    }
-
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .user-dropdown {
-      position: absolute;
-      top: calc(100% + 10px);
-      right: 0;
-      background: rgba(17, 24, 39, 0.98);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      min-width: 220px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
-      z-index: 1000;
-      backdrop-filter: blur(10px);
-    }
-
-    .user-dropdown.active {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-
-    .user-dropdown-header {
-      padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .user-dropdown-name {
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 600;
-      margin: 0 0 4px 0;
-    }
-
-    .user-dropdown-email {
-      color: #9ca3af;
-      font-size: 12px;
-      margin: 0;
-    }
-
-    .user-dropdown-divider {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.1);
-      margin: 8px 0;
-    }
-
-    .user-dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      color: #ffffff;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      font-size: 14px;
-    }
-
-    .user-dropdown-item:hover {
-      background: rgba(220, 38, 38, 0.1);
-      color: var(--red);
-    }
-
-    .user-dropdown-item svg {
-      width: 18px;
-      height: 18px;
-      stroke: currentColor;
-    }
-
-    /* Seta do dropdown */
-    .user-dropdown::before {
-      content: '';
-      position: absolute;
-      top: -6px;
-      right: 12px;
-      width: 12px;
-      height: 12px;
-      background: rgba(17, 24, 39, 0.98);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      transform: rotate(45deg);
-    }
-  </style>
-
-  <!-- JavaScript para Toggle do Menu -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const userMenuBtn = document.getElementById('userMenuBtn');
-      const userDropdown = document.getElementById('userDropdown');
-
-      if (userMenuBtn && userDropdown) {
-        // Toggle dropdown ao clicar no avatar
-        userMenuBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          userDropdown.classList.toggle('active');
-        });
-
-        // Fechar dropdown ao clicar fora
-        document.addEventListener('click', function(e) {
-          if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-            userDropdown.classList.remove('active');
-          }
-        });
-
-        // Fechar dropdown ao pressionar ESC
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') {
-            userDropdown.classList.remove('active');
-          }
-        });
-      }
-
-      // Funcionalidade de busca
-      const searchInput = document.querySelector('.search-input');
-      if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const searchTerm = searchInput.value.trim();
-            if (searchTerm) {
-              window.location.href = `{% url 'backstage:buscar' %}?q=${encodeURIComponent(searchTerm)}&tipo=titulo`;
-            }
-          }
-        });
-      }
-    });
-  </script>
-
+    <script src="{% static 'js/intro.js' %}"></script>
     <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
-    <script src="{% static 'js/filter-popup.js' %}" defer></script>
+    <script src="{% static 'js/profile_menu.js' %}" defer></script>
     <script src="{% static 'js/search-suggestions.js' %}" defer></script>
+    <script src="{% static 'js/notifications.js' %}" defer></script>
 </body>
 </html>    

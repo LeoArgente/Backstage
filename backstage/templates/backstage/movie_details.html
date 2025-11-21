@@ -5,14 +5,18 @@
   {% load humanize %}
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ filme.titulo }} — Backstage</title>
+  <title>{{ filme.titulo }} - Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
+  {% include 'backstage/_mobile_header.html' %}
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -24,18 +28,6 @@
 
         <div class="nav-menu">
           <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
-          <div class="nav-link-wrapper">
-            <a href="{% url 'backstage:noticias' %}" class="nav-link">Notícias</a>
-            <div class="news-dropdown">
-              <div class="dropdown-header">
-                <h3>Últimas Notícias</h3>
-                <a href="{% url 'backstage:noticias' %}" class="view-all">Ver todas</a>
-              </div>
-              <div class="news-dropdown-content">
-                <!-- News items will be populated by JS -->
-              </div>
-            </div>
-          </div>
           <a href="{% url 'backstage:movies' %}" class="nav-link active">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
@@ -53,115 +45,9 @@
             <div class="search-suggestions"></div>
           </form>
 
-          <button class="icon-btn notification-btn" aria-label="Notificações">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2a7 7 0 0 1 7 7c0 5.25 1.5 6.75 1.5 6.75H3.5S5 14.25 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.5 19a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span class="notification-badge">3</span>
-          </button>
+          {% include 'backstage/_notifications.html' %}
 
-          {% if user.is_authenticated %}
-          <div class="user-menu">
-            <button class="user-avatar" id="userMenuBtn" aria-expanded="false" aria-haspopup="true" aria-label="Menu do usuário">
-              <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar do usuário" />
-            </button>
-            
-            <!-- Letterboxd-Style Dropdown Menu -->
-            <div class="user-dropdown" id="userDropdown" role="menu">
-              <div class="user-dropdown-header">
-                <img src="https://yt3.googleusercontent.com/BfPo-vPga13k-FNXBAXodrt2dpt-9iLhmqz3L9_BcMwxxImYOcJdRAr3xFIZdM35g0xQAEfSCBI=s900-c-k-c0x00ffffff-no-rj" alt="Avatar" class="user-dropdown-avatar" />
-                <div class="user-dropdown-info">
-                  <p class="user-dropdown-name">{{ user.username|default:"Visitante" }}</p>
-                  <p class="user-dropdown-email">{{ user.email|default:"visitante@backstage.com" }}</p>
-                </div>
-              </div>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                Perfil
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Meu Diário
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Reviews
-              </a>
-              
-              <a href="{% url 'backstage:lists' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="6" x2="3.01" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="12" x2="3.01" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="3" y1="18" x2="3.01" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Listas
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Watchlist
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Favoritos
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 1v6m0 6v6M1 12h6m6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Configurações
-              </a>
-              
-              <a href="{% url 'backstage:index' %}" class="user-dropdown-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Ajuda
-              </a>
-              
-              <div class="user-dropdown-divider"></div>
-              
-              <a href="{% url 'backstage:sair' %}" class="user-dropdown-item logout-item" role="menuitem" tabindex="0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Sair
-              </a>
-            </div>
-          </div>
-          {% else %}
-          <a href="{% url 'backstage:login' %}" class="btn-login">Login</a>
-          {% endif %}
+          {% include 'backstage/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
@@ -250,7 +136,7 @@
         
         <div class="movie-actions">
           <div class="action-buttons">
-            <button class="action-btn watched">
+            <button class="action-btn watched" id="markAsWatchedBtn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
@@ -258,15 +144,6 @@
               Assistido
             </button>
             <button class="action-btn watchlist">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v20M5 12h14"/>
-              </svg>
-              Quero Ver
-            </button>
-            <button class="action-btn favorite">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
               Favoritar
             </button>
             <button class="action-btn list">
@@ -304,13 +181,6 @@
                   <span class="icon">+</span>
                   <span>Criar Nova Lista</span>
               </button>
-              <button class="popup-option watch-later" onclick="addToWatchLater()">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                  <span>Assistir Mais Tarde</span>
-              </button>
           </div>
 
           <!-- Formulário de criar lista -->
@@ -323,6 +193,61 @@
                   <div class="form-actions">
                       <button type="button" onclick="showListOptions()">Voltar</button>
                       <button type="submit">Criar Lista</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal de Assistido -->
+  <div class="list-popup-overlay" id="watchedPopupOverlay">
+      <div class="list-popup watched-popup">
+          <div class="popup-header">
+              <h3 class="popup-title">Adicionar ao Diário</h3>
+              <button class="close-popup" onclick="hideWatchedPopup()">&times;</button>
+          </div>
+
+          <div class="popup-content">
+              <!-- Card do Filme -->
+              <div class="watched-movie-card" id="watchedMovieCard">
+                  <img id="watchedMoviePoster" src="" alt="Poster" class="watched-poster">
+                  <div class="watched-movie-info">
+                      <h4 id="watchedMovieTitle">Título do Filme</h4>
+                      <p id="watchedMovieYear">2025</p>
+                  </div>
+              </div>
+
+              <form id="watchedForm" onsubmit="saveWatchedMovie(event)">
+                  <div class="form-group">
+                      <label for="watchedDate">Data que assistiu:</label>
+                      <input type="date" id="watchedDate" required>
+                  </div>
+
+                  <div class="form-group">
+                      <label>Sua avaliação: <span class="required">*</span></label>
+                      <div class="star-rating-watched">
+                          <button type="button" class="star-watched" data-rating="5">★</button>
+                          <button type="button" class="star-watched" data-rating="4">★</button>
+                          <button type="button" class="star-watched" data-rating="3">★</button>
+                          <button type="button" class="star-watched" data-rating="2">★</button>
+                          <button type="button" class="star-watched" data-rating="1">★</button>
+                      </div>
+                      <input type="hidden" id="watchedRating" required>
+                  </div>
+
+                  <div class="form-group">
+                      <label for="watchedWith">Assistido com (opcional):</label>
+                      <input type="text" id="watchedWith" placeholder="Ex: João, Maria...">
+                  </div>
+
+                  <div class="form-group">
+                      <label for="watchedNotes">Notas (opcional):</label>
+                      <textarea id="watchedNotes" rows="4" placeholder="Escreva suas impressões sobre o filme..."></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                      <button type="button" class="btn-cancel" onclick="hideWatchedPopup()">Cancelar</button>
+                      <button type="submit" class="btn-save">Salvar</button>
                   </div>
               </form>
           </div>
@@ -517,7 +442,11 @@
                   {% endif %}
                 </p>
                 <div class="review-actions">
-                  <button class="review-action">👍 0</button>
+                  <button class="review-action like-btn {% if critica.usuario_deu_like %}liked{% endif %}"
+                          data-critica-id="{{ critica.id }}"
+                          onclick="toggleLike(this)">
+                    👍 <span class="like-count">{{ critica.total_likes|default:0 }}</span>
+                  </button>
                   <button class="review-action">💬 0</button>
                 </div>
               </article>
@@ -778,16 +707,31 @@
         <div class="footer-section">
           <h3 class="footer-title">Conecte-se</h3>
           <div class="social-links">
+            <a href="#" class="social-link" aria-label="TikTok">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2v10.5A4.5 4.5 0 1 0 16.5 16V8h3V2h-7.5z"/>
+              </svg>
+            </a>
             <a href="#" class="social-link" aria-label="Twitter">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
               </svg>
             </a>
-            <a href="#" class="social-link" aria-label="Instagram">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            <a href="#" class="social-link" aria-label="Facebook">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 12a10 10 0 1 0-11.5 9.9V14.9h-2v-2.5h2v-1.9c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.8h2.2L18 14.9h-2v6.9A10 10 0 0 0 22 12z"/>
+              </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="YouTube">
+              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="6" width="20" height="12" rx="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M10 9l6 3-6 3V9z" fill="currentColor"/>
+              </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="LinkedIn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M7 9h2v8H7zM8 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM11 9h2v1.1c.3-.6 1-1.1 2-1.1 2 0 3 1.2 3 3.6V17h-2v-4c0-1-0.5-1.9-1.7-1.9-1 0-1.6.7-1.9 1.4-.1.2-.1.5-.1.8V17h-2V9z"/>
               </svg>
             </a>
           </div>
@@ -826,6 +770,8 @@
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/movie_details.js' %}" defer></script>
   <script src="{% static 'js/search-suggestions.js' %}" defer></script>
+  <script src="{% static 'js/profile_menu.js' %}"></script>
+  <script src="{% static 'js/notifications.js' %}" defer></script>
   <script>
   // Inicialização simples e direta
   document.addEventListener('DOMContentLoaded', function() {
@@ -1100,6 +1046,27 @@ document.addEventListener('DOMContentLoaded', function() {
     initListPopup();
 });
 </script>
+
+<!-- CSS para Sistema de Likes -->
+<style>
+  .like-btn {
+    transition: all 0.3s ease;
+  }
+
+  .like-btn.liked {
+    color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .like-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .like-count {
+    margin-left: 4px;
+  }
+</style>
 
 <!-- CSS para Menu de Usuário -->
 <style>
@@ -1385,6 +1352,140 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar sistema de estrelas
     syncStarRating();
   });
+
+  // ===== MODAL DE ASSISTIDO =====
+  document.addEventListener('DOMContentLoaded', function() {
+    const watchedBtn = document.getElementById('markAsWatchedBtn');
+    const watchedOverlay = document.getElementById('watchedPopupOverlay');
+    const watchedForm = document.getElementById('watchedForm');
+    const watchedDateInput = document.getElementById('watchedDate');
+    const starsWatched = document.querySelectorAll('.star-watched');
+    const watchedRatingInput = document.getElementById('watchedRating');
+
+    // Definir data de hoje como padrão
+    const today = new Date().toISOString().split('T')[0];
+    watchedDateInput.value = today;
+
+    // Abrir modal de assistido
+    if (watchedBtn) {
+      watchedBtn.addEventListener('click', function() {
+        // Preencher dados do filme no modal
+        const movieTitle = document.querySelector('.movie-title');
+        const movieYear = document.querySelector('.movie-year');
+        const moviePoster = document.querySelector('.movie-poster');
+        const movieInfoSection = document.querySelector('.movie-info-section');
+        
+        const tmdbId = movieInfoSection ? movieInfoSection.dataset.movieId : null;
+        
+        if (tmdbId) {
+          watchedForm.dataset.tmdbId = tmdbId;
+        }
+
+        // Preencher card do filme
+        if (movieTitle) {
+          document.getElementById('watchedMovieTitle').textContent = movieTitle.textContent;
+        }
+        
+        if (movieYear) {
+          document.getElementById('watchedMovieYear').textContent = movieYear.textContent;
+        }
+        
+        if (moviePoster) {
+          document.getElementById('watchedMoviePoster').src = moviePoster.src;
+        }
+
+        watchedOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      });
+    }
+
+    // Sistema de estrelas para avaliação
+    starsWatched.forEach(star => {
+      star.addEventListener('click', function() {
+        const rating = parseInt(this.dataset.rating);
+        watchedRatingInput.value = rating;
+        
+        // Atualizar visual das estrelas
+        starsWatched.forEach(s => {
+          if (parseInt(s.dataset.rating) <= rating) {
+            s.classList.add('active');
+          } else {
+            s.classList.remove('active');
+          }
+        });
+      });
+    });
+  });
+
+  // Função para fechar modal de assistido
+  function hideWatchedPopup() {
+    const overlay = document.getElementById('watchedPopupOverlay');
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+    document.getElementById('watchedForm').reset();
+    document.getElementById('watchedRating').value = '';
+    
+    // Resetar estrelas
+    document.querySelectorAll('.star-watched').forEach(s => s.classList.remove('active'));
+  }
+
+  // Função para salvar filme como assistido
+  function saveWatchedMovie(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const tmdbId = form.dataset.tmdbId;
+    const date = document.getElementById('watchedDate').value;
+    const rating = document.getElementById('watchedRating').value;
+    const watchedWith = document.getElementById('watchedWith').value.trim();
+    const notes = document.getElementById('watchedNotes').value.trim();
+
+    if (!rating) {
+      alert('Por favor, selecione uma avaliação');
+      return;
+    }
+
+    const data = {
+      filme_id: tmdbId,
+      data: date,
+      nota: parseInt(rating),
+      assistido_com: watchedWith || '',
+      notas: notes || ''
+    };
+
+    fetch('/api/diario/adicionar/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Filme adicionado ao diário!');
+        hideWatchedPopup();
+      } else {
+        alert('Erro: ' + (data.message || 'Não foi possível adicionar o filme'));
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao adicionar filme ao diário');
+    });
+  }
+
+  // Fechar modal clicando fora
+  document.getElementById('watchedPopupOverlay')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      hideWatchedPopup();
+    }
+  });
 </script>
+
+{% include 'backstage/_mobile_search.html' %}
+{% include 'backstage/_mobile_bottom_nav.html' %}
+{% include 'backstage/_mobile_scripts.html' %}
 </body>
 </html>

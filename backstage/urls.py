@@ -52,4 +52,36 @@ urlpatterns = [
     path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
     path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
+    
+    # URLs do menu do usuário
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/<str:username>/', views.perfil, name='perfil_usuario'),
+    path('meu-diario/', views.meu_diario, name='meu_diario'),
+    path('reviews/', views.reviews, name='reviews'),
+    path('watchlist/', views.watchlist, name='watchlist'),
+    path('favoritos/', views.favoritos, name='favoritos'),
+    path('configuracoes/', views.configuracoes, name='configuracoes'),
+    path('ajuda/', views.ajuda, name='ajuda'),
+    path('amigos/', views.amigos, name='amigos'),
+
+    # URLs de Diário
+    path('diary/', views.diary, name='diary'),
+    path('api/diario/entradas/', views.diario_entradas, name='diario_entradas'),
+    path('api/diario/adicionar/', views.diario_adicionar, name='diario_adicionar'),
+    path('api/diario/remover/<int:entrada_id>/', views.diario_remover, name='diario_remover'),
+    
+    # URLs de Sistema de Amizade
+    path('api/buscar-usuarios-realtime/', views.buscar_usuarios_realtime, name='buscar_usuarios_realtime'),
+    path('api/enviar-solicitacao/', views.enviar_solicitacao, name='enviar_solicitacao'),
+    path('api/aceitar-solicitacao/', views.aceitar_solicitacao, name='aceitar_solicitacao'),
+    path('api/rejeitar-solicitacao/', views.rejeitar_solicitacao, name='rejeitar_solicitacao'),
+    path('api/cancelar-solicitacao/', views.cancelar_solicitacao, name='cancelar_solicitacao'),
+    path('api/remover-amigo/', views.remover_amigo, name='remover_amigo'),
+    
+    # URLs de Notificações
+    path('api/notificacoes/', views.buscar_notificacoes, name='buscar_notificacoes'),
+
+    # URLs de Likes
+    path('api/critica/<int:critica_id>/like/', views.toggle_like_critica, name='toggle_like_critica'),
+    path('api/critica-serie/<int:critica_id>/like/', views.toggle_like_critica_serie, name='toggle_like_critica_serie'),
 ]

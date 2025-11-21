@@ -353,6 +353,7 @@ async function setFeaturedMoviesCarousel() {
       // Update title
       if (heroTitle) {
         heroTitle.textContent = movie.titulo;
+        heroTitle.dataset.movieId = movie.id; // Adicionar ID do filme ao elemento
         heroTitle.style.transform = 'translateX(0)';
         heroTitle.style.opacity = '1';
       }

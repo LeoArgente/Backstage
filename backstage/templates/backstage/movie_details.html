@@ -143,9 +143,6 @@
               </svg>
               Assistido
             </button>
-            <button class="action-btn watchlist">
-              Favoritar
-            </button>
             <button class="action-btn list">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -898,8 +895,29 @@
               loadingEl.style.display = 'none';
 
               if (data.success && data.listas.length > 0) {
-                  // Mostrar listas existentes
-                  containerEl.innerHTML = data.listas.map(lista => `
+                  // Separar "Assistir Mais Tarde" das outras listas
+                  const assistirMaisTarde = data.listas.find(l => l.nome === "Assistir Mais Tarde");
+                  const outrasListas = data.listas.filter(l => l.nome !== "Assistir Mais Tarde");
+                  
+                  let html = '';
+                  
+                  // Adicionar "Assistir Mais Tarde" primeiro com estilo especial
+                  if (assistirMaisTarde) {
+                      html += `
+                          <div class="list-item list-item-featured">
+                              <div class="list-item-info">
+                                  <div class="list-item-name">${assistirMaisTarde.nome}</div>
+                                  <div class="list-item-meta">${assistirMaisTarde.count} filme${assistirMaisTarde.count !== 1 ? 's' : ''}</div>
+                              </div>
+                              <button class="list-item-add" onclick="addMovieToList(${assistirMaisTarde.id}, '${assistirMaisTarde.nome}')">
+                                  Adicionar
+                              </button>
+                          </div>
+                      `;
+                  }
+                  
+                  // Adicionar outras listas
+                  html += outrasListas.map(lista => `
                       <div class="list-item">
                           <div class="list-item-info">
                               <div class="list-item-name">${lista.nome}</div>
@@ -910,6 +928,8 @@
                           </button>
                       </div>
                   `).join('');
+                  
+                  containerEl.innerHTML = html;
                   containerEl.style.display = 'block';
               } else {
                   // Não tem listas

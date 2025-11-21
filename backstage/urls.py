@@ -46,7 +46,6 @@ urlpatterns = [
     
     # URLs para comunidades
     path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
-    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
     path('convite/<str:codigo>/', views.entrar_por_convite, name='entrar_por_convite'),
     
     # APIs para comunidades
@@ -56,9 +55,16 @@ urlpatterns = [
     path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
     
+    # API de busca de filmes (DEVE VIR ANTES das URLs com <slug>)
+    path('comunidade/buscar-filmes/', views.buscar_filmes_para_recomendar, name='buscar_filmes_para_recomendar'),
+    
+    # URLs de comunidade específica
+    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
+    
     # APIs de Chat da Comunidade
     path('comunidade/<slug:slug>/enviar-mensagem/', views.enviar_mensagem_comunidade, name='enviar_mensagem_comunidade'),
     path('comunidade/<slug:slug>/buscar-mensagens/', views.buscar_mensagens_comunidade, name='buscar_mensagens_comunidade'),
+    path('comunidade/<slug:slug>/recomendar-filme/', views.recomendar_filme_comunidade, name='recomendar_filme_comunidade'),
     
     # URLs do menu do usuário
     path('perfil/', views.perfil, name='perfil'),

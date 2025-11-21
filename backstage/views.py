@@ -498,7 +498,14 @@ def buscar_mensagens_comunidade(request, slug):
                 'conteudo': msg.conteudo,
                 'criado_em': msg.criado_em.strftime('%d/%m %H:%M'),
                 'is_owner': msg.usuario == request.user,
-                'foto_perfil': foto_perfil_url
+                'foto_perfil': foto_perfil_url,
+                'tipo_mensagem': msg.tipo_mensagem,
+                'filme': {
+                    'tmdb_id': msg.filme_tmdb_id,
+                    'titulo': msg.filme_titulo,
+                    'poster': msg.filme_poster,
+                    'trailer': msg.filme_trailer
+                } if msg.tipo_mensagem == 'recomendacao' else None
             })
         
         return JsonResponse({
@@ -511,6 +518,126 @@ def buscar_mensagens_comunidade(request, slug):
             'success': False, 
             'error': f'Erro ao buscar mensagens: {str(e)}'
         }, status=500)
+
+
+@login_required(login_url='backstage:login')
+@login_required
+def buscar_filmes_para_recomendar(request):
+    """API para buscar filmes para recomendar"""
+    try:
+        query = request.GET.get('q', '').strip()
+        
+        if not query or len(query) < 2:
+            return JsonResponse({'success': False, 'error': 'Digite pelo menos 2 caracteres'}, status=400)
+        
+        # Buscar filmes via TMDB
+        filmes = buscar_filme_por_titulo(query)
+        
+        if not filmes:
+            return JsonResponse({'success': True, 'filmes': []})
+        
+        # Limitar a 10 resultados e formatar
+        filmes_data = []
+        for filme in filmes[:10]:
+            poster_url = None
+            if filme.get('poster_path'):
+                poster_url = f"https://image.tmdb.org/t/p/w200{filme['poster_path']}"
+            
+            filmes_data.append({
+                'tmdb_id': filme.get('tmdb_id'),
+                'titulo': filme.get('titulo'),
+                'ano': filme.get('ano_lancamento', ''),
+                'poster': poster_url,
+                'sinopse': (filme.get('sinopse', '')[:150] + '...') if filme.get('sinopse') and len(filme.get('sinopse', '')) > 150 else filme.get('sinopse', '')
+            })
+        
+        return JsonResponse({'success': True, 'filmes': filmes_data})
+        
+    except Exception as e:
+        print(f"Erro em buscar_filmes_para_recomendar: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+@login_required
+@require_http_methods(["POST"])
+def recomendar_filme_comunidade(request, slug):
+    """API para recomendar filme na comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+        
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        mensagem_texto = data.get('mensagem', '').strip()
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        # Buscar detalhes do filme no TMDB
+        detalhes = obter_detalhes_com_cache(tmdb_id)
+        if not detalhes:
+            return JsonResponse({'success': False, 'error': 'Filme não encontrado'}, status=404)
+        
+        # Extrair trailer
+        trailer_url = None
+        if detalhes.get('videos') and detalhes['videos'].get('results'):
+            for video in detalhes['videos']['results']:
+                if video.get('type') == 'Trailer' and video.get('site') == 'YouTube':
+                    trailer_url = f"https://www.youtube.com/watch?v={video['key']}"
+                    break
+        
+        # Criar mensagem de recomendação
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            tipo_mensagem='recomendacao',
+            conteudo=mensagem_texto if mensagem_texto else '',  # Deixar vazio se não tiver texto
+            filme_tmdb_id=tmdb_id,
+            filme_titulo=detalhes.get('title'),
+            filme_poster=f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}" if detalhes.get('poster_path') else None,
+            filme_trailer=trailer_url
+        )
+        
+        # Buscar foto de perfil
+        foto_perfil_url = None
+        try:
+            if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+                foto_perfil_url = request.user.profile.foto_perfil.url
+        except:
+            pass
+        
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': mensagem.usuario.username,
+                'conteudo': mensagem.conteudo,
+                'criado_em': mensagem.criado_em.strftime('%d/%m %H:%M'),
+                'is_owner': True,
+                'foto_perfil': foto_perfil_url,
+                'tipo_mensagem': 'recomendacao',
+                'filme': {
+                    'tmdb_id': mensagem.filme_tmdb_id,
+                    'titulo': mensagem.filme_titulo,
+                    'poster': mensagem.filme_poster,
+                    'trailer': mensagem.filme_trailer
+                }
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required(login_url='backstage:login')

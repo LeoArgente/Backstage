@@ -614,6 +614,33 @@ def sair_comunidade(request):
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
+def deletar_comunidade(request):
+    """API para deletar uma comunidade (apenas criador)"""
+    try:
+        data = json.loads(request.body)
+        slug = data.get('slug')
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é o criador
+        if comunidade.criador != request.user:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Apenas o criador pode deletar a comunidade.'
+            }, status=403)
+        
+        nome_comunidade = comunidade.nome
+        comunidade.delete()  # Isso deletará em cascata membros e mensagens
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Comunidade "{nome_comunidade}" deletada com sucesso.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
 def convidar_amigo(request):
     """API para convidar amigo via email"""
     try:

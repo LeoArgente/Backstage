@@ -91,6 +91,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'backstage-fds'
+          app-name: 'backstage-fds-2025'
           slot-name: 'Production'
           

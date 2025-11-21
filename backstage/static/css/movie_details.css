@@ -1644,6 +1644,13 @@
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Aumentar a altura do modal de 'Assistido' */
+    max-height: 95vh !important;
+}
+
+/* Mover o modal de assistido mais para cima */
+#watchedPopupOverlay {
+    padding-top: 20px !important;
 }
 
 .watched-popup .popup-header h3.popup-title {
@@ -1824,5 +1831,5 @@
 
 .watched-popup .popup-content {
     padding: 20px 24px 24px 24px;
-    overflow-y: visible;
+    overflow-y: auto;
 }

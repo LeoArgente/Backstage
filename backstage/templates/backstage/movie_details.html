@@ -1510,6 +1510,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         watchedOverlay.classList.add('show');
         document.body.style.overflow = 'hidden';
+        // Esconder header
+        document.querySelector('.site-header').style.display = 'none';
       });
     }
 
@@ -1536,6 +1538,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('watchedPopupOverlay');
     overlay.classList.remove('show');
     document.body.style.overflow = '';
+    // Mostrar header novamente
+    document.querySelector('.site-header').style.display = '';
     document.getElementById('watchedForm').reset();
     document.getElementById('watchedRating').value = '';
     

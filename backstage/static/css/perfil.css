@@ -640,3 +640,13 @@
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
 }
+
+/* Back link button color */
+.back-link {
+  color: white !important;
+}
+
+/* Reviews page header sizing (match series page) */
+.page-header-reviews {
+  padding: 120px 0 80px;
+}

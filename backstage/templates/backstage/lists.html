@@ -102,22 +102,26 @@
       <div class="page-header-content">
         <h1 class="page-title">Listas</h1>
         <p class="page-description">Crie e organize suas listas personalizadas de filmes e séries favoritos</p>
-        
-        <button class="btn btn-primary create-list-btn" id="create-list-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          Criar Nova Lista
-        </button>
       </div>
     </div>
   </div>
 
   <main class="container">
     <section class="filters-section">
-      <div class="filter-tabs">
-        <button class="filter-tab active" data-filter="my-lists">Minhas Listas</button>
-        <button class="filter-tab" data-filter="public">Listas Públicas</button>
+      <div class="filters-header">
+        <div class="left-controls">
+          <button class="btn btn-primary create-list-btn" id="create-list-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Criar Nova Lista
+          </button>
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="my-lists">Minhas Listas</button>
+          <button class="filter-tab" data-filter="public">Listas Públicas</button>
+        </div>
       </div>
     </section>
 

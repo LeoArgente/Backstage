@@ -71,6 +71,7 @@ urlpatterns = [
     path('perfil/<str:username>/', views.perfil, name='perfil_usuario'),
     path('meu-diario/', views.meu_diario, name='meu_diario'),
     path('reviews/', views.reviews, name='reviews'),
+    path('reviews/<str:username>/', views.reviews, name='reviews_usuario'),
     path('watchlist/', views.watchlist, name='watchlist'),
     path('lista/<int:lista_id>/', views.lista_detalhes, name='lista_detalhes'),
     path('favoritos/', views.favoritos, name='favoritos'),

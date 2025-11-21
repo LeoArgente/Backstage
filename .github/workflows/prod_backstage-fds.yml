@@ -93,4 +93,4 @@ jobs:
         with:
           app-name: 'backstage-fds-2025'
           slot-name: 'Production'
-          
+          startup-command: 'bash startup.sh'

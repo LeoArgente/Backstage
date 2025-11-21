@@ -448,6 +448,66 @@
           }
         });
       }
+
+      // Adicionar evento ao botão "Assistir Trailer" no hero
+      const heroTrailerBtn = document.querySelector('.hero-actions .btn-primary');
+      if (heroTrailerBtn) {
+        heroTrailerBtn.addEventListener('click', async function(event) {
+          // Prevenir comportamento padrão e propagação
+          event.preventDefault();
+          event.stopPropagation();
+          
+          const heroTitle = document.querySelector('.hero-title');
+          if (heroTitle) {
+            const movieId = heroTitle.dataset.movieId;
+            console.log('Movie ID do hero:', movieId);
+            
+            if (movieId) {
+              try {
+                // Buscar vídeos do filme
+                const url = `/api/filme/${movieId}/videos/`;
+                console.log('Buscando trailer em:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('Erro na resposta:', errorText);
+                  alert('Não foi possível carregar o trailer.');
+                  return;
+                }
+
+                const data = await response.json();
+                console.log('Dados recebidos:', data);
+                
+                if (data.success && data.videos && data.videos.length > 0) {
+                  // Procurar por trailer no YouTube
+                  const trailer = data.videos.find(video => 
+                    video.type === 'Trailer' && video.site === 'YouTube'
+                  ) || data.videos[0];
+
+                  console.log('Trailer encontrado:', trailer);
+
+                  if (trailer && trailer.key) {
+                    window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+                  } else {
+                    alert('Trailer não disponível para este filme.');
+                  }
+                } else {
+                  alert('Trailer não disponível para este filme.');
+                }
+              } catch (error) {
+                console.error('Erro ao buscar trailer:', error);
+                alert('Erro ao buscar trailer.');
+              }
+            } else {
+              console.error('Movie ID não encontrado no hero-title');
+              alert('ID do filme não encontrado.');
+            }
+          }
+        });
+      }
     });
 
     function hideListPopup() {

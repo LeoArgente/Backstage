@@ -769,6 +769,72 @@
   <script src="{% static 'js/search-suggestions.js' %}" defer></script>
   <script src="{% static 'js/profile_menu.js' %}"></script>
   <script src="{% static 'js/notifications.js' %}" defer></script>
+  
+  <!-- Inicialização do botão de trailer -->
+  <script>
+  (function() {
+    function initTrailerButton() {
+      console.log('[TRAILER INLINE] Tentando inicializar botão...');
+      const trailerBtn = document.querySelector('.trailer-btn');
+      console.log('[TRAILER INLINE] Botão encontrado:', trailerBtn);
+      
+      if (trailerBtn) {
+        // Remover listeners antigos se existirem
+        const newBtn = trailerBtn.cloneNode(true);
+        trailerBtn.parentNode.replaceChild(newBtn, trailerBtn);
+        
+        newBtn.addEventListener('click', async function(event) {
+          console.log('[TRAILER INLINE] Clique detectado!');
+          event.preventDefault();
+          event.stopPropagation();
+          
+          const movieId = {{ filme.tmdb_id }};
+          console.log('[TRAILER INLINE] Movie ID:', movieId);
+          
+          try {
+            const url = `/api/filme/${movieId}/videos/`;
+            console.log('[TRAILER INLINE] Buscando:', url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log('[TRAILER INLINE] Dados:', data);
+            
+            if (data.success && data.videos && data.videos.length > 0) {
+              const trailer = data.videos.find(v => v.type === 'Trailer' && v.site === 'YouTube') || data.videos[0];
+              
+              if (trailer && trailer.key) {
+                console.log('[TRAILER INLINE] Abrindo trailer:', trailer.key);
+                window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+              } else {
+                alert('Trailer não disponível.');
+              }
+            } else {
+              alert('Trailer não disponível.');
+            }
+          } catch (error) {
+            console.error('[TRAILER INLINE] Erro:', error);
+            alert('Erro ao buscar trailer.');
+          }
+        });
+        
+        console.log('[TRAILER INLINE] Evento adicionado com sucesso!');
+      }
+    }
+    
+    // Tentar múltiplas vezes para garantir que o DOM está pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTrailerButton);
+    } else {
+      initTrailerButton();
+    }
+    
+    // Tentar novamente após um delay
+    setTimeout(initTrailerButton, 500);
+    setTimeout(initTrailerButton, 1000);
+  })();
+  </script>
+  
   <script>
   // Inicialização simples e direta
   document.addEventListener('DOMContentLoaded', function() {

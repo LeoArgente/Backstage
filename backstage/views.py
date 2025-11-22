@@ -2234,44 +2234,52 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
 def buscar_sugestoes(request):
     """API para sugestões de busca em tempo real"""
     query = request.GET.get('q', '').strip()
+    tipo_filtro = request.GET.get('tipo', 'all')  # 'filme', 'serie', ou 'all'
     print(f"\n=== BUSCAR_SUGESTOES ===")
     print(f"Query recebida: '{query}'")
-    
+    print(f"Tipo filtro: '{tipo_filtro}'")
+
     if not query or len(query) < 2:
         print("Query muito curta, retornando vazio")
         return JsonResponse({'sugestoes': []})
-    
+
     try:
         import requests
         from django.conf import settings
-        
-        # Buscar filmes
-        url_filmes = f"https://api.themoviedb.org/3/search/movie"
-        params_filmes = {
-            'api_key': settings.TMDB_API_KEY,
-            'language': 'pt-BR',
-            'query': query,
-            'page': 1
-        }
-        print(f"Buscando filmes na TMDb: {url_filmes}")
-        response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
-        print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
-        filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
-        print(f"Filmes encontrados: {len(filmes)}")
-        
-        # Buscar séries
-        url_series = f"https://api.themoviedb.org/3/search/tv"
-        params_series = {
-            'api_key': settings.TMDB_API_KEY,
-            'language': 'pt-BR',
-            'query': query,
-            'page': 1
-        }
-        response_series = requests.get(url_series, params=params_series, timeout=5)
-        series = response_series.json().get('results', [])[:5]  # Limitar a 5 resultados
-        
+
         # Formatar resultados
         sugestoes = []
+
+        # Buscar filmes (se tipo_filtro for 'filme' ou 'all')
+        if tipo_filtro in ['filme', 'all']:
+            url_filmes = f"https://api.themoviedb.org/3/search/movie"
+            params_filmes = {
+                'api_key': settings.TMDB_API_KEY,
+                'language': 'pt-BR',
+                'query': query,
+                'page': 1
+            }
+            print(f"Buscando filmes na TMDb: {url_filmes}")
+            response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
+            print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
+            filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
+            print(f"Filmes encontrados: {len(filmes)}")
+        else:
+            filmes = []
+
+        # Buscar séries (se tipo_filtro for 'serie' ou 'all')
+        if tipo_filtro in ['serie', 'all']:
+            url_series = f"https://api.themoviedb.org/3/search/tv"
+            params_series = {
+                'api_key': settings.TMDB_API_KEY,
+                'language': 'pt-BR',
+                'query': query,
+                'page': 1
+            }
+            response_series = requests.get(url_series, params=params_series, timeout=5)
+            series = response_series.json().get('results', [])[:5]  # Limitar a 5 resultados
+        else:
+            series = []
         
         # Adicionar filmes
         for filme in filmes:

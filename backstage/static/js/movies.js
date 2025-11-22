@@ -257,7 +257,8 @@ function displaySearchResults(results, container) {
 }
 
 // Initialize search when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeSearch);
+// DESABILITADO: usando search-suggestions.js global
+// document.addEventListener('DOMContentLoaded', initializeSearch);
 
 // ===== Filter Functionality =====
 document.addEventListener('DOMContentLoaded', () => {

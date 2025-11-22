@@ -111,4 +111,9 @@ urlpatterns = [
     # URLs de Likes
     path('api/critica/<int:critica_id>/like/', views.toggle_like_critica, name='toggle_like_critica'),
     path('api/critica-serie/<int:critica_id>/like/', views.toggle_like_critica_serie, name='toggle_like_critica_serie'),
+
+    # URLs de Limpeza
+    path('api/limpar-reviews/', views.limpar_reviews, name='limpar_reviews'),
+    path('api/limpar-favoritos/', views.limpar_favoritos, name='limpar_favoritos'),
+    path('api/limpar-listas/', views.limpar_listas, name='limpar_listas'),
 ]

@@ -225,6 +225,12 @@
   margin: 0;
 }
 
+.section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .link-more {
   color: #dc2626;
   text-decoration: none;
@@ -235,6 +241,31 @@
 
 .link-more:hover {
   opacity: 0.8;
+}
+
+.btn-limpar-tudo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-limpar-tudo:hover {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: #dc2626;
+  transform: translateY(-2px);
+}
+
+.btn-limpar-tudo svg {
+  stroke: currentColor;
 }
 
 /* ========================================
@@ -581,6 +612,43 @@
 }
 
 .empty-state p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Empty State Favoritos */
+.empty-state-favoritos {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  background: var(--card-background, rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.empty-favoritos-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.empty-favoritos-icon svg {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-state-favoritos h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state-favoritos p {
   font-size: 1rem;
   margin: 0;
 }

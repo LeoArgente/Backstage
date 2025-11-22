@@ -295,6 +295,12 @@ class Profile(models.Model):
         null=True,
         verbose_name="Foto de Perfil"
     )
+    banner = models.ImageField(
+        upload_to='banners/',
+        blank=True,
+        null=True,
+        verbose_name="Banner de Perfil"
+    )
     bio = models.TextField(
         max_length=500,
         blank=True,

@@ -174,9 +174,9 @@
             </button>
             <button class="action-btn favorite" id="favoritoBtn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span id="favoritoTexto">Adicionar aos Favoritos</span>
+              <span id="favoritoTexto">Favoritos</span>
             </button>
             <button class="action-btn list">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -875,7 +875,7 @@
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json',
-                      'X-CSRFToken': getCookie('csrftoken')
+                      'X-CSRFToken': window.getCookie('csrftoken')
                   },
                   body: JSON.stringify({nome: name, publica: false})
               })
@@ -916,7 +916,7 @@
           fetch('/api/buscar-listas/?tipo=filme', {
               method: 'GET',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => {
@@ -984,7 +984,7 @@
 
       // Função para adicionar filme a uma lista existente
       window.addMovieToList = function(listaId, listaNome) {
-          const tmdbId = getCurrentMovieTMDbId();
+          const tmdbId = window.getCurrentMovieTMDbId();
 
           if (!tmdbId) {
               alert('Erro: ID do filme não encontrado');
@@ -994,7 +994,7 @@
           fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
               method: 'POST',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => {
@@ -1023,13 +1023,13 @@
       }
 
       // Função para obter TMDb ID da URL (mesmo que no movie_details.js)
-      function getCurrentMovieTMDbId() {
+      window.getCurrentMovieTMDbId = function() {
           const path = window.location.pathname;
           const match = path.match(/\/filmes\/(\d+)\//);
           return match ? parseInt(match[1]) : null;
-      }
+      };
 
-      function getCookie(name) {
+      window.getCookie = function(name) {
           let cookieValue = null;
           if (document.cookie && document.cookie !== '') {
               const cookies = document.cookie.split(';');
@@ -1042,13 +1042,13 @@
               }
           }
           return cookieValue;
-      }
+      };
 
       // Sistema de avaliação por estrelas movido para movie_details.js
 
       // Função para "Assistir Mais Tarde"
       window.addToWatchLater = function() {
-          const tmdbId = getCurrentMovieTMDbId();
+          const tmdbId = window.getCurrentMovieTMDbId();
 
           if (!tmdbId) {
               alert('Erro: ID do filme não encontrado');
@@ -1059,7 +1059,7 @@
           fetch('/api/watch-later/', {
               method: 'GET',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => response.json())
@@ -1078,12 +1078,12 @@
       };
 
       function addMovieToWatchLater(listaId) {
-          const tmdbId = getCurrentMovieTMDbId();
+          const tmdbId = window.getCurrentMovieTMDbId();
 
           return fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
               method: 'POST',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => response.json())
@@ -1519,7 +1519,7 @@ document.addEventListener('DOMContentLoaded', function() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
+        'X-CSRFToken': window.getCookie('csrftoken')
       },
       body: JSON.stringify(data)
     })
@@ -1550,7 +1550,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const watchLaterBtn = document.getElementById('watchLaterBtn');
 
     if (watchLaterBtn) {
-      const tmdbId = getCurrentMovieTMDbId();
+      const tmdbId = window.getCurrentMovieTMDbId ? window.getCurrentMovieTMDbId() : null;
 
       // Verificar se o filme já está na lista quando a página carrega
       if (tmdbId) {
@@ -1558,7 +1558,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/watch-later/verificar/${tmdbId}/`, {
           method: 'GET',
           headers: {
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': window.getCookie('csrftoken')
           }
         })
         .then(response => {
@@ -1585,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Handler do clique
       watchLaterBtn.addEventListener('click', function() {
-        const tmdbId = getCurrentMovieTMDbId();
+        const tmdbId = window.getCurrentMovieTMDbId ? window.getCurrentMovieTMDbId() : null;
 
         if (!tmdbId) {
           alert('Erro: ID do filme não encontrado');
@@ -1607,7 +1607,7 @@ document.addEventListener('DOMContentLoaded', function() {
           fetch(`/api/lista/${listaId}/remover/${tmdbId}/`, {
             method: 'POST',
             headers: {
-              'X-CSRFToken': getCookie('csrftoken')
+              'X-CSRFToken': window.getCookie('csrftoken')
             }
           })
           .then(response => response.json())
@@ -1639,7 +1639,7 @@ document.addEventListener('DOMContentLoaded', function() {
           fetch('/api/watch-later/', {
             method: 'GET',
             headers: {
-              'X-CSRFToken': getCookie('csrftoken')
+              'X-CSRFToken': window.getCookie('csrftoken')
             }
           })
           .then(response => response.json())
@@ -1649,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function() {
               return fetch(`/api/lista/${data.lista_id}/adicionar/${tmdbId}/`, {
                 method: 'POST',
                 headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
                 }
               });
             } else {
@@ -1666,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', function() {
               fetch('/api/watch-later/', {
                 method: 'GET',
                 headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
                 }
               })
               .then(response => response.json())
@@ -1886,7 +1886,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- JavaScript para Sistema de Favoritos -->
 <script>
   let selectedRating = 0;
-  let currentMovieData = null;
 
   // Verificar se filme já está nos favoritos ao carregar
   document.addEventListener('DOMContentLoaded', function() {
@@ -1944,7 +1943,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (isFavorito) {
       btn.classList.add('favorited');
-      texto.textContent = `Favorito ${nota ? '★'.repeat(nota) : ''}`;
+      texto.textContent = 'Favorito';
       btn.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1953,7 +1952,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     } else {
       btn.classList.remove('favorited');
-      texto.textContent = 'Adicionar aos Favoritos';
+      texto.textContent = 'Favoritos';
       btn.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -2077,7 +2076,7 @@ document.addEventListener('DOMContentLoaded', function() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
+        'X-CSRFToken': window.getCookie('csrftoken')
       },
       body: JSON.stringify({
         tmdb_id: currentMovieData.tmdb_id,
@@ -2111,15 +2110,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function removerFavorito() {
-    if (!confirm('Deseja remover este filme dos favoritos?')) return;
-
     const tmdbId = {{ filme.tmdb_id }};
 
     fetch('/api/favoritos/remover/', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
+        'X-CSRFToken': window.getCookie('csrftoken')
       },
       body: JSON.stringify({
         tmdb_id: tmdbId

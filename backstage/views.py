@@ -3548,3 +3548,84 @@ def toggle_like_critica_serie(request, critica_id):
             'success': False,
             'message': f'Erro ao processar like: {str(e)}'
         }, status=500)
+
+# Temporary file with the clear functions - to be appended to views.py
+
+@api_login_required
+@require_http_methods(['POST'])
+def limpar_reviews(request):
+    """API para limpar todas as reviews do usuário"""
+    try:
+        from .models import Critica, CriticaSerie
+
+        # Deletar todas as críticas de filmes
+        criticas_filmes = Critica.objects.filter(usuario=request.user)
+        count_filmes = criticas_filmes.count()
+        criticas_filmes.delete()
+
+        # Deletar todas as críticas de séries
+        criticas_series = CriticaSerie.objects.filter(usuario=request.user)
+        count_series = criticas_series.count()
+        criticas_series.delete()
+
+        total = count_filmes + count_series
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{total} reviews removidas com sucesso',
+            'total_removidas': total
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover reviews: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['POST'])
+def limpar_favoritos(request):
+    """API para limpar todos os favoritos do usuário"""
+    try:
+        from .models import FilmeFavorito
+
+        # Remover todos os filmes favoritos do usuário
+        favoritos = FilmeFavorito.objects.filter(usuario=request.user)
+        count = favoritos.count()
+        favoritos.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{count} favoritos removidos com sucesso',
+            'total_removidos': count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover favoritos: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['POST'])
+def limpar_listas(request):
+    """API para limpar todas as listas do usuário"""
+    try:
+        from .models import Lista
+
+        # Deletar todas as listas do usuário
+        listas = Lista.objects.filter(criador=request.user)
+        count = listas.count()
+        listas.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{count} listas removidas com sucesso',
+            'total_removidas': count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover listas: {str(e)}'
+        }, status=500)

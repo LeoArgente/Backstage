@@ -565,6 +565,105 @@ document.addEventListener('DOMContentLoaded', function() {
     const movieSelector = document.getElementById('movie-selector');
     const ratingSelector = document.getElementById('rating-selector');
 
+    // ===== Load More Communities =====
+    let currentPage = 1;
+    let isLoadingCommunities = false;
+    const loadMoreBtn = document.getElementById('load-more');
+    const communitiesGrid = document.querySelector('.communities-section:last-of-type .communities-grid');
+
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreCommunities);
+    }
+
+    async function loadMoreCommunities() {
+        if (isLoadingCommunities) return;
+
+        isLoadingCommunities = true;
+        const button = loadMoreBtn;
+        const originalHTML = button.innerHTML;
+
+        // Mostrar loading
+        button.disabled = true;
+        button.innerHTML = `
+            <span class="loading-spinner"></span>
+            Carregando...
+        `;
+
+        try {
+            const response = await fetch(`/api/comunidades/?page=${currentPage + 1}`);
+            const data = await response.json();
+
+            if (data.success && data.items.length > 0) {
+                // Adicionar novas comunidades ao grid
+                data.items.forEach(comunidade => {
+                    const card = createCommunityCard(comunidade);
+                    communitiesGrid.insertBefore(card, communitiesGrid.lastElementChild);
+                });
+
+                currentPage = data.page;
+
+                // Ocultar botão se não houver mais
+                if (!data.has_more) {
+                    button.style.display = 'none';
+                }
+            } else if (!data.has_more) {
+                button.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar comunidades:', error);
+            if (window.showNotification) {
+                window.showNotification('Erro ao carregar comunidades', 'error');
+            }
+        } finally {
+            isLoadingCommunities = false;
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+        }
+    }
+
+    function createCommunityCard(comunidade) {
+        const card = document.createElement('div');
+        card.className = 'community-card';
+        
+        card.innerHTML = `
+            <img src="https://i.pinimg.com/1200x/bd/e3/e0/bde3e0aaf3dd35b4a42eed8ba9980591.jpg" alt="${comunidade.nome}" class="community-icon-img">
+            <div class="community-content">
+                <h3 class="community-name">${comunidade.nome}</h3>
+                <p class="community-description">${truncateText(comunidade.descricao, 20)}</p>
+                <div class="community-stats">
+                    <span class="stat">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        ${comunidade.membros_count} membros
+                    </span>
+                    <span class="stat">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        0 posts
+                    </span>
+                </div>
+                <div class="community-tags">
+                    <span class="tag">Público</span>
+                </div>
+            </div>
+            <button class="btn-join" data-slug="${comunidade.slug}">Entrar</button>
+        `;
+        
+        return card;
+    }
+
+    function truncateText(text, wordLimit) {
+        const words = text.split(' ');
+        if (words.length <= wordLimit) return text;
+        return words.slice(0, wordLimit).join(' ') + '...';
+    }
+
     // Função para abrir modal de criar post
     function openCreatePostModal() {
         if (createPostModal) {

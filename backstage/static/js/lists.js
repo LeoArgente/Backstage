@@ -543,3 +543,155 @@ window.getCookie = function(name) {
     }
     return cookieValue;
 }
+
+// ===== Load More Lists Functionality =====
+let currentPage = 1;
+let isLoadingLists = false;
+let currentFilter = 'my-lists';
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loadMoreBtn = document.getElementById('load-more');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+
+    // Track current filter
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            currentFilter = this.dataset.filter;
+            currentPage = 1; // Reset page when filter changes
+        });
+    });
+
+    // Load more button
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', async function() {
+            if (isLoadingLists) return;
+
+            isLoadingLists = true;
+            currentPage++;
+
+            // Update button state
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="loading-spinner">
+                    <circle cx="12" cy="12" r="10"/>
+                </svg>
+                Carregando...
+            `;
+
+            try {
+                const apiUrl = `/api/listas/?page=${currentPage}&filter=${currentFilter}`;
+                console.log('[LOAD MORE LISTS] Fetching:', apiUrl);
+
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                console.log('[LOAD MORE LISTS] Response:', data);
+
+                if (data.success && data.listas && data.listas.length > 0) {
+                    // Find the correct section to append to
+                    const activeSection = document.querySelector(`.lists-section[data-section="${currentFilter}"]`);
+                    
+                    // Append new lists to the grid
+                    data.listas.forEach(lista => {
+                        const listCard = createListCard(lista);
+                        activeSection.appendChild(listCard);
+                    });
+
+                    // Check if there are more lists to load
+                    if (!data.has_more) {
+                        loadMoreBtn.style.display = 'none';
+                    } else {
+                        // Reset button
+                        loadMoreBtn.disabled = false;
+                        loadMoreBtn.innerHTML = `
+                            Carregar mais listas
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                        `;
+                    }
+                } else {
+                    // No more lists
+                    loadMoreBtn.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('[LOAD MORE LISTS] Erro ao carregar listas:', error);
+                alert('Erro ao carregar mais listas. Tente novamente.');
+                currentPage--; // Revert page increment
+
+                // Reset button
+                loadMoreBtn.disabled = false;
+                loadMoreBtn.innerHTML = `
+                    Carregar mais listas
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                `;
+            } finally {
+                isLoadingLists = false;
+            }
+        });
+    }
+});
+
+function createListCard(lista) {
+    const listCard = document.createElement('div');
+    listCard.className = 'list-card';
+    listCard.dataset.listId = lista.id;
+
+    const badge = lista.is_mine 
+        ? (lista.publica ? 'Pública' : 'Privada')
+        : lista.usuario;
+
+    let actionsHTML = '';
+    if (lista.is_mine) {
+        actionsHTML = `
+            <div class="list-actions">
+                <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList(${lista.id})">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+                <button class="action-btn edit-btn" title="Editar lista" onclick="editList(${lista.id})">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+                <button class="action-btn delete-btn" title="Deletar lista" onclick="deleteList(${lista.id}, '${lista.nome.replace(/'/g, "\\'")}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+    } else {
+        actionsHTML = `
+            <div class="list-actions">
+                <button class="action-btn view-btn" title="Visualizar lista" onclick="viewList(${lista.id})">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+    }
+
+    listCard.innerHTML = `
+        <span class="list-badge">${badge}</span>
+        <h3 class="list-title">${lista.nome}</h3>
+        <p class="list-description">${lista.descricao || 'Sem descrição'}</p>
+        <div class="list-meta">
+            <span class="list-count">${lista.num_filmes} filme${lista.num_filmes !== 1 ? 's' : ''} • ${lista.num_series} série${lista.num_series !== 1 ? 's' : ''}</span>
+            <span class="list-date">${lista.atualizada_em}</span>
+        </div>
+        ${actionsHTML}
+    `;
+
+    return listCard;
+}

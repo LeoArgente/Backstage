@@ -250,6 +250,37 @@ class DiarioFilme(models.Model):
     def __str__(self):
         return f"{self.usuario.username} - {self.filme.titulo} ({self.data_assistido})"
 
+class DiarioSerie(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='diario_series'
+    )
+    serie = models.ForeignKey(Serie, on_delete=models.CASCADE)
+    data_assistido = models.DateField(verbose_name="Data que assistiu")
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        default=5,
+        verbose_name="Avaliação"
+    )
+    assistido_com = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Assistido com"
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('usuario', 'serie', 'data_assistido')
+        verbose_name = "Entrada do Diário (Série)"
+        verbose_name_plural = "Entradas do Diário (Séries)"
+        ordering = ['-data_assistido', '-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.serie.titulo} ({self.data_assistido})"
+
 
 class Profile(models.Model):
     usuario = models.OneToOneField(

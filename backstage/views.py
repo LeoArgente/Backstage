@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, MensagemComunidade
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, DiarioSerie, MensagemComunidade
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -2427,21 +2427,23 @@ def diario_entradas(request):
         print(f"  - Título atual: '{filme.titulo}'")
         print(f"  - Poster: {filme.poster}")
         
-        # Se o filme não tem título, buscar do TMDb (usando nosso payload normalizado)
-        if not filme.titulo and filme.tmdb_id:
-            print(f"  ⚠️  Filme sem título, buscando do TMDb...")
+        # Se o filme não tem título ou poster, buscar do TMDb (usando nosso payload normalizado)
+        if (not filme.titulo or not filme.poster) and filme.tmdb_id:
+            print(f"  ⚠️  Filme sem título ou poster, buscando do TMDb...")
             try:
                 detalhes = obter_detalhes_com_cache(filme.tmdb_id)
                 if detalhes and isinstance(detalhes, dict):
                     # Atualizar o filme com os dados normalizados do TMDb
-                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
-                    filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
-                    if detalhes.get('poster_path'):
+                    if not filme.titulo:
+                        filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
+                    if not filme.descricao:
+                        filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if not filme.poster and detalhes.get('poster_path'):
                         filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
-                    if detalhes.get('data_lancamento') or detalhes.get('release_date'):
+                    if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
                         filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()
-                    print(f"  ✓ Filme atualizado: {filme.titulo}")
+                    print(f"  ✓ Filme atualizado: {filme.titulo}, Poster: {filme.poster}")
             except Exception as e:
                 print(f"  ✗ Erro ao buscar detalhes: {e}")
         
@@ -2452,12 +2454,13 @@ def diario_entradas(request):
             'id': entrada.id,
             'filme_id': filme.tmdb_id or filme.id,
             'titulo': titulo_final,
-            'poster': filme.poster or '/static/images/no-poster.png',
+            'poster': filme.poster or '',
             'ano': entrada.data_assistido.year,
             'mes': entrada.data_assistido.month,
             'dia': entrada.data_assistido.day,
             'nota': entrada.nota,
             'assistido_com': entrada.assistido_com or '',
+            'generos': filme.categoria or '',
         })
     
     print(f"\n✓ Retornando {len(entradas_data)} entradas")
@@ -2467,105 +2470,166 @@ def diario_entradas(request):
 @api_login_required
 @require_http_methods(['POST'])
 def diario_adicionar(request):
-    """API para adicionar filme ao diário"""
+    """API para adicionar filme ou série ao diário"""
     from datetime import datetime
-    
+    from .services.tmdb import obter_detalhes_serie_com_cache
+
     try:
         data = json.loads(request.body)
-        filme_id = data.get('filme_id')
+        item_id = data.get('filme_id')
+        tipo = data.get('tipo', 'filme')  # 'filme' ou 'serie'
         data_assistido = data.get('data')
         nota = data.get('nota')
         assistido_com = data.get('assistido_com', '')
         notas = data.get('notas', '').strip()
-        
-        if not filme_id or not data_assistido or not nota:
+
+        if not item_id or not data_assistido or not nota:
             return JsonResponse({
                 'success': False,
                 'message': 'Dados incompletos'
             })
         
-        # Buscar ou criar o filme
-        filme = None
-        try:
-            # Tentar buscar pelo TMDB ID
-            filme = Filme.objects.get(tmdb_id=filme_id)
-        except Filme.DoesNotExist:
-            # Se não encontrar, buscar os detalhes do TMDB (payload normalizado) e criar
-            detalhes = obter_detalhes_com_cache(filme_id)
-            if detalhes and isinstance(detalhes, dict):
-                # generos já vem como lista de strings ['Action', 'Drama'], não como dicts
-                generos = detalhes.get('generos', []) or []
-                generos_str = ', '.join(generos[:3]) if generos else ''
-                
-                poster_path = detalhes.get('poster_path')
-                poster_url = None
-                if poster_path and poster_path != 'None' and str(poster_path).strip():
-                    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
-
-                filme = Filme.objects.create(
-                    tmdb_id=filme_id,
-                    titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
-                    descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
-                    data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
-                    poster=poster_url,
-                    categoria=generos_str
-                )
-
-        # Se encontrou um Filme existente mas sem título, tentar completar agora
-        if filme and (not filme.titulo) and filme.tmdb_id:
-            try:
-                detalhes = obter_detalhes_com_cache(filme.tmdb_id)
-                if detalhes and isinstance(detalhes, dict):
-                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo or 'Sem título'
-                    if not filme.descricao:
-                        filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
-                    if not filme.poster:
-                        poster_path = detalhes.get('poster_path')
-                        if poster_path and poster_path != 'None' and str(poster_path).strip():
-                            filme.poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
-                    if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
-                        filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
-                    filme.save()
-            except Exception as e:
-                print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
-        
-        if not filme:
-            return JsonResponse({
-                'success': False,
-                'message': 'Filme não encontrado'
-            })
-        
         # Converter string de data para objeto date
         data_obj = datetime.strptime(data_assistido, '%Y-%m-%d').date()
-        
-        # Criar ou atualizar entrada do diário
-        entrada, created = DiarioFilme.objects.update_or_create(
-            usuario=request.user,
-            filme=filme,
-            data_assistido=data_obj,
-            defaults={
-                'nota': nota,
-                'assistido_com': assistido_com
-            }
-        )
-        
-        # Se houver notas/review, criar ou atualizar a crítica
-        if notas:
-            Critica.objects.update_or_create(
+
+        if tipo == 'serie':
+            # Processar série
+            serie = None
+            try:
+                serie = Serie.objects.get(tmdb_id=item_id)
+            except Serie.DoesNotExist:
+                detalhes = obter_detalhes_serie_com_cache(item_id)
+                if detalhes and isinstance(detalhes, dict):
+                    generos = detalhes.get('generos', []) or []
+                    generos_str = ', '.join(generos[:3]) if generos else ''
+
+                    poster_path = detalhes.get('poster_path')
+                    poster_url = None
+                    if poster_path and poster_path != 'None' and str(poster_path).strip():
+                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+                    serie = Serie.objects.create(
+                        tmdb_id=item_id,
+                        titulo=detalhes.get('titulo') or detalhes.get('name') or 'Sem título',
+                        descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
+                        data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('first_air_date')) or None,
+                        poster=poster_url,
+                        categoria=generos_str
+                    )
+
+            if not serie:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Série não encontrada'
+                })
+
+            # Criar ou atualizar entrada do diário
+            entrada, created = DiarioSerie.objects.update_or_create(
                 usuario=request.user,
-                filme=filme,
+                serie=serie,
+                data_assistido=data_obj,
                 defaults={
-                    'texto': notas,
                     'nota': nota,
-                    'tem_spoiler': False
+                    'assistido_com': assistido_com
                 }
             )
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Filme adicionado ao diário!' if created else 'Entrada atualizada!',
-            'entrada_id': entrada.id
-        })
+
+            # Se houver notas/review, criar ou atualizar a crítica
+            if notas:
+                CriticaSerie.objects.update_or_create(
+                    usuario=request.user,
+                    serie=serie,
+                    defaults={
+                        'texto': notas,
+                        'nota': nota,
+                        'tem_spoiler': False
+                    }
+                )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Série adicionada ao diário!' if created else 'Entrada atualizada!',
+                'entrada_id': entrada.id
+            })
+
+        else:
+            # Processar filme
+            filme = None
+            try:
+                filme = Filme.objects.get(tmdb_id=item_id)
+            except Filme.DoesNotExist:
+                detalhes = obter_detalhes_com_cache(item_id)
+                if detalhes and isinstance(detalhes, dict):
+                    generos = detalhes.get('generos', []) or []
+                    generos_str = ', '.join(generos[:3]) if generos else ''
+
+                    poster_path = detalhes.get('poster_path')
+                    poster_url = None
+                    if poster_path and poster_path != 'None' and str(poster_path).strip():
+                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+                    filme = Filme.objects.create(
+                        tmdb_id=item_id,
+                        titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
+                        descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
+                        data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
+                        poster=poster_url,
+                        categoria=generos_str
+                    )
+
+            # Se encontrou um Filme existente mas sem título/poster, tentar completar agora
+            if filme and (not filme.titulo or not filme.poster) and filme.tmdb_id:
+                try:
+                    detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                    if detalhes and isinstance(detalhes, dict):
+                        if not filme.titulo:
+                            filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
+                        if not filme.descricao:
+                            filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                        if not filme.poster:
+                            poster_path = detalhes.get('poster_path')
+                            if poster_path and poster_path != 'None' and str(poster_path).strip():
+                                filme.poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
+                        if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
+                            filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                        filme.save()
+                except Exception as e:
+                    print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
+
+            if not filme:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Filme não encontrado'
+                })
+
+            # Criar ou atualizar entrada do diário
+            entrada, created = DiarioFilme.objects.update_or_create(
+                usuario=request.user,
+                filme=filme,
+                data_assistido=data_obj,
+                defaults={
+                    'nota': nota,
+                    'assistido_com': assistido_com
+                }
+            )
+
+            # Se houver notas/review, criar ou atualizar a crítica
+            if notas:
+                Critica.objects.update_or_create(
+                    usuario=request.user,
+                    filme=filme,
+                    defaults={
+                        'texto': notas,
+                        'nota': nota,
+                        'tem_spoiler': False
+                    }
+                )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Filme adicionado ao diário!' if created else 'Entrada atualizada!',
+                'entrada_id': entrada.id
+            })
     
     except Exception as e:
         return JsonResponse({
@@ -2967,6 +3031,48 @@ def remover_amigo(request):
             'success': False,
             'message': f'Erro ao remover amigo: {str(e)}'
         })
+
+
+@api_login_required
+@require_http_methods(['GET'])
+def buscar_amigos(request):
+    """API para buscar lista de amigos do usuário"""
+    try:
+        query = request.GET.get('q', '').strip()
+
+        # Buscar amizades onde o usuário é usuario1 ou usuario2
+        amizades = Amizade.objects.filter(
+            Q(usuario1=request.user) | Q(usuario2=request.user)
+        ).select_related('usuario1', 'usuario2')
+
+        amigos = []
+        for amizade in amizades:
+            # Pegar o outro usuário da amizade
+            amigo = amizade.usuario2 if amizade.usuario1 == request.user else amizade.usuario1
+
+            # Se houver query, filtrar pelo nome
+            if query and query.lower() not in amigo.username.lower():
+                continue
+
+            amigos.append({
+                'id': amigo.id,
+                'username': amigo.username,
+                'nome_completo': f"{amigo.first_name} {amigo.last_name}".strip() or amigo.username,
+                'foto_perfil': amigo.profile.foto.url if hasattr(amigo, 'profile') and amigo.profile.foto else None
+            })
+
+        return JsonResponse({
+            'success': True,
+            'amigos': amigos
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar amigos: {str(e)}',
+            'amigos': []
+        })
+
 
 @login_required(login_url='backstage:login')
 def buscar_notificacoes(request):

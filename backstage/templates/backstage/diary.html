@@ -114,9 +114,7 @@
           <div class="calendar-grid">
             <div class="calendar-header-row">
               <div class="calendar-day-header">Data</div>
-              <div class="calendar-day-header">Dia</div>
-              <div class="calendar-day-header">Pôster</div>
-              <div class="calendar-day-header">Filme</div>
+              <div class="calendar-day-header">Filme/Série</div>
               <div class="calendar-day-header">Avaliação</div>
               <div class="calendar-day-header">Assistido com</div>
               <div class="calendar-day-header">Ações</div>
@@ -165,13 +163,16 @@
 
           <div class="filter-group">
             <h4>Avaliação</h4>
-            <div class="filter-list">
-              <button class="filter-option" data-filter="rating" data-value="5">⭐⭐⭐⭐⭐ <span class="filter-count">{{ rating_counts.5|default:0 }}</span></button>
-              <button class="filter-option" data-filter="rating" data-value="4">⭐⭐⭐⭐ <span class="filter-count">{{ rating_counts.4|default:0 }}</span></button>
-              <button class="filter-option" data-filter="rating" data-value="3">⭐⭐⭐ <span class="filter-count">{{ rating_counts.3|default:0 }}</span></button>
-              <button class="filter-option" data-filter="rating" data-value="2">⭐⭐ <span class="filter-count">{{ rating_counts.2|default:0 }}</span></button>
-              <button class="filter-option" data-filter="rating" data-value="1">⭐ <span class="filter-count">{{ rating_counts.1|default:0 }}</span></button>
+            <div class="star-rating-filter">
+              <button type="button" class="star-filter" data-rating="1">★</button>
+              <button type="button" class="star-filter" data-rating="2">★</button>
+              <button type="button" class="star-filter" data-rating="3">★</button>
+              <button type="button" class="star-filter" data-rating="4">★</button>
+              <button type="button" class="star-filter" data-rating="5">★</button>
             </div>
+            <button class="filter-option clear-rating-filter" style="margin-top: 0.5rem; font-size: 0.875rem;">
+              Limpar filtro
+            </button>
           </div>
         </aside>
       </div>
@@ -182,7 +183,7 @@
   <div class="modal" id="addMovieModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Adicionar filme <span id="selectedDate"></span></h2>
+        <h2>Adicionar ao Diário <span id="selectedDate"></span></h2>
         <button class="modal-close" onclick="closeAddMovieModal()">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
@@ -198,8 +199,8 @@
           </div>
 
           <div class="form-group">
-            <label for="movieSearch">Buscar Filme</label>
-            <input type="text" id="movieSearch" placeholder="Digite o nome do filme..." autocomplete="off">
+            <label for="movieSearch">Buscar Filme ou Série</label>
+            <input type="text" id="movieSearch" placeholder="Digite o nome do filme ou série..." autocomplete="off">
             <div id="movieSearchResults" class="search-results"></div>
           </div>
 
@@ -213,20 +214,22 @@
             </div>
           </div>
 
-          <fieldset class="form-group rating-fieldset" aria-labelledby="rating-legend">
-            <legend id="rating-legend" class="visually-hidden">Avaliação</legend>
-            <div class="star-rating" role="radiogroup" aria-labelledby="rating-legend">
-              <input type="radio" name="rating" value="5" id="star5"><label for="star5">⭐</label>
-              <input type="radio" name="rating" value="4" id="star4"><label for="star4">⭐</label>
-              <input type="radio" name="rating" value="3" id="star3"><label for="star3">⭐</label>
-              <input type="radio" name="rating" value="2" id="star2"><label for="star2">⭐</label>
-              <input type="radio" name="rating" value="1" id="star1"><label for="star1">⭐</label>
+          <div class="form-group">
+            <label>Avaliação</label>
+            <div class="star-rating" role="radiogroup" aria-label="Avaliação">
+              <input type="radio" name="rating" value="5" id="star5"><label for="star5">★</label>
+              <input type="radio" name="rating" value="4" id="star4"><label for="star4">★</label>
+              <input type="radio" name="rating" value="3" id="star3"><label for="star3">★</label>
+              <input type="radio" name="rating" value="2" id="star2"><label for="star2">★</label>
+              <input type="radio" name="rating" value="1" id="star1"><label for="star1">★</label>
             </div>
-          </fieldset>
+          </div>
 
           <div class="form-group">
             <label for="watchedWith">Assistido com (opcional)</label>
-            <input type="text" id="watchedWith" placeholder="Nome da pessoa...">
+            <input type="text" id="watchedWith" placeholder="Buscar amigos..." autocomplete="off">
+            <div id="friendsSearchResults" class="search-results"></div>
+            <input type="hidden" id="selectedFriendId">
           </div>
 
           <input type="hidden" id="selectedMovieId">

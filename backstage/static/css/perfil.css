@@ -424,6 +424,7 @@
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
+}
 
 .page-header-reviews .page-description {
   font-size: 1.125rem !important;

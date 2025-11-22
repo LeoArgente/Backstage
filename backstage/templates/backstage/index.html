@@ -668,12 +668,22 @@
 
     function carregarRecomendacoes() {
       const refreshBtn = document.querySelector('.refresh-btn');
+      const container = document.getElementById('recommended-movies');
+
       if (refreshBtn) {
         refreshBtn.disabled = true;
         refreshBtn.style.opacity = '0.5';
       }
 
-      fetch('/api/recomendacoes/')
+      // Adicionar efeito de fade out
+      if (container) {
+        container.style.transition = 'opacity 0.3s ease';
+        container.style.opacity = '0.3';
+      }
+
+      // Usar timestamp para forçar novas recomendações a cada clique
+      const timestamp = new Date().getTime();
+      fetch(`/api/recomendacoes/?refresh=${timestamp}`)
         .then(response => {
           if (response.status === 401) {
             // Usuário não autenticado
@@ -693,6 +703,9 @@
           if (refreshBtn) {
             refreshBtn.disabled = false;
             refreshBtn.style.opacity = '1';
+          }
+          if (container) {
+            container.style.opacity = '1';
           }
         });
     }

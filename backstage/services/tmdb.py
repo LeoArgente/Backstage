@@ -677,25 +677,28 @@ def obter_recomendados(limit=12, usar_cache=True, usuario=None):
 
     return recommended_movies
 
-def obter_recomendados_por_favoritos(usuario, limit=12):
+def obter_recomendados_por_favoritos(usuario, limit=12, offset=0):
     """
     Recomenda filmes baseado nos favoritos do usuário usando endpoint Similar do TMDb
 
     Args:
         usuario: Instância do usuário Django
         limit: Número máximo de filmes a retornar (padrão: 12)
+        offset: Número de filmes para pular (para paginação)
 
     Returns:
         Lista de dicionários com dados dos filmes recomendados
     """
     from backstage.models import FilmeFavorito, DiarioFilme
+    import random
 
     # Buscar top 5 favoritos do usuário (ordenados por nota)
     favoritos = FilmeFavorito.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')[:5]
 
     # Se usuário não tem favoritos, retornar filmes populares
     if not favoritos.exists():
-        return buscar_filmes_populares(page=1)[:limit]
+        page = (offset // 20) + 1  # Cada página do TMDb tem ~20 filmes
+        return buscar_filmes_populares(page=page)[:limit]
 
     # Buscar filmes que o usuário já assistiu para filtrar
     filmes_assistidos = set(
@@ -709,58 +712,73 @@ def obter_recomendados_por_favoritos(usuario, limit=12):
     filmes_recomendados = []
     filmes_unicos = {}  # Dict para evitar duplicatas (key: tmdb_id)
 
+    # Randomizar ordem dos favoritos para variar recomendações
+    favoritos_list = list(favoritos)
+    random.shuffle(favoritos_list)
+
+    # Buscar de múltiplas páginas para ter mais variedade
+    pages_to_fetch = [1, 2] if offset > 0 else [1]
+
     # Para cada favorito, buscar filmes similares
-    for favorito in favoritos:
-        try:
-            data = _get(
-                f"/movie/{favorito.tmdb_id}/similar",
-                params={"language": "pt-BR", "page": 1}
-            )
+    for favorito in favoritos_list:
+        for page in pages_to_fetch:
+            try:
+                data = _get(
+                    f"/movie/{favorito.tmdb_id}/similar",
+                    params={"language": "pt-BR", "page": page}
+                )
 
-            similares = data.get("results", [])
+                similares = data.get("results", [])
 
-            for filme in similares:
-                tmdb_id = filme.get('id')
+                for filme in similares:
+                    tmdb_id = filme.get('id')
 
-                # Pular se já foi assistido ou já está na lista de recomendados
-                if tmdb_id in filmes_assistidos or tmdb_id in filmes_unicos:
-                    continue
+                    # Pular se já foi assistido ou já está na lista de recomendados
+                    if tmdb_id in filmes_assistidos or tmdb_id in filmes_unicos:
+                        continue
 
-                # Adicionar à lista de recomendações
-                filmes_unicos[tmdb_id] = {
-                    'tmdb_id': tmdb_id,
-                    'titulo': filme.get('title'),
-                    'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
-                    'nota': round(filme.get('vote_average', 0), 1),
-                    'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
-                    'poster_path': filme.get('poster_path'),
-                    'backdrop_path': filme.get('backdrop_path'),
-                    'sinopse': filme.get('overview', ''),
-                    'popularidade': filme.get('popularity', 0)
-                }
+                    # Adicionar à lista de recomendações
+                    filmes_unicos[tmdb_id] = {
+                        'tmdb_id': tmdb_id,
+                        'titulo': filme.get('title'),
+                        'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                        'nota': round(filme.get('vote_average', 0), 1),
+                        'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+                        'poster_path': filme.get('poster_path'),
+                        'backdrop_path': filme.get('backdrop_path'),
+                        'sinopse': filme.get('overview', ''),
+                        'popularidade': filme.get('popularity', 0)
+                    }
 
-        except Exception as e:
-            print(f"Erro ao buscar similares para filme {favorito.tmdb_id}: {str(e)}")
-            continue
+            except Exception as e:
+                print(f"Erro ao buscar similares para filme {favorito.tmdb_id} página {page}: {str(e)}")
+                continue
 
-    # Converter dict para lista e ordenar por popularidade
+    # Converter dict para lista e randomizar para variar nas atualizações
     filmes_recomendados = list(filmes_unicos.values())
-    filmes_recomendados.sort(key=lambda x: x['popularidade'], reverse=True)
+
+    # Se for uma atualização (offset > 0), randomizar completamente
+    # Se for primeira carga, ordenar por popularidade
+    if offset > 0:
+        random.shuffle(filmes_recomendados)
+    else:
+        filmes_recomendados.sort(key=lambda x: x['popularidade'], reverse=True)
 
     # Se ainda não temos filmes suficientes, complementar com populares
-    if len(filmes_recomendados) < limit:
+    if len(filmes_recomendados) < limit + offset:
         try:
-            populares = buscar_filmes_populares(page=1)
+            page = max(1, (offset // 20) + 1)
+            populares = buscar_filmes_populares(page=page)
             for popular in populares:
                 if popular['tmdb_id'] not in filmes_unicos and popular['tmdb_id'] not in filmes_assistidos:
                     filmes_recomendados.append(popular)
-                    if len(filmes_recomendados) >= limit:
+                    if len(filmes_recomendados) >= limit + offset:
                         break
         except:
             pass
 
-    # Retornar apenas o limite solicitado
-    return filmes_recomendados[:limit]
+    # Aplicar offset e retornar apenas o limite solicitado
+    return filmes_recomendados[offset:offset + limit]
 
 def obter_goats(limit=20, usar_cache=True):
     """Busca filmes GOATS (Greatest of All Time) - os com as maiores notas da história"""

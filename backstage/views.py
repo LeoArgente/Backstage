@@ -3633,8 +3633,12 @@ def limpar_favoritos(request):
 def api_recomendacoes(request):
     """API para buscar recomendações personalizadas do usuário"""
     try:
+        # Se tem parâmetro refresh, usar offset diferente para variar filmes
+        # Usar timestamp como offset para garantir sempre filmes diferentes
+        offset = 12 if request.GET.get('refresh') else 0
+
         # Buscar recomendações baseadas nos favoritos
-        filmes = obter_recomendados_por_favoritos(request.user, limit=12)
+        filmes = obter_recomendados_por_favoritos(request.user, limit=12, offset=offset)
 
         return JsonResponse({
             'success': True,

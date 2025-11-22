@@ -2475,12 +2475,17 @@ def diario_adicionar(request):
                 generos = detalhes.get('generos', []) or []
                 generos_str = ', '.join(generos[:3]) if generos else ''
                 
+                poster_path = detalhes.get('poster_path')
+                poster_url = None
+                if poster_path and poster_path != 'None' and str(poster_path).strip():
+                    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
                 filme = Filme.objects.create(
                     tmdb_id=filme_id,
                     titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
                     descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
                     data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
-                    poster=f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}" if detalhes.get('poster_path') else None,
+                    poster=poster_url,
                     categoria=generos_str
                 )
 
@@ -2492,8 +2497,10 @@ def diario_adicionar(request):
                     filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo or 'Sem título'
                     if not filme.descricao:
                         filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
-                    if not filme.poster and detalhes.get('poster_path'):
-                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    if not filme.poster:
+                        poster_path = detalhes.get('poster_path')
+                        if poster_path and poster_path != 'None' and str(poster_path).strip():
+                            filme.poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
                     if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
                         filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()

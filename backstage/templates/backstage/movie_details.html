@@ -172,6 +172,12 @@
               </svg>
               Assistir Mais Tarde
             </button>
+            <button class="action-btn favorite" id="favoritoBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              <span id="favoritoTexto">Adicionar aos Favoritos</span>
+            </button>
             <button class="action-btn list">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -372,6 +378,43 @@
 
                   <button type="button" class="modal-submit-btn" onclick="submitFromModal()">
                     Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal de Favoritos com Classificação por Estrelas -->
+          <div class="favorite-modal-overlay" id="favoriteModalOverlay" style="display: none;">
+            <div class="favorite-modal">
+              <div class="favorite-modal-header">
+                <h3>Avaliar e Adicionar aos Favoritos</h3>
+                <button type="button" class="close-favorite-modal" onclick="closeFavoriteModal()">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="favorite-modal-body">
+                <h2 class="modal-movie-title">{{ filme.titulo }}</h2>
+                <p style="color: #9ca3af; margin-bottom: 20px;">Dê uma nota de 1 a 5 estrelas para este filme</p>
+
+                <div class="favorite-star-rating">
+                  <button type="button" class="favorite-star" data-rating="1">★</button>
+                  <button type="button" class="favorite-star" data-rating="2">★</button>
+                  <button type="button" class="favorite-star" data-rating="3">★</button>
+                  <button type="button" class="favorite-star" data-rating="4">★</button>
+                  <button type="button" class="favorite-star" data-rating="5">★</button>
+                </div>
+                <p id="selectedRating" style="text-align: center; margin-top: 10px; color: #fbbf24; font-weight: 600;"></p>
+
+                <div class="favorite-modal-footer">
+                  <button type="button" class="favorite-cancel-btn" onclick="closeFavoriteModal()">
+                    Cancelar
+                  </button>
+                  <button type="button" class="favorite-submit-btn" onclick="submitFavorito()" disabled>
+                    Adicionar aos Favoritos
                   </button>
                 </div>
               </div>
@@ -1658,6 +1701,473 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }
       });
+    }
+  });
+</script>
+
+<!-- CSS para Sistema de Favoritos -->
+<style>
+  /* Botão de Favorito */
+  .action-btn.favorite {
+    transition: all 0.3s ease;
+  }
+
+  .action-btn.favorite.favorited {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+  }
+
+  .action-btn.favorite.favorited svg {
+    fill: white;
+    stroke: white;
+  }
+
+  .action-btn.favorite:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Modal de Favoritos */
+  .favorite-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+  }
+
+  .favorite-modal {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .favorite-modal-header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .favorite-modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .close-favorite-modal {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .close-favorite-modal:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .favorite-modal-body {
+    padding: 32px 24px;
+  }
+
+  .favorite-modal-body .modal-movie-title {
+    color: white;
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    text-align: center;
+  }
+
+  .favorite-star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0;
+  }
+
+  .favorite-star {
+    background: none;
+    border: none;
+    font-size: 48px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .favorite-star:hover,
+  .favorite-star.active {
+    color: #dc2626;
+    transform: scale(1.1);
+  }
+
+  .favorite-star.active {
+    animation: starPop 0.3s ease;
+  }
+
+  @keyframes starPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1.1); }
+  }
+
+  .favorite-modal-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .favorite-cancel-btn,
+  .favorite-submit-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .favorite-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .favorite-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .favorite-submit-btn {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+  }
+
+  .favorite-submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  }
+
+  .favorite-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<!-- JavaScript para Sistema de Favoritos -->
+<script>
+  let selectedRating = 0;
+  let currentMovieData = null;
+
+  // Verificar se filme já está nos favoritos ao carregar
+  document.addEventListener('DOMContentLoaded', function() {
+    checkFavoritoStatus();
+    
+    // Configurar evento do botão de favorito
+    const favoritoBtn = document.getElementById('favoritoBtn');
+    if (favoritoBtn) {
+      favoritoBtn.addEventListener('click', function() {
+        // O updateFavoritoButton já define a ação correta
+      });
+    }
+  });
+
+  function checkFavoritoStatus() {
+    const tmdbId = {{ filme.tmdb_id }};
+    const username = "{{ request.user.username }}";
+
+    fetch(`/api/favoritos/${username}/`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const favorito = data.favoritos.find(f => f.tmdb_id === tmdbId);
+          if (favorito) {
+            updateFavoritoButton(true, favorito.nota);
+          } else {
+            // Se não é favorito, garantir que o botão está configurado
+            updateFavoritoButton(false);
+          }
+        } else {
+          // Se deu erro ou não tem favoritos, configurar botão padrão
+          updateFavoritoButton(false);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao verificar favorito:', error);
+        // Mesmo com erro, configurar o botão para funcionar
+        updateFavoritoButton(false);
+      });
+  }
+
+  function updateFavoritoButton(isFavorito, nota = null) {
+    const btn = document.getElementById('favoritoBtn');
+    const texto = document.getElementById('favoritoTexto');
+    
+    console.log('updateFavoritoButton chamado:', isFavorito, nota);
+    
+    if (!btn || !texto) {
+      console.error('Botão de favorito não encontrado!');
+      return;
+    }
+    
+    // Remover evento anterior
+    btn.onclick = null;
+    
+    if (isFavorito) {
+      btn.classList.add('favorited');
+      texto.textContent = `Favorito ${nota ? '★'.repeat(nota) : ''}`;
+      btn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Clicou para remover favorito');
+        removerFavorito();
+      };
+    } else {
+      btn.classList.remove('favorited');
+      texto.textContent = 'Adicionar aos Favoritos';
+      btn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Clicou para abrir modal de favoritos');
+        openFavoriteModal();
+      };
+    }
+    
+    console.log('Botão configurado com sucesso');
+  }
+
+  function openFavoriteModal() {
+    console.log('openFavoriteModal chamado');
+    
+    currentMovieData = {
+      tmdb_id: {{ filme.tmdb_id }},
+      titulo: "{{ filme.titulo|escapejs }}",
+      poster: "{{ tmdb_image_base }}w500{{ filme.poster_path }}"
+    };
+
+    console.log('Movie data:', currentMovieData);
+
+    selectedRating = 0;
+    const modalOverlay = document.getElementById('favoriteModalOverlay');
+    if (modalOverlay) {
+      modalOverlay.style.display = 'flex';
+      console.log('Modal exibido');
+    } else {
+      console.error('Modal overlay não encontrado!');
+    }
+    
+    document.getElementById('selectedRating').textContent = '';
+    document.querySelector('.favorite-submit-btn').disabled = true;
+
+    // Reset stars
+    document.querySelectorAll('.favorite-star').forEach(star => {
+      star.classList.remove('active');
+    });
+
+    // Setup star click handlers
+    setupStarRating();
+  }
+
+  function closeFavoriteModal() {
+    document.getElementById('favoriteModalOverlay').style.display = 'none';
+    selectedRating = 0;
+  }
+
+  function setupStarRating() {
+    console.log('setupStarRating chamado');
+    
+    const stars = document.querySelectorAll('.favorite-star');
+    const submitBtn = document.querySelector('.favorite-submit-btn');
+    const ratingText = document.getElementById('selectedRating');
+
+    console.log('Stars encontradas:', stars.length);
+    console.log('Submit button:', submitBtn);
+
+    stars.forEach((star, index) => {
+      star.addEventListener('click', () => {
+        selectedRating = index + 1;
+        console.log('Estrela clicada, rating:', selectedRating);
+        
+        // Update visual state
+        stars.forEach((s, i) => {
+          if (i < selectedRating) {
+            s.classList.add('active');
+          } else {
+            s.classList.remove('active');
+          }
+        });
+
+        // Update text and enable button
+        const labels = ['Péssimo', 'Ruim', 'Regular', 'Bom', 'Excelente'];
+        ratingText.textContent = `${selectedRating} estrela${selectedRating > 1 ? 's' : ''} - ${labels[selectedRating - 1]}`;
+        submitBtn.disabled = false;
+        console.log('Botão de submit habilitado');
+      });
+
+      star.addEventListener('mouseenter', () => {
+        stars.forEach((s, i) => {
+          if (i <= index) {
+            s.style.color = '#dc2626';
+          } else {
+            s.style.color = '#374151';
+          }
+        });
+      });
+
+      star.addEventListener('mouseleave', () => {
+        stars.forEach((s, i) => {
+          if (i < selectedRating) {
+            s.style.color = '#dc2626';
+          } else {
+            s.style.color = '#374151';
+          }
+        });
+      });
+    });
+  }
+
+  function submitFavorito() {
+    console.log('submitFavorito chamado, rating:', selectedRating);
+    
+    if (!selectedRating || !currentMovieData) {
+      console.error('Rating ou movie data inválido');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.favorite-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adicionando...';
+
+    console.log('Enviando requisição para adicionar favorito:', {
+      tmdb_id: currentMovieData.tmdb_id,
+      titulo: currentMovieData.titulo,
+      nota: selectedRating
+    });
+
+    fetch('/api/favoritos/adicionar/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        tmdb_id: currentMovieData.tmdb_id,
+        titulo: currentMovieData.titulo,
+        poster: currentMovieData.poster,
+        nota: selectedRating
+      })
+    })
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Response data:', data);
+      if (data.success) {
+        updateFavoritoButton(true, selectedRating);
+        closeFavoriteModal();
+        
+        // Show success message
+        showNotification('Filme adicionado aos favoritos!');
+      } else {
+        throw new Error(data.error || 'Erro ao adicionar favorito');
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao adicionar aos favoritos: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Adicionar aos Favoritos';
+    });
+  }
+
+  function removerFavorito() {
+    if (!confirm('Deseja remover este filme dos favoritos?')) return;
+
+    const tmdbId = {{ filme.tmdb_id }};
+
+    fetch('/api/favoritos/remover/', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        tmdb_id: tmdbId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        updateFavoritoButton(false);
+        showNotification('Filme removido dos favoritos');
+      } else {
+        throw new Error(data.error || 'Erro ao remover favorito');
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao remover dos favoritos: ' + error.message);
+    });
+  }
+
+  function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 10001;
+      animation: slideIn 0.3s ease;
+      font-weight: 600;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('favoriteModalOverlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'favoriteModalOverlay') {
+      closeFavoriteModal();
     }
   });
 </script>

@@ -119,6 +119,7 @@
       <div class="container">
         <div class="profile-tabs">
           <button class="tab-btn active" data-tab="reviews">Reviews</button>
+          <button class="tab-btn" data-tab="favoritos">Favoritos</button>
           <button class="tab-btn" data-tab="listas">Listas</button>
           <button class="tab-btn" data-tab="atividades">Atividades</button>
         </div>
@@ -251,6 +252,34 @@
             <p>Comece avaliando seus filmes e séries favoritos!</p>
           </div>
           {% endif %}
+        </div>
+
+        <!-- Favoritos Tab -->
+        <div class="tab-content" id="tab-favoritos">
+          <div class="section-header">
+            <h2>{% if is_own_profile %}Meus Favoritos{% else %}Favoritos de {{ usuario_perfil.username }}{% endif %}</h2>
+            <span class="favoritos-subtitle">Ranking baseado nas avaliações</span>
+          </div>
+
+          <div id="favoritosContainer" class="favoritos-loading">
+            <div class="loading-spinner">Carregando favoritos...</div>
+          </div>
+
+          <div id="favoritosGrid" class="favoritos-grid" style="display: none;">
+            <!-- Favoritos serão carregados via JavaScript -->
+          </div>
+
+          <div id="favoritosEmpty" class="empty-state" style="display: none;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3>Nenhum filme favorito</h3>
+            {% if is_own_profile %}
+            <p>Comece adicionando seus filmes favoritos com avaliação em estrelas!</p>
+            {% else %}
+            <p>{{ usuario_perfil.username }} ainda não adicionou nenhum favorito.</p>
+            {% endif %}
+          </div>
         </div>
 
         <!-- Listas Tab -->
@@ -423,5 +452,227 @@
   <script src="{% static 'js/profile_menu.js' %}"></script>
   <script src="{% static 'js/perfil.js' %}"></script>
   <script src="{% static 'js/notifications.js' %}" defer></script>
+
+  <!-- JavaScript para Favoritos -->
+  <script>
+    const username = "{{ usuario_perfil.username }}";
+    let favoritosLoaded = false;
+
+    // Carregar favoritos quando a tab for clicada
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const tab = this.dataset.tab;
+        if (tab === 'favoritos' && !favoritosLoaded) {
+          carregarFavoritos();
+          favoritosLoaded = true;
+        }
+      });
+    });
+
+    function carregarFavoritos() {
+      const loadingEl = document.querySelector('.favoritos-loading');
+      const gridEl = document.getElementById('favoritosGrid');
+      const emptyEl = document.getElementById('favoritosEmpty');
+
+      fetch(`/api/favoritos/${username}/`)
+        .then(response => response.json())
+        .then(data => {
+          loadingEl.style.display = 'none';
+
+          if (data.success && data.favoritos.length > 0) {
+            gridEl.style.display = 'grid';
+            renderizarFavoritos(data.favoritos);
+          } else {
+            emptyEl.style.display = 'flex';
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao carregar favoritos:', error);
+          loadingEl.innerHTML = '<p style="color: #dc2626;">Erro ao carregar favoritos</p>';
+        });
+    }
+
+    function renderizarFavoritos(favoritos) {
+      const gridEl = document.getElementById('favoritosGrid');
+      gridEl.innerHTML = '';
+
+      favoritos.forEach((favorito, index) => {
+        const card = document.createElement('a');
+        card.href = `/filmes/${favorito.tmdb_id}/`;
+        card.className = 'favorito-card';
+        
+        const ranking = index + 1;
+        const estrelas = '★'.repeat(favorito.nota);
+        
+        card.innerHTML = `
+          <div class="favorito-ranking">#${ranking}</div>
+          <div class="favorito-poster">
+            ${favorito.poster ? 
+              `<img src="${favorito.poster}" alt="${favorito.titulo}" loading="lazy">` :
+              `<div class="poster-placeholder">🎬</div>`
+            }
+          </div>
+          <div class="favorito-info">
+            <h3 class="favorito-titulo">${favorito.titulo}</h3>
+            <div class="favorito-rating">
+              <span class="favorito-stars">${estrelas}</span>
+              <span class="favorito-nota">${favorito.nota}/5</span>
+            </div>
+            <p class="favorito-data">Adicionado em ${favorito.adicionado_em}</p>
+          </div>
+        `;
+        
+        gridEl.appendChild(card);
+      });
+    }
+  </script>
+
+  <!-- CSS para Favoritos -->
+  <style>
+    .favoritos-subtitle {
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .favoritos-loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+
+    .loading-spinner {
+      font-size: 16px;
+    }
+
+    .favoritos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .favorito-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .favorito-card:hover {
+      transform: translateY(-4px);
+      border-color: #dc2626;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2);
+    }
+
+    .favorito-ranking {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .favorito-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      overflow: hidden;
+      background: #1a1a1a;
+      position: relative;
+    }
+
+    .favorito-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .favorito-card:hover .favorito-poster img {
+      transform: scale(1.05);
+    }
+
+    .poster-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      background: linear-gradient(135deg, #374151, #1f2937);
+    }
+
+    .favorito-info {
+      padding: 16px;
+    }
+
+    .favorito-titulo {
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .favorito-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .favorito-stars {
+      color: #dc2626;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .favorito-nota {
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .favorito-data {
+      color: #6b7280;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .favoritos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+      }
+
+      .favorito-ranking {
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+
+      .favorito-titulo {
+        font-size: 14px;
+      }
+
+      .favorito-stars {
+        font-size: 16px;
+      }
+    }
+  </style>
 </body>
 </html>

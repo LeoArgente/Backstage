@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, DiarioSerie, MensagemComunidade
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, DiarioSerie, MensagemComunidade, FilmeFavorito
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -334,7 +334,7 @@ def comunidade(request):
             usuario=request.user
         ).select_related('comunidade').order_by('-data_entrada')
     
-    # Buscar todas as comunidades públicas
+    # Buscar todas as comunidades públicas (paginação inicial - 12 primeiras)
     comunidades_publicas = Comunidade.objects.filter(
         publica=True
     ).order_by('-data_criacao')
@@ -344,11 +344,62 @@ def comunidade(request):
         ids_minhas_comunidades = [mc.comunidade.id for mc in minhas_comunidades]
         comunidades_publicas = comunidades_publicas.exclude(id__in=ids_minhas_comunidades)
     
+    # Paginação inicial
+    comunidades_publicas = comunidades_publicas[:12]
+    
     context = {
         'minhas_comunidades': minhas_comunidades,
         'comunidades_publicas': comunidades_publicas,
     }
     return render(request, "backstage/community.html", context)
+
+
+def comunidade_api(request):
+    """API endpoint para carregar mais comunidades"""
+    try:
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        offset = (page - 1) * per_page
+        
+        # Buscar comunidades públicas
+        comunidades_query = Comunidade.objects.filter(
+            publica=True
+        ).order_by('-data_criacao')
+        
+        # Se o usuário estiver autenticado, excluir as que ele já é membro
+        if request.user.is_authenticated:
+            ids_minhas_comunidades = MembroComunidade.objects.filter(
+                usuario=request.user
+            ).values_list('comunidade_id', flat=True)
+            comunidades_query = comunidades_query.exclude(id__in=ids_minhas_comunidades)
+        
+        # Buscar total e slice para verificar se tem mais
+        total_count = comunidades_query.count()
+        comunidades = list(comunidades_query[offset:offset + per_page])
+        
+        # Preparar dados
+        items = []
+        for comunidade in comunidades:
+            items.append({
+                'nome': comunidade.nome,
+                'slug': comunidade.slug,
+                'descricao': comunidade.descricao,
+                'membros_count': comunidade.membros.count(),
+                'publica': comunidade.publica,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'items': items,
+            'has_more': offset + per_page < total_count,
+            'page': page,
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @login_required(login_url='backstage:login')
 def minhas_comunidades(request):
@@ -642,6 +693,162 @@ def recomendar_filme_comunidade(request, slug):
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
+def adicionar_favorito(request):
+    """API para adicionar filme aos favoritos com nota"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        titulo = data.get('titulo')
+        poster = data.get('poster')
+        nota = data.get('nota')
+        
+        # Validações
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        if not titulo:
+            return JsonResponse({'success': False, 'error': 'Título do filme não fornecido'}, status=400)
+        
+        if not nota or nota not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5 estrelas'}, status=400)
+        
+        # Criar ou atualizar favorito
+        favorito, criado = FilmeFavorito.objects.update_or_create(
+            usuario=request.user,
+            tmdb_id=tmdb_id,
+            defaults={
+                'titulo': titulo,
+                'poster': poster,
+                'nota': nota
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'criado': criado,
+            'favorito': {
+                'id': favorito.id,
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'poster': favorito.poster,
+                'nota': favorito.nota,
+                'adicionado_em': favorito.adicionado_em.strftime('%d/%m/%Y %H:%M')
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE", "POST"])
+def remover_favorito(request):
+    """API para remover filme dos favoritos"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        # Buscar e deletar favorito
+        favorito = FilmeFavorito.objects.filter(usuario=request.user, tmdb_id=tmdb_id).first()
+        
+        if not favorito:
+            return JsonResponse({'success': False, 'error': 'Filme não está nos favoritos'}, status=404)
+        
+        favorito.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'mensagem': 'Filme removido dos favoritos'
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["PUT", "POST"])
+def atualizar_nota_favorito(request):
+    """API para atualizar nota de um favorito"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        nova_nota = data.get('nota')
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        if not nova_nota or nova_nota not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5 estrelas'}, status=400)
+        
+        # Buscar e atualizar favorito
+        favorito = FilmeFavorito.objects.filter(usuario=request.user, tmdb_id=tmdb_id).first()
+        
+        if not favorito:
+            return JsonResponse({'success': False, 'error': 'Filme não está nos favoritos'}, status=404)
+        
+        favorito.nota = nova_nota
+        favorito.save()
+        
+        return JsonResponse({
+            'success': True,
+            'favorito': {
+                'id': favorito.id,
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'nota': favorito.nota,
+                'atualizado_em': favorito.atualizado_em.strftime('%d/%m/%Y %H:%M')
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+def buscar_favoritos_usuario(request, username):
+    """API para buscar favoritos de um usuário (ranking público)"""
+    try:
+        # Buscar usuário
+        usuario = get_object_or_404(User, username=username)
+        
+        # Buscar favoritos ordenados por nota (ranking)
+        favoritos = FilmeFavorito.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')
+        
+        favoritos_data = []
+        for favorito in favoritos:
+            favoritos_data.append({
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'poster': favorito.poster,
+                'nota': favorito.nota,
+                'adicionado_em': favorito.adicionado_em.strftime('%d/%m/%Y'),
+                'atualizado_em': favorito.atualizado_em.strftime('%d/%m/%Y')
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'usuario': username,
+            'total': len(favoritos_data),
+            'favoritos': favoritos_data
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
 def criar_comunidade(request):
@@ -650,6 +857,7 @@ def criar_comunidade(request):
         nome = request.POST.get('nome', '').strip()
         descricao = request.POST.get('descricao', '').strip()
         publica = request.POST.get('publica') == 'on'
+        foto_perfil = request.FILES.get('foto_perfil')
         
         # Validações
         if not nome:
@@ -663,7 +871,8 @@ def criar_comunidade(request):
             nome=nome,
             descricao=descricao,
             publica=publica,
-            criador=request.user
+            criador=request.user,
+            foto_perfil=foto_perfil
         )
         
         # Adicionar o criador como admin
@@ -861,21 +1070,79 @@ def filmes(request):
 def lists(request):
     from django.db.models import Count
 
+    page = int(request.GET.get('page', 1))
+    per_page = 12
+    offset = (page - 1) * per_page
+
     minhas_listas = Lista.objects.filter(usuario=request.user).annotate(
         num_filmes=Count('itens', distinct=True),
         num_series=Count('itens_serie', distinct=True)
-    ).order_by('-atualizada_em')
+    ).order_by('-atualizada_em')[offset:offset + per_page]
 
     listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
         num_filmes=Count('itens', distinct=True),
         num_series=Count('itens_serie', distinct=True)
-    ).order_by('-atualizada_em')
+    ).order_by('-atualizada_em')[offset:offset + per_page]
 
     context = {
         'minhas_listas': minhas_listas,
         'listas_publicas': listas_publicas,
     }
     return render(request, "backstage/lists.html", context)
+
+def lists_api(request):
+    """API endpoint para carregar listas com paginação"""
+    from django.db.models import Count
+    
+    try:
+        filter_type = request.GET.get('filter', 'my-lists')
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        offset = (page - 1) * per_page
+
+        if filter_type == 'my-lists':
+            listas = Lista.objects.filter(usuario=request.user).annotate(
+                num_filmes=Count('itens', distinct=True),
+                num_series=Count('itens_serie', distinct=True)
+            ).order_by('-atualizada_em')[offset:offset + per_page]
+        else:  # public
+            listas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
+                num_filmes=Count('itens', distinct=True),
+                num_series=Count('itens_serie', distinct=True)
+            ).order_by('-atualizada_em')[offset:offset + per_page]
+
+        listas_data = []
+        for lista in listas:
+            listas_data.append({
+                'id': lista.id,
+                'nome': lista.nome,
+                'descricao': lista.descricao or '',
+                'publica': lista.publica,
+                'usuario': lista.usuario.username,
+                'num_filmes': lista.num_filmes,
+                'num_series': lista.num_series,
+                'atualizada_em': lista.atualizada_em.strftime('%d/%m/%Y'),
+                'is_mine': lista.usuario == request.user
+            })
+
+        has_more = len(listas) == per_page
+
+        return JsonResponse({
+            'success': True,
+            'listas': listas_data,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar listas na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'listas': [],
+            'has_more': False
+        }, status=500)
 
 def movies(request):
     try:
@@ -981,6 +1248,69 @@ def series(request):
         'ordenacao_atual': ordenacao
     }
     return render(request, "backstage/series.html", context)
+
+def series_api(request):
+    """API endpoint para carregar séries com paginação"""
+    try:
+        # Obter parâmetros
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB (séries)
+        generos_map = {
+            'action': 10759,  # Action & Adventure
+            'adventure': 10759,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 10765,  # Sci-Fi & Fantasy
+            'thriller': 9648,  # Mystery
+            'horror': 9648,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 10765,
+            'reality': 10764,
+            'news': 10763,
+            'kids': 10762,
+            'soap': 10766,
+            'talk': 10767,
+            'western': 37,
+            'war': 10768,
+            'mystery': 9648
+        }
+
+        # Buscar séries conforme filtros
+        from .services.tmdb import buscar_series_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        series_list = buscar_series_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+        
+        # Verificar se há mais séries
+        has_more = len(series_list) > 0 and page < 500
+
+        return JsonResponse({
+            'success': True,
+            'series': series_list,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar séries na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'series': [],
+            'has_more': False
+        }, status=500)
 
 def wireframer(request):
     return render(request, "backstage/wireframer.html")

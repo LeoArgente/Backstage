@@ -500,6 +500,281 @@
       height: 20px;
     }
 
+    .chat-recommend-btn {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      color: var(--red);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 8px;
+      font-size: 20px;
+    }
+
+    .chat-recommend-btn:hover {
+      background: rgba(220, 38, 38, 0.1);
+      transform: scale(1.05);
+    }
+
+    /* Movie recommendation modal */
+    .movie-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .movie-modal.active {
+      display: flex;
+    }
+
+    .movie-modal-content {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .movie-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .movie-modal-header h3 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .movie-modal-close {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .movie-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .movie-modal-close svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .movie-modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .movie-search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s ease;
+    }
+
+    .movie-search-input:focus {
+      outline: none;
+      border-color: var(--red);
+    }
+
+    .movie-search-results {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .movie-result-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--bg-secondary);
+    }
+
+    .movie-result-item:hover {
+      border-color: var(--red);
+      background: rgba(220, 38, 38, 0.05);
+    }
+
+    .movie-result-poster {
+      width: 60px;
+      height: 90px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--bg-tertiary);
+    }
+    
+    .movie-result-poster[src=""], .movie-result-poster:not([src]) {
+      display: none;
+    }
+    
+    .movie-result-poster-placeholder {
+      width: 60px;
+      height: 90px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 24px;
+    }
+
+    .movie-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .movie-result-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .movie-result-year {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .movie-result-overview {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .movie-loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .movie-no-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    /* Movie recommendation message */
+    .message-movie-card {
+      max-width: 320px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--bg-secondary);
+      margin-top: 8px;
+    }
+
+    .message-movie-card:hover {
+      border-color: var(--red);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .message-movie-poster {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: var(--bg-tertiary);
+    }
+    
+    .message-movie-poster-placeholder {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+      color: var(--text-muted);
+      font-size: 48px;
+    }
+
+    .message-movie-info {
+      padding: 12px;
+    }
+
+    .message-movie-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .message-movie-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: white;
+      background: var(--red);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .message-movie-card:hover .message-movie-badge {
+      background: #b91c1c;
+      transform: translateX(2px);
+    }
+
+    .message-movie-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
     .empty-chat {
       flex: 1;
       display: flex;
@@ -592,6 +867,21 @@
 
       .chat-input {
         font-size: 16px; /* Previne zoom no iOS */
+      }
+
+      .movie-modal-content {
+        max-width: 100%;
+        max-height: 90vh;
+        margin: 0 10px;
+      }
+
+      .movie-result-poster {
+        width: 50px;
+        height: 75px;
+      }
+
+      .message-movie-card {
+        max-width: 100%;
       }
     }
 
@@ -784,6 +1074,9 @@
           <div class="chat-input-container">
             <form class="chat-input-form" id="chatForm">
               {% csrf_token %}
+              <button type="button" class="chat-recommend-btn" id="recommendBtn" aria-label="Recomendar filme">
+                🎬
+              </button>
               <div class="chat-input-wrapper">
                 <input 
                   type="text" 
@@ -809,6 +1102,30 @@
       </div>
     </div>
   </main>
+
+  <!-- Movie Recommendation Modal -->
+  <div class="movie-modal" id="movieModal">
+    <div class="movie-modal-content">
+      <div class="movie-modal-header">
+        <h3>Recomendar Filme</h3>
+        <button type="button" class="movie-modal-close" id="closeModal">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="movie-modal-body">
+        <input 
+          type="text" 
+          class="movie-search-input" 
+          id="movieSearchInput" 
+          placeholder="Buscar filme..."
+          autocomplete="off"
+        />
+        <div class="movie-search-results" id="movieResults"></div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const comunidadeSlug = '{{ comunidade.slug }}';
@@ -849,12 +1166,36 @@
         ? `<img src="${mensagem.foto_perfil}" alt="${escapeHtml(mensagem.usuario)}" class="message-avatar">`
         : `<div class="message-avatar-placeholder">${firstLetter}</div>`;
 
+      // Movie card HTML if it's a recommendation
+      let movieCardHTML = '';
+      if (mensagem.tipo_mensagem === 'recomendacao' && mensagem.filme) {
+        const trailerUrl = mensagem.filme.trailer || '#';
+        movieCardHTML = `
+          <div class="message-movie-card" onclick="window.open('${trailerUrl}', '_blank')">
+            ${mensagem.filme.poster 
+              ? `<img src="${mensagem.filme.poster}" alt="${escapeHtml(mensagem.filme.titulo)}" class="message-movie-poster">` 
+              : `<div class="message-movie-poster-placeholder">🎬</div>`
+            }
+            <div class="message-movie-info">
+              <div class="message-movie-title">${escapeHtml(mensagem.filme.titulo)}</div>
+              <div class="message-movie-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                </svg>
+                Assistir trailer
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       if (sameUser) {
         // Mensagem consecutiva do mesmo usuário - sem avatar
         messageDiv.innerHTML = `
           <div class="message-wrapper">
             <div class="message-body">
-              <div class="message-content">${escapeHtml(mensagem.conteudo)}</div>
+              ${mensagem.conteudo ? `<div class="message-content">${escapeHtml(mensagem.conteudo)}</div>` : ''}
+              ${movieCardHTML}
             </div>
           </div>
         `;
@@ -867,7 +1208,8 @@
               <div class="message-header">
                 <span class="message-username">${escapeHtml(mensagem.usuario)}</span>
               </div>
-              <div class="message-content">${escapeHtml(mensagem.conteudo)}</div>
+              ${mensagem.conteudo ? `<div class="message-content">${escapeHtml(mensagem.conteudo)}</div>` : ''}
+              ${movieCardHTML}
             </div>
           </div>
         `;
@@ -1070,6 +1412,146 @@
         
         communityMenuDropdown.classList.remove('active');
       });
+    }
+
+    // Movie recommendation functionality
+    const movieModal = document.getElementById('movieModal');
+    const recommendBtn = document.getElementById('recommendBtn');
+    const closeModal = document.getElementById('closeModal');
+    const movieSearchInput = document.getElementById('movieSearchInput');
+    const movieResults = document.getElementById('movieResults');
+    let searchTimeout;
+
+    if (recommendBtn) {
+      recommendBtn.addEventListener('click', () => {
+        movieModal.classList.add('active');
+        movieSearchInput.focus();
+      });
+    }
+
+    closeModal.addEventListener('click', () => {
+      movieModal.classList.remove('active');
+      movieSearchInput.value = '';
+      movieResults.innerHTML = '';
+    });
+
+    movieModal.addEventListener('click', (e) => {
+      if (e.target === movieModal) {
+        movieModal.classList.remove('active');
+        movieSearchInput.value = '';
+        movieResults.innerHTML = '';
+      }
+    });
+
+    movieSearchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+      
+      if (query.length < 2) {
+        movieResults.innerHTML = '';
+        return;
+      }
+
+      movieResults.innerHTML = '<div class="movie-loading">Buscando filmes...</div>';
+
+      searchTimeout = setTimeout(() => {
+        const url = `/comunidade/buscar-filmes/?q=${encodeURIComponent(query)}`;
+        console.log('Fazendo requisição para:', url);
+        
+        fetch(url)
+          .then(response => {
+            console.log('Resposta recebida:', response.status, response.ok);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Resposta da API:', data);
+            
+            if (!data.success) {
+              movieResults.innerHTML = `<div class="movie-no-results">${data.error || 'Erro ao buscar filmes'}</div>`;
+              return;
+            }
+            
+            if (data.filmes && data.filmes.length > 0) {
+              movieResults.innerHTML = data.filmes.map(filme => `
+                <div class="movie-result-item" data-tmdb-id="${filme.tmdb_id}">
+                  ${filme.poster 
+                    ? `<img src="${filme.poster}" alt="${filme.titulo}" class="movie-result-poster">` 
+                    : `<div class="movie-result-poster-placeholder">🎬</div>`
+                  }
+                  <div class="movie-result-info">
+                    <div class="movie-result-title">${filme.titulo}</div>
+                    <div class="movie-result-year">${filme.ano || 'Ano desconhecido'}</div>
+                    <div class="movie-result-overview">${filme.sinopse || 'Sem sinopse disponível'}</div>
+                  </div>
+                </div>
+              `).join('');
+
+              // Add click handlers to movie items
+              document.querySelectorAll('.movie-result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                  const tmdbId = item.dataset.tmdbId;
+                  recomendarFilme(tmdbId);
+                });
+              });
+            } else {
+              movieResults.innerHTML = '<div class="movie-no-results">Nenhum filme encontrado</div>';
+            }
+          })
+          .catch(error => {
+            console.error('Erro ao buscar filmes:', error);
+            movieResults.innerHTML = `<div class="movie-no-results">Erro ao buscar filmes: ${error.message}</div>`;
+          });
+      }, 500);
+    });
+
+    function recomendarFilme(tmdbId) {
+      const mensagem = ''; // Não enviar a mensagem de texto, só o filme
+      
+      fetch(`/comunidade/${comunidadeSlug}/recomendar-filme/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          tmdb_id: tmdbId,
+          mensagem: mensagem
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Resposta de recomendar filme:', data);
+        if (data.success) {
+          movieModal.classList.remove('active');
+          movieSearchInput.value = '';
+          movieResults.innerHTML = '';
+          buscarNovasMensagens();
+        } else {
+          alert('Erro ao recomendar filme: ' + (data.error || 'Erro desconhecido'));
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao recomendar filme:', error);
+        alert('Erro ao recomendar filme: ' + error.message);
+      });
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     }
   </script>
 

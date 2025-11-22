@@ -117,11 +117,14 @@
    * Inicializa o sistema de intro
    */
   function initIntro() {
+    // Pegar referência ao overlay primeiro
+    const overlay = document.querySelector('.intro-overlay');
+
     // Verificar se deve mostrar
     if (!shouldShowIntro()) {
       // Remover overlay imediatamente se não deve mostrar
-      const overlay = document.querySelector('.intro-overlay');
       if (overlay && overlay.parentNode) {
+        overlay.style.display = 'none'; // Ocultar instantaneamente
         overlay.parentNode.removeChild(overlay);
       }
       return;
@@ -129,7 +132,6 @@
 
     console.log('[Intro] Inicializando vídeo de intro...');
 
-    const overlay = document.querySelector('.intro-overlay');
     const video = document.querySelector('.intro-video');
     const skipBtn = document.querySelector('.intro-skip-btn');
 

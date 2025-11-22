@@ -29,6 +29,8 @@ urlpatterns = [
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
     path('api/watch-later/', views.buscar_ou_criar_lista_watch_later, name='watch_later'),
+    path('api/watch-later/verificar/<int:tmdb_id>/', views.verificar_filme_watch_later, name='verificar_filme_watch_later'),
+    path('api/watch-later/verificar-serie/<int:tmdb_id>/', views.verificar_serie_watch_later, name='verificar_serie_watch_later'),
     path('api/lista/<int:lista_id>/', views.editar_lista, name='editar_lista'),
     path('api/lista/<int:lista_id>/deletar/', views.deletar_lista, name='deletar_lista'),
     path('api/lista/<int:lista_id>/visualizar/', views.visualizar_lista, name='visualizar_lista'),
@@ -46,7 +48,6 @@ urlpatterns = [
     
     # URLs para comunidades
     path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
-    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
     path('convite/<str:codigo>/', views.entrar_por_convite, name='entrar_por_convite'),
     
     # APIs para comunidades
@@ -56,15 +57,23 @@ urlpatterns = [
     path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
     path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
     
+    # API de busca de filmes (DEVE VIR ANTES das URLs com <slug>)
+    path('comunidade/buscar-filmes/', views.buscar_filmes_para_recomendar, name='buscar_filmes_para_recomendar'),
+    
+    # URLs de comunidade específica
+    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
+    
     # APIs de Chat da Comunidade
     path('comunidade/<slug:slug>/enviar-mensagem/', views.enviar_mensagem_comunidade, name='enviar_mensagem_comunidade'),
     path('comunidade/<slug:slug>/buscar-mensagens/', views.buscar_mensagens_comunidade, name='buscar_mensagens_comunidade'),
+    path('comunidade/<slug:slug>/recomendar-filme/', views.recomendar_filme_comunidade, name='recomendar_filme_comunidade'),
     
     # URLs do menu do usuário
     path('perfil/', views.perfil, name='perfil'),
     path('perfil/<str:username>/', views.perfil, name='perfil_usuario'),
     path('meu-diario/', views.meu_diario, name='meu_diario'),
     path('reviews/', views.reviews, name='reviews'),
+    path('reviews/<str:username>/', views.reviews, name='reviews_usuario'),
     path('watchlist/', views.watchlist, name='watchlist'),
     path('lista/<int:lista_id>/', views.lista_detalhes, name='lista_detalhes'),
     path('favoritos/', views.favoritos, name='favoritos'),

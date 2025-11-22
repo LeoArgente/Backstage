@@ -498,7 +498,14 @@ def buscar_mensagens_comunidade(request, slug):
                 'conteudo': msg.conteudo,
                 'criado_em': msg.criado_em.strftime('%d/%m %H:%M'),
                 'is_owner': msg.usuario == request.user,
-                'foto_perfil': foto_perfil_url
+                'foto_perfil': foto_perfil_url,
+                'tipo_mensagem': msg.tipo_mensagem,
+                'filme': {
+                    'tmdb_id': msg.filme_tmdb_id,
+                    'titulo': msg.filme_titulo,
+                    'poster': msg.filme_poster,
+                    'trailer': msg.filme_trailer
+                } if msg.tipo_mensagem == 'recomendacao' else None
             })
         
         return JsonResponse({
@@ -511,6 +518,126 @@ def buscar_mensagens_comunidade(request, slug):
             'success': False, 
             'error': f'Erro ao buscar mensagens: {str(e)}'
         }, status=500)
+
+
+@login_required(login_url='backstage:login')
+@login_required
+def buscar_filmes_para_recomendar(request):
+    """API para buscar filmes para recomendar"""
+    try:
+        query = request.GET.get('q', '').strip()
+        
+        if not query or len(query) < 2:
+            return JsonResponse({'success': False, 'error': 'Digite pelo menos 2 caracteres'}, status=400)
+        
+        # Buscar filmes via TMDB
+        filmes = buscar_filme_por_titulo(query)
+        
+        if not filmes:
+            return JsonResponse({'success': True, 'filmes': []})
+        
+        # Limitar a 10 resultados e formatar
+        filmes_data = []
+        for filme in filmes[:10]:
+            poster_url = None
+            if filme.get('poster_path'):
+                poster_url = f"https://image.tmdb.org/t/p/w200{filme['poster_path']}"
+            
+            filmes_data.append({
+                'tmdb_id': filme.get('tmdb_id'),
+                'titulo': filme.get('titulo'),
+                'ano': filme.get('ano_lancamento', ''),
+                'poster': poster_url,
+                'sinopse': (filme.get('sinopse', '')[:150] + '...') if filme.get('sinopse') and len(filme.get('sinopse', '')) > 150 else filme.get('sinopse', '')
+            })
+        
+        return JsonResponse({'success': True, 'filmes': filmes_data})
+        
+    except Exception as e:
+        print(f"Erro em buscar_filmes_para_recomendar: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+@login_required
+@require_http_methods(["POST"])
+def recomendar_filme_comunidade(request, slug):
+    """API para recomendar filme na comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+        
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        mensagem_texto = data.get('mensagem', '').strip()
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        # Buscar detalhes do filme no TMDB
+        detalhes = obter_detalhes_com_cache(tmdb_id)
+        if not detalhes:
+            return JsonResponse({'success': False, 'error': 'Filme não encontrado'}, status=404)
+        
+        # Extrair trailer
+        trailer_url = None
+        if detalhes.get('videos') and detalhes['videos'].get('results'):
+            for video in detalhes['videos']['results']:
+                if video.get('type') == 'Trailer' and video.get('site') == 'YouTube':
+                    trailer_url = f"https://www.youtube.com/watch?v={video['key']}"
+                    break
+        
+        # Criar mensagem de recomendação
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            tipo_mensagem='recomendacao',
+            conteudo=mensagem_texto if mensagem_texto else '',  # Deixar vazio se não tiver texto
+            filme_tmdb_id=tmdb_id,
+            filme_titulo=detalhes.get('title'),
+            filme_poster=f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}" if detalhes.get('poster_path') else None,
+            filme_trailer=trailer_url
+        )
+        
+        # Buscar foto de perfil
+        foto_perfil_url = None
+        try:
+            if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+                foto_perfil_url = request.user.profile.foto_perfil.url
+        except:
+            pass
+        
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': mensagem.usuario.username,
+                'conteudo': mensagem.conteudo,
+                'criado_em': mensagem.criado_em.strftime('%d/%m %H:%M'),
+                'is_owner': True,
+                'foto_perfil': foto_perfil_url,
+                'tipo_mensagem': 'recomendacao',
+                'filme': {
+                    'tmdb_id': mensagem.filme_tmdb_id,
+                    'titulo': mensagem.filme_titulo,
+                    'poster': mensagem.filme_poster,
+                    'trailer': mensagem.filme_trailer
+                }
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required(login_url='backstage:login')
@@ -1288,6 +1415,76 @@ def buscar_ou_criar_lista_watch_later(request):
         return JsonResponse({'success': False, 'message': str(e)})
 
 @api_login_required
+def verificar_filme_watch_later(request, tmdb_id):
+    """Verifica se um filme está na lista 'Assistir Mais Tarde' do usuário"""
+    try:
+        print(f"[DEBUG] Verificando filme {tmdb_id} para usuário {request.user.username}")
+
+        # Busca a lista "Assistir Mais Tarde" do usuário
+        lista = Lista.objects.filter(
+            usuario=request.user,
+            nome='Assistir Mais Tarde'
+        ).first()
+
+        print(f"[DEBUG] Lista encontrada: {lista}")
+
+        if not lista:
+            print(f"[DEBUG] Lista 'Assistir Mais Tarde' não existe para o usuário")
+            return JsonResponse({
+                'success': True,
+                'adicionado': False
+            })
+
+        # Verifica se o filme está na lista
+        # ItemLista tem FK para Filme, então usamos filme__tmdb_id
+        item_existe = ItemLista.objects.filter(
+            lista=lista,
+            filme__tmdb_id=tmdb_id
+        ).exists()
+
+        print(f"[DEBUG] Item existe na lista? {item_existe}")
+
+        return JsonResponse({
+            'success': True,
+            'adicionado': item_existe,
+            'lista_id': lista.id
+        })
+    except Exception as e:
+        print(f"[DEBUG] Erro: {str(e)}")
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
+def verificar_serie_watch_later(request, tmdb_id):
+    """Verifica se uma série está na lista 'Assistir Mais Tarde' do usuário"""
+    try:
+        # Busca a lista "Assistir Mais Tarde" do usuário
+        lista = Lista.objects.filter(
+            usuario=request.user,
+            nome='Assistir Mais Tarde'
+        ).first()
+
+        if not lista:
+            return JsonResponse({
+                'success': True,
+                'adicionado': False
+            })
+
+        # Verifica se a série está na lista
+        # ItemListaSerie tem FK para Serie, então usamos serie__tmdb_id
+        item_existe = ItemListaSerie.objects.filter(
+            lista=lista,
+            serie__tmdb_id=tmdb_id
+        ).exists()
+
+        return JsonResponse({
+            'success': True,
+            'adicionado': item_existe,
+            'lista_id': lista.id
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
 def buscar_listas_usuario(request):
     try:
         # Obtém o tipo de conteúdo (filme ou serie) dos parâmetros da query
@@ -1464,7 +1661,7 @@ def visualizar_lista(request, lista_id):
 
 @login_required(login_url='backstage:login')
 def remover_filme_da_lista(request, lista_id, tmdb_id):
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
 
     try:
@@ -1511,7 +1708,7 @@ def adicionar_serie_lista(request, lista_id, tmdb_id):
 
 @api_login_required
 def remover_serie_da_lista(request, lista_id, tmdb_id):
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
 
     try:
@@ -1777,14 +1974,14 @@ def perfil(request, username=None):
     
     is_own_profile = (request.user == usuario_perfil)
     
-    # Buscar reviews do usuário com contagem de likes
+    # Buscar reviews do usuário com contagem de likes (últimas 4)
     criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
         total_likes=Count('likes', distinct=True)
-    ).order_by('-criado_em')[:12]
+    ).order_by('-criado_em')[:4]
     
     criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
         total_likes=Count('likes', distinct=True)
-    ).order_by('-criado_em')[:12]
+    ).order_by('-criado_em')[:4]
     
     # Enriquecer críticas de filmes com dados do TMDB
     for critica in criticas_filmes:
@@ -1864,14 +2061,58 @@ def meu_diario(request):
 
 
 @login_required(login_url='backstage:login')
-def reviews(request):
+def reviews(request, username=None):
     """Página com todas as reviews do usuário"""
-    criticas_filmes = Critica.objects.filter(usuario=request.user).select_related('filme').order_by('-data_criacao')
-    criticas_series = CriticaSerie.objects.filter(usuario=request.user).select_related('serie').order_by('-data_criacao')
+    from .services.tmdb import buscar_detalhes_filme, buscar_detalhes_serie
+    
+    # Determinar qual usuário mostrar
+    if username:
+        usuario_perfil = get_object_or_404(User, username=username)
+    else:
+        usuario_perfil = request.user
+    
+    is_own_profile = (request.user == usuario_perfil)
+    
+    # Buscar todas as reviews do usuário com contagem de likes
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+    
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+    
+    # Enriquecer críticas de filmes com dados do TMDB
+    for critica in criticas_filmes:
+        if critica.filme.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_filme(critica.filme.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.filme.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('release_date'):
+                    from datetime import datetime
+                    critica.filme.data_lancamento = datetime.strptime(detalhes['release_date'], '%Y-%m-%d').date()
+            except:
+                pass
+    
+    # Enriquecer críticas de séries com dados do TMDB
+    for critica in criticas_series:
+        if critica.serie.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_serie(critica.serie.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.serie.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('first_air_date'):
+                    from datetime import datetime
+                    critica.serie.data_primeira_exibicao = datetime.strptime(detalhes['first_air_date'], '%Y-%m-%d').date()
+            except:
+                pass
     
     context = {
         'criticas_filmes': criticas_filmes,
         'criticas_series': criticas_series,
+        'usuario_perfil': usuario_perfil,
+        'is_own_profile': is_own_profile,
     }
     
     return render(request, 'backstage/reviews.html', context)
@@ -2234,12 +2475,17 @@ def diario_adicionar(request):
                 generos = detalhes.get('generos', []) or []
                 generos_str = ', '.join(generos[:3]) if generos else ''
                 
+                poster_path = detalhes.get('poster_path')
+                poster_url = None
+                if poster_path and poster_path != 'None' and str(poster_path).strip():
+                    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
                 filme = Filme.objects.create(
                     tmdb_id=filme_id,
                     titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
                     descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
                     data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
-                    poster=f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}" if detalhes.get('poster_path') else None,
+                    poster=poster_url,
                     categoria=generos_str
                 )
 
@@ -2251,8 +2497,10 @@ def diario_adicionar(request):
                     filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo or 'Sem título'
                     if not filme.descricao:
                         filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
-                    if not filme.poster and detalhes.get('poster_path'):
-                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    if not filme.poster:
+                        poster_path = detalhes.get('poster_path')
+                        if poster_path and poster_path != 'None' and str(poster_path).strip():
+                            filme.poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
                     if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
                         filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()

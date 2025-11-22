@@ -46,50 +46,6 @@
             <div class="search-suggestions"></div>
           </form>
 
-          <div class="filter-controls header-filter-controls">
-            <button type="button" class="filter-btn" id="filterBtn" aria-label="Filtros">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </button>
-
-            <div class="filter-popup" id="filterPopup">
-              <div class="filter-content">
-                <h3>Filtros de busca</h3>
-                <form method="get" action="{% url 'backstage:buscar' %}">
-                  <select name="tipo" id="tipoSelect">
-                    <option value="">Escolha o tipo de filtro</option>
-                    <option value="titulo">Título</option>
-                    <option value="genero">Gênero</option>
-                    <option value="ano">Ano</option>
-                  </select>
-                  <div id="filtroAno" style="display:none;">
-                    <label for="anoInput">Ano:</label>
-                    <input type="number" name="ano" placeholder="Ex: 2024" id="anoInput">
-                  </div>
-                  <div id="filtroGenero" style="display:none;">
-                    <label for="generoSelect">Gênero:</label>
-                    <select name="genero" id="generoSelect">
-                      <option value="">Selecione um gênero</option>
-                      <option value="Ação">Ação</option>
-                      <option value="Aventura">Aventura</option>
-                      <option value="Comédia">Comédia</option>
-                      <option value="Drama">Drama</option>
-                      <option value="Fantasia">Fantasia</option>
-                      <option value="Ficção Científica">Ficção Científica</option>
-                      <option value="Romance">Romance</option>
-                      <option value="Suspense">Suspense</option>
-                      <option value="Terror">Terror</option>
-                      <option value="Animação">Animação</option>
-                      <option value="Documentário">Documentário</option>
-                    </select>
-                  </div>
-                  <button type="submit">Aplicar filtros</button>
-                </form>
-              </div>
-            </div>
-          </div>
-
           {% include 'backstage/_notifications.html' %}
 
           {% include 'backstage/_user_dropdown.html' %}
@@ -120,7 +76,6 @@
     <section class="communities-section">
       <div class="section-header">
         <h2 class="section-title">Minhas Comunidades</h2>
-        <p class="section-description">Comunidades que você faz parte</p>
       </div>
 
       <div class="communities-grid">
@@ -162,7 +117,6 @@
     <section class="communities-section">
       <div class="section-header">
         <h2 class="section-title">{% if user.is_authenticated and minhas_comunidades %}Outras Comunidades{% else %}Comunidades Populares{% endif %}</h2>
-        <p class="section-description">Junte-se a comunidades de fãs apaixonados por cinema e séries</p>
       </div>
 
       <div class="communities-grid">
@@ -201,72 +155,6 @@
 
       </div>
     </section>
-
-    <div class="community-layout">
-    
-      <aside class="community-sidebar">
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">Atividade Recente</h3>
-          <div class="activity-feed" id="activity-feed">
-            <!-- Activity items will be populated by JavaScript -->
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">Membros Ativos</h3>
-          <div class="active-members" id="active-members">
-            <!-- Active members will be populated by JavaScript -->
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Feed -->
-      <div class="community-main">
-        <!-- Post Creation -->
-        <div class="create-post-card">
-          <div class="create-post-header">
-            {% if user.profile.foto_perfil %}
-              <img src="{{ user.profile.foto_perfil.url }}" alt="Seu avatar" class="user-avatar-img" />
-            {% else %}
-              <img src="{% static 'images/default-avatar.png' %}" alt="Seu avatar" class="user-avatar-img" />
-            {% endif %}
-            <button class="create-post-btn" id="create-post-btn">
-              O que você está assistindo?
-            </button>
-          </div>
-          
-          <div class="create-post-actions">
-            <button class="post-action-btn" data-type="review">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              Avaliar
-            </button>
-            <button class="post-action-btn" data-type="list">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                <rect x="9" y="3" width="6" height="4" rx="2"/>
-              </svg>
-              Lista
-            </button>
-            <button class="post-action-btn" data-type="recommendation">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Recomendar
-            </button>
-          </div>
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="feed-filters">
-          <button class="filter-tab active" data-filter="all">Todos os Posts</button>
-          <button class="filter-tab" data-filter="reviews">Avaliações</button>
-          <button class="filter-tab" data-filter="discussions">Discussões</button>
-          <button class="filter-tab" data-filter="recommendations">Recomendações</button>
-          <button class="filter-tab" data-filter="lists">Listas</button>
-        </div>
-
         <!-- Posts Feed -->
         <div class="posts-feed" id="posts-feed">
           <!-- Posts will be populated by JavaScript -->
@@ -274,7 +162,7 @@
 
         <div class="load-more-section">
           <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
-            Carregar mais posts
+            Carregar mais comunidades
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14"/>
             </svg>

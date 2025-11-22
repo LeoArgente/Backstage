@@ -917,3 +917,61 @@ def obter_videos_filme(tmdb_id):
     except Exception as e:
         print(f"Erro ao buscar vídeos do filme {tmdb_id}: {str(e)}")
         return []
+
+
+def obter_ratings_omdb(imdb_id):
+    """
+    Busca ratings do Metacritic e Rotten Tomatoes via OMDB API
+    
+    Args:
+        imdb_id: ID do IMDb (ex: 'tt0111161')
+        
+    Returns:
+        dict com 'metacritic', 'rotten_tomatoes', 'imdb_rating', 'imdb_votes'
+    """
+    if not imdb_id:
+        return None
+        
+    try:
+        url = f"{settings.OMDB_BASE_URL}?apikey={settings.OMDB_API_KEY}&i={imdb_id}"
+        response = requests.get(url, timeout=5)
+        
+        if response.status_code != 200:
+            print(f"Erro OMDB API: status {response.status_code}")
+            return None
+            
+        data = response.json()
+        
+        if data.get('Response') == 'False':
+            print(f"OMDB não encontrou filme: {data.get('Error')}")
+            return None
+        
+        # Extrair ratings
+        ratings = {}
+        
+        # IMDb rating
+        if data.get('imdbRating') and data.get('imdbRating') != 'N/A':
+            ratings['imdb_rating'] = float(data['imdbRating'])
+        if data.get('imdbVotes') and data.get('imdbVotes') != 'N/A':
+            ratings['imdb_votes'] = data['imdbVotes']
+        
+        # Metacritic
+        if data.get('Metascore') and data.get('Metascore') != 'N/A':
+            ratings['metacritic'] = int(data['Metascore'])
+        
+        # Rotten Tomatoes - procurar no array de Ratings
+        for rating in data.get('Ratings', []):
+            if rating['Source'] == 'Rotten Tomatoes':
+                # Converte '87%' para 87
+                rt_value = rating['Value'].replace('%', '')
+                try:
+                    ratings['rotten_tomatoes'] = int(rt_value)
+                except ValueError:
+                    pass
+                break
+        
+        return ratings if ratings else None
+        
+    except Exception as e:
+        print(f"Erro ao buscar ratings OMDB para {imdb_id}: {str(e)}")
+        return None

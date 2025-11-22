@@ -1002,6 +1002,13 @@ def detalhes_filme(request, tmdb_id):
     else:
         dados_filme['data_lancamento_formatada'] = None
 
+    # Buscar ratings do OMDB (Metacritic, Rotten Tomatoes, etc)
+    from .services.tmdb import obter_ratings_omdb
+    ratings_omdb = None
+    if dados_filme.get('imdb_id'):
+        ratings_omdb = obter_ratings_omdb(dados_filme['imdb_id'])
+        print(f"[DEBUG] Ratings OMDB para {tmdb_id}: {ratings_omdb}")
+
     # Criar ou buscar filme local para críticas
     filme_local, created = Filme.objects.get_or_create(
         tmdb_id=tmdb_id,
@@ -1059,7 +1066,8 @@ def detalhes_filme(request, tmdb_id):
         'total_avaliacoes': total_avaliacoes,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'crew_data_json': json.dumps(equipe),
-        'cast_data_json': json.dumps(elenco_principal)
+        'cast_data_json': json.dumps(elenco_principal),
+        'ratings_omdb': ratings_omdb
     }
     return render(request, "backstage/movie_details.html", context)
 

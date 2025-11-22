@@ -241,39 +241,6 @@
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <div class="brand">
-            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
-                 alt="Backstage Logo"
-                 width="40" height="40">
-          </div>
-          <p class="footer-description">
-            Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
-          </p>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Explorar</h3>
-          <ul class="footer-links">
-            <li><a href="{% url 'backstage:index' %}">Início</a></li>
-            <li><a href="{% url 'backstage:movies' %}">Filmes</a></li>
-            <li><a href="{% url 'backstage:series' %}">Séries</a></li>
-            <li><a href="{% url 'backstage:lists' %}">Listas</a></li>
-            <li><a href="{% url 'backstage:comunidade' %}">Comunidade</a></li>
-          </ul>
-        </div>
-      </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2025 Backstage. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
-
   <style>
     .page-header-simple {
       margin-bottom: 3rem;
@@ -304,5 +271,7 @@
       color: #888;
     }
   </style>
+  <script src="{% static 'js/profile_menu.js' %}" defer></script>
 </body>
+{% include 'backstage/footer_default.html' %}
 </html>

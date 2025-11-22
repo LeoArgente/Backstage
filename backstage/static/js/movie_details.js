@@ -182,12 +182,33 @@ async function loadMovieData() {
       console.warn('No cast data available');
     }
 
+    // Buscar filmes similares
+    await loadSimilarMoviesData(tmdbMovieId);
+
     // Hide loading states
     hideLoadingState();
 
   } catch (error) {
     console.error('Error loading movie data:', error);
     showErrorState();
+  }
+}
+
+async function loadSimilarMoviesData(movieId) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&language=pt-BR&page=1`);
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      currentSimilarMovies = data;
+      console.log('Similar movies loaded:', data.results.length);
+    } else {
+      console.warn('No similar movies found');
+      currentSimilarMovies = null;
+    }
+  } catch (error) {
+    console.error('Error loading similar movies:', error);
+    currentSimilarMovies = null;
   }
 }
 

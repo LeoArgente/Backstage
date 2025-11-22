@@ -522,12 +522,103 @@ def obter_trending(limit=20, usar_cache=True):
 
     return trending_movies
 
-def obter_recomendados(limit=12, usar_cache=True):
-    """Busca filmes recomendados (populares com boa nota)"""
+def obter_recomendados(limit=12, usar_cache=True, usuario=None):
+    """Busca filmes recomendados personalizados baseados no histórico do usuário"""
+    
+    # Se o usuário estiver autenticado, fazer recomendações personalizadas
+    if usuario and usuario.is_authenticated:
+        from backstage.models import DiarioFilme, Critica, Filme
+        from django.db.models import Count, Avg
+        
+        # Buscar gêneros favoritos do usuário baseado no diário e críticas
+        filmes_assistidos_ids = DiarioFilme.objects.filter(usuario=usuario).values_list('filme__tmdb_id', flat=True)
+        criticas_usuario = Critica.objects.filter(usuario=usuario, nota__gte=4).values_list('filme__tmdb_id', flat=True)
+        
+        # Combinar filmes do diário e bem avaliados
+        filmes_relevantes_ids = list(set(list(filmes_assistidos_ids) + list(criticas_usuario)))
+        
+        if filmes_relevantes_ids:
+            # Buscar gêneros mais comuns nos filmes que o usuário gostou
+            filmes_relevantes = Filme.objects.filter(tmdb_id__in=filmes_relevantes_ids)
+            generos_contagem = {}
+            
+            for filme in filmes_relevantes:
+                if filme.generos:
+                    # Gêneros podem estar como string separada por vírgula
+                    generos_lista = [g.strip() for g in filme.generos.split(',')]
+                    for genero in generos_lista:
+                        generos_contagem[genero] = generos_contagem.get(genero, 0) + 1
+            
+            # Pegar top 3 gêneros favoritos
+            generos_favoritos = sorted(generos_contagem.items(), key=lambda x: x[1], reverse=True)[:3]
+            
+            if generos_favoritos:
+                # Mapear nomes de gêneros para IDs do TMDb
+                generos_map = {
+                    'Action': 28, 'Adventure': 12, 'Animation': 16,
+                    'Comedy': 35, 'Crime': 80, 'Documentary': 99,
+                    'Drama': 18, 'Family': 10751, 'Fantasy': 14,
+                    'History': 36, 'Horror': 27, 'Music': 10402,
+                    'Mystery': 9648, 'Romance': 10749, 'Science Fiction': 878,
+                    'TV Movie': 10770, 'Thriller': 53, 'War': 10752,
+                    'Western': 37
+                }
+                
+                # Buscar filmes com os gêneros favoritos
+                filmes_recomendados = []
+                for genero_nome, _ in generos_favoritos:
+                    genero_id = generos_map.get(genero_nome)
+                    if genero_id:
+                        try:
+                            data = _get("/discover/movie", params={
+                                "language": "pt-BR",
+                                "page": 1,
+                                "with_genres": genero_id,
+                                "vote_average.gte": 7,
+                                "sort_by": "vote_count.desc"
+                            })
+                            filmes_recomendados.extend(data.get("results", []))
+                        except:
+                            pass
+                
+                # Remover filmes já assistidos e duplicatas
+                filmes_unicos = {}
+                for filme in filmes_recomendados:
+                    filme_id = filme.get('id')
+                    if filme_id not in filmes_relevantes_ids and filme_id not in filmes_unicos:
+                        filmes_unicos[filme_id] = filme
+                
+                # Pegar os mais votados
+                filmes_finais = sorted(
+                    filmes_unicos.values(),
+                    key=lambda x: x.get('vote_count', 0),
+                    reverse=True
+                )[:limit]
+                
+                if filmes_finais:
+                    # Formatar recomendações personalizadas
+                    recommended_movies = []
+                    for filme in filmes_finais:
+                        recommended_movies.append({
+                            'tmdb_id': filme.get('id'),
+                            'titulo': filme.get('title'),
+                            'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                            'nota': filme.get('vote_average', 0),
+                            'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+                            'poster_path': filme.get('poster_path'),
+                            'backdrop_path': filme.get('backdrop_path'),
+                            'sinopse': filme.get('overview', ''),
+                            'generos': []
+                        })
+                    
+                    return recommended_movies
+    
+    # Fallback: recomendações genéricas se não houver histórico suficiente
     cache_key = f"recommended_{limit}"
 
     if usar_cache:
         try:
+            from backstage.models import FilmeCache
             fc = FilmeCache.objects.filter(id_tmdb=999997).first()
             if fc and fc.payload.get('cache_type') == cache_key:
                 if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=3):
@@ -557,14 +648,18 @@ def obter_recomendados(limit=12, usar_cache=True):
 
     # Salvar no cache
     if usar_cache and recommended_movies:
-        cache_payload = {
-            'cache_type': cache_key,
-            'filmes': recommended_movies
-        }
-        FilmeCache.objects.update_or_create(
-            id_tmdb=999997,
-            defaults={'payload': cache_payload}
-        )
+        try:
+            from backstage.models import FilmeCache
+            cache_payload = {
+                'cache_type': cache_key,
+                'filmes': recommended_movies
+            }
+            FilmeCache.objects.update_or_create(
+                id_tmdb=999997,
+                defaults={'payload': cache_payload}
+            )
+        except:
+            pass
 
     return recommended_movies
 

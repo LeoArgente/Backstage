@@ -1063,7 +1063,7 @@ def filmes_home(request):
         # Buscar dados com cache
         hero_movies = obter_trending(limit=5)
         goats = obter_goats(limit=20)
-        recommended = obter_recomendados(limit=12)
+        recommended = obter_recomendados(limit=12, usuario=request.user)
         em_cartaz = obter_em_cartaz(limit=12)
         classicos = obter_classicos(limit=12)
         

@@ -116,4 +116,7 @@ urlpatterns = [
     path('api/limpar-reviews/', views.limpar_reviews, name='limpar_reviews'),
     path('api/limpar-favoritos/', views.limpar_favoritos, name='limpar_favoritos'),
     path('api/limpar-listas/', views.limpar_listas, name='limpar_listas'),
+
+    # URLs de Recomendações
+    path('api/recomendacoes/', views.api_recomendacoes, name='api_recomendacoes'),
 ]

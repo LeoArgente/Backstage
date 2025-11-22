@@ -21,6 +21,7 @@ from .services.tmdb import (
     obter_top_filmes,
     obter_trending,
     obter_recomendados,
+    obter_recomendados_por_favoritos,
     obter_goats,
     obter_em_cartaz,
     obter_classicos,
@@ -220,9 +221,22 @@ def index(request):
             atividades_amigos.sort(key=lambda x: x['data'], reverse=True)
             atividades_amigos = atividades_amigos[:10]  # Limitar a 10 atividades
 
+    # Buscar recomendações personalizadas
+    filmes_recomendados = []
+    filmes_recomendados_json = '[]'
+    if request.user.is_authenticated:
+        try:
+            filmes_recomendados = obter_recomendados_por_favoritos(request.user, limit=12)
+            filmes_recomendados_json = json.dumps(filmes_recomendados)
+        except Exception as e:
+            print(f"Erro ao buscar recomendações: {str(e)}")
+            filmes_recomendados = []
+            filmes_recomendados_json = '[]'
+
     context = {
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'atividades_amigos': atividades_amigos,
+        'filmes_recomendados': filmes_recomendados_json,
     }
     return render(request, 'backstage/index.html', context)
 
@@ -3612,6 +3626,27 @@ def limpar_favoritos(request):
         return JsonResponse({
             'success': False,
             'message': f'Erro ao remover favoritos: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['GET'])
+def api_recomendacoes(request):
+    """API para buscar recomendações personalizadas do usuário"""
+    try:
+        # Buscar recomendações baseadas nos favoritos
+        filmes = obter_recomendados_por_favoritos(request.user, limit=12)
+
+        return JsonResponse({
+            'success': True,
+            'filmes': filmes,
+            'total': len(filmes)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar recomendações: {str(e)}',
+            'filmes': []
         }, status=500)
 
 @api_login_required

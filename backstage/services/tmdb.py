@@ -677,6 +677,91 @@ def obter_recomendados(limit=12, usar_cache=True, usuario=None):
 
     return recommended_movies
 
+def obter_recomendados_por_favoritos(usuario, limit=12):
+    """
+    Recomenda filmes baseado nos favoritos do usuário usando endpoint Similar do TMDb
+
+    Args:
+        usuario: Instância do usuário Django
+        limit: Número máximo de filmes a retornar (padrão: 12)
+
+    Returns:
+        Lista de dicionários com dados dos filmes recomendados
+    """
+    from backstage.models import FilmeFavorito, DiarioFilme
+
+    # Buscar top 5 favoritos do usuário (ordenados por nota)
+    favoritos = FilmeFavorito.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')[:5]
+
+    # Se usuário não tem favoritos, retornar filmes populares
+    if not favoritos.exists():
+        return buscar_filmes_populares(page=1)[:limit]
+
+    # Buscar filmes que o usuário já assistiu para filtrar
+    filmes_assistidos = set(
+        DiarioFilme.objects.filter(usuario=usuario).values_list('filme__tmdb_id', flat=True)
+    )
+
+    # Adicionar os próprios favoritos à lista de "já vistos"
+    favoritos_ids = set(favoritos.values_list('tmdb_id', flat=True))
+    filmes_assistidos.update(favoritos_ids)
+
+    filmes_recomendados = []
+    filmes_unicos = {}  # Dict para evitar duplicatas (key: tmdb_id)
+
+    # Para cada favorito, buscar filmes similares
+    for favorito in favoritos:
+        try:
+            data = _get(
+                f"/movie/{favorito.tmdb_id}/similar",
+                params={"language": "pt-BR", "page": 1}
+            )
+
+            similares = data.get("results", [])
+
+            for filme in similares:
+                tmdb_id = filme.get('id')
+
+                # Pular se já foi assistido ou já está na lista de recomendados
+                if tmdb_id in filmes_assistidos or tmdb_id in filmes_unicos:
+                    continue
+
+                # Adicionar à lista de recomendações
+                filmes_unicos[tmdb_id] = {
+                    'tmdb_id': tmdb_id,
+                    'titulo': filme.get('title'),
+                    'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                    'nota': round(filme.get('vote_average', 0), 1),
+                    'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+                    'poster_path': filme.get('poster_path'),
+                    'backdrop_path': filme.get('backdrop_path'),
+                    'sinopse': filme.get('overview', ''),
+                    'popularidade': filme.get('popularity', 0)
+                }
+
+        except Exception as e:
+            print(f"Erro ao buscar similares para filme {favorito.tmdb_id}: {str(e)}")
+            continue
+
+    # Converter dict para lista e ordenar por popularidade
+    filmes_recomendados = list(filmes_unicos.values())
+    filmes_recomendados.sort(key=lambda x: x['popularidade'], reverse=True)
+
+    # Se ainda não temos filmes suficientes, complementar com populares
+    if len(filmes_recomendados) < limit:
+        try:
+            populares = buscar_filmes_populares(page=1)
+            for popular in populares:
+                if popular['tmdb_id'] not in filmes_unicos and popular['tmdb_id'] not in filmes_assistidos:
+                    filmes_recomendados.append(popular)
+                    if len(filmes_recomendados) >= limit:
+                        break
+        except:
+            pass
+
+    # Retornar apenas o limite solicitado
+    return filmes_recomendados[:limit]
+
 def obter_goats(limit=20, usar_cache=True):
     """Busca filmes GOATS (Greatest of All Time) - os com as maiores notas da história"""
     cache_key = f"goats_{limit}"

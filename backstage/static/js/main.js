@@ -185,9 +185,10 @@ async function initHomepage() {
       await renderGoatsMovies();
     }
     // Recent movies section not implemented yet (would need watch history from API)
-    if (recommendedMoviesGrid) {
-      await renderRecommendedMovies();
-    }
+    // RECOMENDAÇÕES: Agora carregadas via index.html (baseadas em favoritos)
+    // if (recommendedMoviesGrid) {
+    //   await renderRecommendedMovies();
+    // }
     if (emCartazMoviesGrid) {
       await renderEmCartazMovies();
     }
@@ -827,24 +828,25 @@ function debounce(func, wait) {
 }
 
 // ===== Refresh Button =====
-function initRefreshButton() {
-  const refreshBtn = document.querySelector('.refresh-btn');
+// DESABILITADO: Botão atualizar agora é gerenciado pelo index.html
+// function initRefreshButton() {
+//   const refreshBtn = document.querySelector('.refresh-btn');
 
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', async () => {
-      if (!recommendedMoviesGrid) return;
+//   if (refreshBtn) {
+//     refreshBtn.addEventListener('click', async () => {
+//       if (!recommendedMoviesGrid) return;
 
-      recommendedMoviesGrid.style.opacity = '0.5';
+//       recommendedMoviesGrid.style.opacity = '0.5';
 
-      // Recarregar recomendações do backend
-      await renderRecommendedMovies();
+//       // Recarregar recomendações do backend
+//       await renderRecommendedMovies();
 
-      setTimeout(() => {
-        recommendedMoviesGrid.style.opacity = '1';
-      }, 300);
-    });
-  }
-}
+//       setTimeout(() => {
+//         recommendedMoviesGrid.style.opacity = '1';
+//       }, 300);
+//     });
+//   }
+// }
 
 // ===== Image Loading Error Handler =====
 function handleImageError(img) {
@@ -860,7 +862,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isHomepage) {
     await initHomepage();
     initSearch();
-    initRefreshButton();
+    // initRefreshButton(); // DESABILITADO: agora gerenciado pelo index.html
   }
 
   // Movie details page functionality is now handled by movie_details.js

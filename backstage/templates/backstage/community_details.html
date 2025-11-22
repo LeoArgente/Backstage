@@ -948,7 +948,11 @@
         <div class="chat-header">
           <div class="chat-header-left">
             <div class="community-icon">
-              {{ comunidade.nome|first|upper }}
+              {% if comunidade.foto_perfil %}
+                <img src="{{ comunidade.foto_perfil.url }}" alt="{{ comunidade.nome }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+              {% else %}
+                {{ comunidade.nome|first|upper }}
+              {% endif %}
             </div>
             <div class="chat-header-info">
               <h2>{{ comunidade.nome }}</h2>

@@ -99,6 +99,7 @@ class Comunidade(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Comunidade")
     slug = models.SlugField(max_length=120, unique=True, blank=True)
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    foto_perfil = models.ImageField(upload_to='comunidades/', blank=True, null=True, verbose_name="Foto de Perfil")
     publica = models.BooleanField(default=True, verbose_name="Comunidade pública")
     codigo_convite = models.CharField(max_length=8, unique=True, blank=True)
     criador = models.ForeignKey(

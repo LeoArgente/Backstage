@@ -149,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const nome = document.getElementById('community-name').value.trim();
             const descricao = document.getElementById('community-description').value.trim();
+            const fotoInput = document.getElementById('community-photo');
             
             // Validação básica
             if (!nome) {
@@ -166,6 +167,11 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('descricao', descricao);
             formData.append('publica', 'on'); // Por padrão, comunidades são públicas
             
+            // Adicionar foto se foi selecionada
+            if (fotoInput && fotoInput.files.length > 0) {
+                formData.append('foto_perfil', fotoInput.files[0]);
+            }
+            
             const submitBtn = formCriarComunidade.querySelector('button[type="submit"]');
             
             // Desabilitar botão durante envio
@@ -175,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Enviando requisição para criar comunidade...');
             console.log('Nome:', nome);
             console.log('Descrição:', descricao);
+            console.log('Foto:', fotoInput && fotoInput.files.length > 0 ? 'Sim' : 'Não');
             
             try {
                 const response = await fetch('/criar-comunidade/', {

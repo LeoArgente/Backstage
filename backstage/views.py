@@ -857,6 +857,7 @@ def criar_comunidade(request):
         nome = request.POST.get('nome', '').strip()
         descricao = request.POST.get('descricao', '').strip()
         publica = request.POST.get('publica') == 'on'
+        foto_perfil = request.FILES.get('foto_perfil')
         
         # Validações
         if not nome:
@@ -870,7 +871,8 @@ def criar_comunidade(request):
             nome=nome,
             descricao=descricao,
             publica=publica,
-            criador=request.user
+            criador=request.user,
+            foto_perfil=foto_perfil
         )
         
         # Adicionar o criador como admin

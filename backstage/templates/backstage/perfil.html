@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/perfil.css' %}">
+  <link rel="stylesheet" href="{% static 'css/lists.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
@@ -263,23 +264,19 @@
 
           {% if listas %}
           <div class="lists-grid">
+            <div class="lists-section">
             {% for lista in listas %}
             <a href="{% url 'backstage:visualizar_lista' lista.id %}" class="list-card">
-              <div class="list-header">
-                <h3>{{ lista.nome }}</h3>
-                {% if lista.publica %}
-                <span class="list-badge public">Pública</span>
-                {% else %}
-                <span class="list-badge private">Privada</span>
-                {% endif %}
-              </div>
+              <span class="list-badge">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+              <h3 class="list-title">{{ lista.nome }}</h3>
               <p class="list-description">{{ lista.descricao|truncatewords:20 }}</p>
-              <div class="list-footer">
+              <div class="list-meta">
                 <span class="list-count">{{ lista.itens.count }} itens</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
               </div>
             </a>
             {% endfor %}
+            </div>
           </div>
           {% else %}
           <div class="empty-state">

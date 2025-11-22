@@ -1415,6 +1415,76 @@ def buscar_ou_criar_lista_watch_later(request):
         return JsonResponse({'success': False, 'message': str(e)})
 
 @api_login_required
+def verificar_filme_watch_later(request, tmdb_id):
+    """Verifica se um filme está na lista 'Assistir Mais Tarde' do usuário"""
+    try:
+        print(f"[DEBUG] Verificando filme {tmdb_id} para usuário {request.user.username}")
+
+        # Busca a lista "Assistir Mais Tarde" do usuário
+        lista = Lista.objects.filter(
+            usuario=request.user,
+            nome='Assistir Mais Tarde'
+        ).first()
+
+        print(f"[DEBUG] Lista encontrada: {lista}")
+
+        if not lista:
+            print(f"[DEBUG] Lista 'Assistir Mais Tarde' não existe para o usuário")
+            return JsonResponse({
+                'success': True,
+                'adicionado': False
+            })
+
+        # Verifica se o filme está na lista
+        # ItemLista tem FK para Filme, então usamos filme__tmdb_id
+        item_existe = ItemLista.objects.filter(
+            lista=lista,
+            filme__tmdb_id=tmdb_id
+        ).exists()
+
+        print(f"[DEBUG] Item existe na lista? {item_existe}")
+
+        return JsonResponse({
+            'success': True,
+            'adicionado': item_existe,
+            'lista_id': lista.id
+        })
+    except Exception as e:
+        print(f"[DEBUG] Erro: {str(e)}")
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
+def verificar_serie_watch_later(request, tmdb_id):
+    """Verifica se uma série está na lista 'Assistir Mais Tarde' do usuário"""
+    try:
+        # Busca a lista "Assistir Mais Tarde" do usuário
+        lista = Lista.objects.filter(
+            usuario=request.user,
+            nome='Assistir Mais Tarde'
+        ).first()
+
+        if not lista:
+            return JsonResponse({
+                'success': True,
+                'adicionado': False
+            })
+
+        # Verifica se a série está na lista
+        # ItemListaSerie tem FK para Serie, então usamos serie__tmdb_id
+        item_existe = ItemListaSerie.objects.filter(
+            lista=lista,
+            serie__tmdb_id=tmdb_id
+        ).exists()
+
+        return JsonResponse({
+            'success': True,
+            'adicionado': item_existe,
+            'lista_id': lista.id
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
 def buscar_listas_usuario(request):
     try:
         # Obtém o tipo de conteúdo (filme ou serie) dos parâmetros da query
@@ -1591,7 +1661,7 @@ def visualizar_lista(request, lista_id):
 
 @login_required(login_url='backstage:login')
 def remover_filme_da_lista(request, lista_id, tmdb_id):
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
 
     try:
@@ -1638,7 +1708,7 @@ def adicionar_serie_lista(request, lista_id, tmdb_id):
 
 @api_login_required
 def remover_serie_da_lista(request, lista_id, tmdb_id):
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
 
     try:

@@ -1188,11 +1188,21 @@ def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:
         # Buscar dados com cache
+        print("[DEBUG] Buscando filmes para home...")
         hero_movies = obter_trending(limit=5)
+        print(f"[DEBUG] Hero movies: {len(hero_movies)}")
+        
         goats = obter_goats(limit=20)
+        print(f"[DEBUG] GOATS: {len(goats)}")
+        
         recommended = obter_recomendados(limit=12, usuario=request.user)
+        print(f"[DEBUG] Recommended: {len(recommended)}")
+        
         em_cartaz = obter_em_cartaz(limit=12)
+        print(f"[DEBUG] Em cartaz: {len(em_cartaz)}")
+        
         classicos = obter_classicos(limit=12)
+        print(f"[DEBUG] Clássicos: {len(classicos)}")
         
 
         # Adicionar URL base para imagens
@@ -1211,6 +1221,7 @@ def filmes_home(request):
             else:
                 movie['backdrop_url'] = None
 
+        print("[DEBUG] Retornando dados para home")
         return JsonResponse({
             'success': True,
             'hero_movies': hero_movies,
@@ -1223,6 +1234,9 @@ def filmes_home(request):
         })
 
     except Exception as e:
+        print(f"[ERROR] Erro em filmes_home: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': str(e),

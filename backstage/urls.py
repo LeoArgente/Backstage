@@ -60,6 +60,12 @@ urlpatterns = [
     # API de busca de filmes (DEVE VIR ANTES das URLs com <slug>)
     path('comunidade/buscar-filmes/', views.buscar_filmes_para_recomendar, name='buscar_filmes_para_recomendar'),
     
+    # APIs de Filmes Favoritos
+    path('api/favoritos/adicionar/', views.adicionar_favorito, name='adicionar_favorito'),
+    path('api/favoritos/remover/', views.remover_favorito, name='remover_favorito'),
+    path('api/favoritos/atualizar-nota/', views.atualizar_nota_favorito, name='atualizar_nota_favorito'),
+    path('api/favoritos/<str:username>/', views.buscar_favoritos_usuario, name='buscar_favoritos_usuario'),
+    
     # URLs de comunidade específica
     path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
     

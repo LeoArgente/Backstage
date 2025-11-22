@@ -370,3 +370,27 @@ class MensagemComunidade(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} em {self.comunidade.nome}: {self.conteudo[:50]}"
+
+
+class FilmeFavorito(models.Model):
+    """Modelo para filmes favoritos dos usuários com sistema de ranking por estrelas"""
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='filmes_favoritos')
+    tmdb_id = models.IntegerField(verbose_name="ID do Filme (TMDB)")
+    titulo = models.CharField(max_length=255)
+    poster = models.URLField(blank=True, null=True)
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        verbose_name="Nota em estrelas",
+        help_text="Avalie de 1 a 5 estrelas"
+    )
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Filme Favorito"
+        verbose_name_plural = "Filmes Favoritos"
+        ordering = ['-nota', '-atualizado_em']  # Ordenado por nota (ranking) e depois por data
+        unique_together = ['usuario', 'tmdb_id']  # Um usuário não pode adicionar o mesmo filme duas vezes
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.titulo} ({self.nota}⭐)"

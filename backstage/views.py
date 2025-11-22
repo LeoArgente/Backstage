@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, MensagemComunidade
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, MensagemComunidade, FilmeFavorito
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -632,6 +632,162 @@ def recomendar_filme_comunidade(request, slug):
                     'trailer': mensagem.filme_trailer
                 }
             }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def adicionar_favorito(request):
+    """API para adicionar filme aos favoritos com nota"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        titulo = data.get('titulo')
+        poster = data.get('poster')
+        nota = data.get('nota')
+        
+        # Validações
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        if not titulo:
+            return JsonResponse({'success': False, 'error': 'Título do filme não fornecido'}, status=400)
+        
+        if not nota or nota not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5 estrelas'}, status=400)
+        
+        # Criar ou atualizar favorito
+        favorito, criado = FilmeFavorito.objects.update_or_create(
+            usuario=request.user,
+            tmdb_id=tmdb_id,
+            defaults={
+                'titulo': titulo,
+                'poster': poster,
+                'nota': nota
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'criado': criado,
+            'favorito': {
+                'id': favorito.id,
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'poster': favorito.poster,
+                'nota': favorito.nota,
+                'adicionado_em': favorito.adicionado_em.strftime('%d/%m/%Y %H:%M')
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE", "POST"])
+def remover_favorito(request):
+    """API para remover filme dos favoritos"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        # Buscar e deletar favorito
+        favorito = FilmeFavorito.objects.filter(usuario=request.user, tmdb_id=tmdb_id).first()
+        
+        if not favorito:
+            return JsonResponse({'success': False, 'error': 'Filme não está nos favoritos'}, status=404)
+        
+        favorito.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'mensagem': 'Filme removido dos favoritos'
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["PUT", "POST"])
+def atualizar_nota_favorito(request):
+    """API para atualizar nota de um favorito"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        nova_nota = data.get('nota')
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        if not nova_nota or nova_nota not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5 estrelas'}, status=400)
+        
+        # Buscar e atualizar favorito
+        favorito = FilmeFavorito.objects.filter(usuario=request.user, tmdb_id=tmdb_id).first()
+        
+        if not favorito:
+            return JsonResponse({'success': False, 'error': 'Filme não está nos favoritos'}, status=404)
+        
+        favorito.nota = nova_nota
+        favorito.save()
+        
+        return JsonResponse({
+            'success': True,
+            'favorito': {
+                'id': favorito.id,
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'nota': favorito.nota,
+                'atualizado_em': favorito.atualizado_em.strftime('%d/%m/%Y %H:%M')
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+def buscar_favoritos_usuario(request, username):
+    """API para buscar favoritos de um usuário (ranking público)"""
+    try:
+        # Buscar usuário
+        usuario = get_object_or_404(User, username=username)
+        
+        # Buscar favoritos ordenados por nota (ranking)
+        favoritos = FilmeFavorito.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')
+        
+        favoritos_data = []
+        for favorito in favoritos:
+            favoritos_data.append({
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'poster': favorito.poster,
+                'nota': favorito.nota,
+                'adicionado_em': favorito.adicionado_em.strftime('%d/%m/%Y'),
+                'atualizado_em': favorito.atualizado_em.strftime('%d/%m/%Y')
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'usuario': username,
+            'total': len(favoritos_data),
+            'favoritos': favoritos_data
         })
         
     except Exception as e:

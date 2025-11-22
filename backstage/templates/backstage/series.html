@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'css/series.css' %}">
+  <link rel="stylesheet" href="{% static 'css/series.css' %}?v=1.2">
   <link rel="stylesheet" href="{% static 'css/movies.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
@@ -84,14 +84,7 @@
             <option value="alphabetical">Alfabético</option>
           </select>
           
-          <button class="view-toggle" id="view-toggle" aria-label="Alternar visualização">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="3" y="3" width="7" height="7"/>
-              <rect x="14" y="3" width="7" height="7"/>
-              <rect x="3" y="14" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/>
-            </svg>
-          </button>
+         
         </div>
       </div>
     </section>
@@ -240,7 +233,7 @@
   {% include 'backstage/_mobile_scripts.html' %}
 
   <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/series.js' %}" defer></script>
+  <script src="{% static 'js/series.js' %}?v=1.1" defer></script>
   <script src="{% static 'js/profile_menu.js' %}" defer></script>
   <script src="{% static 'js/filter-popup.js' %}" defer></script>
   <script src="{% static 'js/search-suggestions.js' %}" defer></script>

@@ -1,4 +1,10 @@
 /* ===== Lists Page Styles ===== */
+
+/* Utility class for hiding elements */
+.hidden {
+  display: none !important;
+}
+
 .page-header {
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
   padding: 100px 0 60px;
@@ -326,6 +332,37 @@
 
 .load-more-btn {
   min-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-base);
+}
+
+.load-more-btn svg {
+  transition: transform var(--transition-base);
+}
+
+.load-more-btn:not(:disabled):hover svg {
+  transform: translateX(2px);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== No Lists State ===== */

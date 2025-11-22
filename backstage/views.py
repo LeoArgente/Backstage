@@ -334,7 +334,7 @@ def comunidade(request):
             usuario=request.user
         ).select_related('comunidade').order_by('-data_entrada')
     
-    # Buscar todas as comunidades públicas
+    # Buscar todas as comunidades públicas (paginação inicial - 12 primeiras)
     comunidades_publicas = Comunidade.objects.filter(
         publica=True
     ).order_by('-data_criacao')
@@ -344,11 +344,62 @@ def comunidade(request):
         ids_minhas_comunidades = [mc.comunidade.id for mc in minhas_comunidades]
         comunidades_publicas = comunidades_publicas.exclude(id__in=ids_minhas_comunidades)
     
+    # Paginação inicial
+    comunidades_publicas = comunidades_publicas[:12]
+    
     context = {
         'minhas_comunidades': minhas_comunidades,
         'comunidades_publicas': comunidades_publicas,
     }
     return render(request, "backstage/community.html", context)
+
+
+def comunidade_api(request):
+    """API endpoint para carregar mais comunidades"""
+    try:
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        offset = (page - 1) * per_page
+        
+        # Buscar comunidades públicas
+        comunidades_query = Comunidade.objects.filter(
+            publica=True
+        ).order_by('-data_criacao')
+        
+        # Se o usuário estiver autenticado, excluir as que ele já é membro
+        if request.user.is_authenticated:
+            ids_minhas_comunidades = MembroComunidade.objects.filter(
+                usuario=request.user
+            ).values_list('comunidade_id', flat=True)
+            comunidades_query = comunidades_query.exclude(id__in=ids_minhas_comunidades)
+        
+        # Buscar total e slice para verificar se tem mais
+        total_count = comunidades_query.count()
+        comunidades = list(comunidades_query[offset:offset + per_page])
+        
+        # Preparar dados
+        items = []
+        for comunidade in comunidades:
+            items.append({
+                'nome': comunidade.nome,
+                'slug': comunidade.slug,
+                'descricao': comunidade.descricao,
+                'membros_count': comunidade.membros.count(),
+                'publica': comunidade.publica,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'items': items,
+            'has_more': offset + per_page < total_count,
+            'page': page,
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @login_required(login_url='backstage:login')
 def minhas_comunidades(request):
@@ -1017,21 +1068,79 @@ def filmes(request):
 def lists(request):
     from django.db.models import Count
 
+    page = int(request.GET.get('page', 1))
+    per_page = 12
+    offset = (page - 1) * per_page
+
     minhas_listas = Lista.objects.filter(usuario=request.user).annotate(
         num_filmes=Count('itens', distinct=True),
         num_series=Count('itens_serie', distinct=True)
-    ).order_by('-atualizada_em')
+    ).order_by('-atualizada_em')[offset:offset + per_page]
 
     listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
         num_filmes=Count('itens', distinct=True),
         num_series=Count('itens_serie', distinct=True)
-    ).order_by('-atualizada_em')
+    ).order_by('-atualizada_em')[offset:offset + per_page]
 
     context = {
         'minhas_listas': minhas_listas,
         'listas_publicas': listas_publicas,
     }
     return render(request, "backstage/lists.html", context)
+
+def lists_api(request):
+    """API endpoint para carregar listas com paginação"""
+    from django.db.models import Count
+    
+    try:
+        filter_type = request.GET.get('filter', 'my-lists')
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        offset = (page - 1) * per_page
+
+        if filter_type == 'my-lists':
+            listas = Lista.objects.filter(usuario=request.user).annotate(
+                num_filmes=Count('itens', distinct=True),
+                num_series=Count('itens_serie', distinct=True)
+            ).order_by('-atualizada_em')[offset:offset + per_page]
+        else:  # public
+            listas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
+                num_filmes=Count('itens', distinct=True),
+                num_series=Count('itens_serie', distinct=True)
+            ).order_by('-atualizada_em')[offset:offset + per_page]
+
+        listas_data = []
+        for lista in listas:
+            listas_data.append({
+                'id': lista.id,
+                'nome': lista.nome,
+                'descricao': lista.descricao or '',
+                'publica': lista.publica,
+                'usuario': lista.usuario.username,
+                'num_filmes': lista.num_filmes,
+                'num_series': lista.num_series,
+                'atualizada_em': lista.atualizada_em.strftime('%d/%m/%Y'),
+                'is_mine': lista.usuario == request.user
+            })
+
+        has_more = len(listas) == per_page
+
+        return JsonResponse({
+            'success': True,
+            'listas': listas_data,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar listas na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'listas': [],
+            'has_more': False
+        }, status=500)
 
 def movies(request):
     try:
@@ -1137,6 +1246,69 @@ def series(request):
         'ordenacao_atual': ordenacao
     }
     return render(request, "backstage/series.html", context)
+
+def series_api(request):
+    """API endpoint para carregar séries com paginação"""
+    try:
+        # Obter parâmetros
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB (séries)
+        generos_map = {
+            'action': 10759,  # Action & Adventure
+            'adventure': 10759,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 10765,  # Sci-Fi & Fantasy
+            'thriller': 9648,  # Mystery
+            'horror': 9648,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 10765,
+            'reality': 10764,
+            'news': 10763,
+            'kids': 10762,
+            'soap': 10766,
+            'talk': 10767,
+            'western': 37,
+            'war': 10768,
+            'mystery': 9648
+        }
+
+        # Buscar séries conforme filtros
+        from .services.tmdb import buscar_series_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        series_list = buscar_series_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+        
+        # Verificar se há mais séries
+        has_more = len(series_list) > 0 and page < 500
+
+        return JsonResponse({
+            'success': True,
+            'series': series_list,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar séries na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'series': [],
+            'has_more': False
+        }, status=500)
 
 def wireframer(request):
     return render(request, "backstage/wireframer.html")

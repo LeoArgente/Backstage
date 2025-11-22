@@ -96,16 +96,30 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#f5c518">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              <strong>{{ filme.nota_tmdb|floatformat:1|default:"8.0" }}</strong>/10
+              {% if ratings_omdb and ratings_omdb.imdb_rating %}
+                <strong>{{ ratings_omdb.imdb_rating|floatformat:1 }}</strong>/10
+              {% else %}
+                <strong>{{ filme.nota_tmdb|floatformat:1|default:"N/A" }}</strong>/10
+              {% endif %}
             </div>
-            <span class="rating-count">2.3M votos</span>
+            <span class="rating-count">
+              {% if ratings_omdb and ratings_omdb.imdb_votes %}
+                {{ ratings_omdb.imdb_votes }}
+              {% else %}
+                TMDb
+              {% endif %}
+            </span>
           </div>
           
           <div class="rating-box rotten">
             <span class="rating-source">Rotten Tomatoes</span>
             <div class="rating-value">
               <span class="tomato-icon">🍅</span>
-              <strong>87%</strong>
+              {% if ratings_omdb and ratings_omdb.rotten_tomatoes %}
+                <strong>{{ ratings_omdb.rotten_tomatoes }}%</strong>
+              {% else %}
+                <strong>N/A</strong>
+              {% endif %}
             </div>
             <span class="rating-count">Tomatometer</span>
           </div>
@@ -113,7 +127,11 @@
           <div class="rating-box metacritic">
             <span class="rating-source">Metacritic</span>
             <div class="rating-value metascore">
-              <strong>74</strong>
+              {% if ratings_omdb and ratings_omdb.metacritic %}
+                <strong>{{ ratings_omdb.metacritic }}</strong>
+              {% else %}
+                <strong>N/A</strong>
+              {% endif %}
             </div>
             <span class="rating-count">Metascore</span>
           </div>

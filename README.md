@@ -129,8 +129,51 @@ A implementação das histórias foi feita por meio da programação em par. Nes
 <summary> 📥 ENTREGA 4</summary>
 Nesta sprint, o objetivo foi implementar as histórias de usuário restantes do planejamento, trazendo melhorias e novas funcionalidades ao Backstage. O foco esteve em completar features essenciais que agregam valor à experiência dos usuários e consolidam o desenvolvimento da plataforma.
 
+## HISTÓRIA 1:
+Permite que o usuário crie comunidades e interaja com amigos para discutir sobre filmes e séries.
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/comunidades1.png)
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/comunidades2.png)
+
+## HISTÓRIA 2:
+Permite que cada usuário tenha um ranking de filmes favoritos em seu perfil, com base em suas avaliações
+![História2](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/ranking1.png)
+
+## HISTÓRIA 3:
+Permite que o usuário registre e visualize seu histórico de filmes assistidos em um diário pessoal, organizado por data.
+![História3](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/diario1.png)
+![História3](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/diario2.png)
+
+## HISTÓRIA 4:
+Permite que o usuário visualize perfis de outros usuários, acessando suas resenhas públicas e filmes assistidos, respeitando configurações de privacidade.
+![História4](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/perfis.png)
+
+## HISTÓRIA 5:
+Permite que o usuário configure listas como privadas, mantendo o controle sobre a visibilidade de suas informações no perfil.
+![História5](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/privadas1.png)
+
+## HISTÓRIA 6:
+Oferece recomendações personalizadas de filmes com base nos favoritos do usuário, incluindo justificativas e feedback para refinar sugestões futuras.
+![História6](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/recomendados.png)
+
+## Bugtracker
+Uma nova secção foi adicionada ao bugtracker, para o controle de bugs desta entrega.
+
+Open:
+![bugtracker4open](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4open.png)
+
+Closed:
+![bugtracker4closed](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4closed.png)
+
+## Backlog no Jira
+![backlogfinal](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/backlogfinal.png)
+
+## Quadro no jira
+![quadrofinal](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/quadrofinal.png)
+
+## Programação em Par
+A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.
 <details>
-<details>
+
 <summary> 🚀 INTEGRANTES  </summary>
   
 - Henrique Antunes Calado 

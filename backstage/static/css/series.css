@@ -354,6 +354,37 @@
 
 .load-more-btn {
   min-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-base);
+}
+
+.load-more-btn svg {
+  transition: transform var(--transition-base);
+}
+
+.load-more-btn:not(:disabled):hover svg {
+  transform: translateX(2px);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== No Series State ===== */
@@ -444,22 +475,17 @@
 }
 
 .social-link {
-  background: var(--surface);
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
   transition: all var(--transition-base);
-  border: 1px solid var(--border);
 }
 
 .social-link:hover {
-  background: var(--blue);
   color: white;
-  border-color: var(--blue);
   transform: translateY(-2px);
 }
 

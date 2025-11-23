@@ -96,26 +96,19 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#f5c518">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              <strong>{{ filme.nota_tmdb|floatformat:1|default:"8.0" }}</strong>/10
+              {% if ratings_omdb and ratings_omdb.imdb_rating %}
+                <strong>{{ ratings_omdb.imdb_rating|floatformat:1 }}</strong>/10
+              {% else %}
+                <strong>{{ filme.nota_tmdb|floatformat:1|default:"N/A" }}</strong>/10
+              {% endif %}
             </div>
-            <span class="rating-count">2.3M votos</span>
-          </div>
-          
-          <div class="rating-box rotten">
-            <span class="rating-source">Rotten Tomatoes</span>
-            <div class="rating-value">
-              <span class="tomato-icon">🍅</span>
-              <strong>87%</strong>
-            </div>
-            <span class="rating-count">Tomatometer</span>
-          </div>
-          
-          <div class="rating-box metacritic">
-            <span class="rating-source">Metacritic</span>
-            <div class="rating-value metascore">
-              <strong>74</strong>
-            </div>
-            <span class="rating-count">Metascore</span>
+            <span class="rating-count">
+              {% if ratings_omdb and ratings_omdb.imdb_votes %}
+                {{ ratings_omdb.imdb_votes }}
+              {% else %}
+                TMDb
+              {% endif %}
+            </span>
           </div>
           
           <div class="rating-box backstage">
@@ -124,9 +117,13 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#667eea">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              <strong>4.5</strong>/5
+              {% if media_backstage %}
+                <strong>{{ media_backstage }}</strong>/5
+              {% else %}
+                <strong>N/A</strong>
+              {% endif %}
             </div>
-            <span class="rating-count">847 avaliações</span>
+            <span class="rating-count">{{ total_avaliacoes }} avaliações</span>
           </div>
         </div>
         
@@ -143,8 +140,18 @@
               </svg>
               Assistido
             </button>
-            <button class="action-btn watchlist">
-              Favoritar
+            <button class="action-btn watch-later" id="watchLaterBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              Assistir Mais Tarde
+            </button>
+            <button class="action-btn favorite" id="favoritoBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span id="favoritoTexto">Favoritos</span>
             </button>
             <button class="action-btn list">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -241,8 +248,8 @@
                   </div>
 
                   <div class="form-group">
-                      <label for="watchedNotes">Notas (opcional):</label>
-                      <textarea id="watchedNotes" rows="4" placeholder="Escreva suas impressões sobre o filme..."></textarea>
+                      <label for="watchedNotes">Review (opcional):</label>
+                      <textarea id="watchedNotes" rows="4" placeholder="Escreva sua análise sobre o filme..."></textarea>
                   </div>
 
                   <div class="form-actions">
@@ -352,6 +359,43 @@
             </div>
           </div>
 
+          <!-- Modal de Favoritos com Classificação por Estrelas -->
+          <div class="favorite-modal-overlay" id="favoriteModalOverlay" style="display: none;">
+            <div class="favorite-modal">
+              <div class="favorite-modal-header">
+                <h3>Avaliar e Adicionar aos Favoritos</h3>
+                <button type="button" class="close-favorite-modal" onclick="closeFavoriteModal()">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="favorite-modal-body">
+                <h2 class="modal-movie-title">{{ filme.titulo }}</h2>
+                <p style="color: #9ca3af; margin-bottom: 20px;">Dê uma nota de 1 a 5 estrelas para este filme</p>
+
+                <div class="favorite-star-rating">
+                  <button type="button" class="favorite-star" data-rating="1">★</button>
+                  <button type="button" class="favorite-star" data-rating="2">★</button>
+                  <button type="button" class="favorite-star" data-rating="3">★</button>
+                  <button type="button" class="favorite-star" data-rating="4">★</button>
+                  <button type="button" class="favorite-star" data-rating="5">★</button>
+                </div>
+                <p id="selectedRating" style="text-align: center; margin-top: 10px; color: #fbbf24; font-weight: 600;"></p>
+
+                <div class="favorite-modal-footer">
+                  <button type="button" class="favorite-cancel-btn" onclick="closeFavoriteModal()">
+                    Cancelar
+                  </button>
+                  <button type="button" class="favorite-submit-btn" onclick="submitFavorito()" disabled>
+                    Adicionar aos Favoritos
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
       </div>
@@ -363,9 +407,6 @@
       <button class="tab-btn active" data-tab="overview">Visão Geral</button>
       <button class="tab-btn" data-tab="crew">Equipe</button>
       <button class="tab-btn" data-tab="cast">Elenco</button>
-      <button class="tab-btn" data-tab="reviews">Críticas</button>
-      <button class="tab-btn" data-tab="media">Mídia</button>
-      <button class="tab-btn" data-tab="similar">Similares</button>
     </div>
 
     <div class="tab-content active" id="overview">
@@ -410,7 +451,6 @@
           <section class="reviews-section">
             <div class="section-header">
               <h2 class="section-title">Críticas dos Usuários</h2>
-              <button class="btn btn-secondary">Escrever Crítica</button>
             </div>
             
             <div class="reviews-list">
@@ -428,7 +468,12 @@
                       </span>
                       <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
                       {% if critica.tem_spoiler %}
-                      <span class="spoiler-badge">⚠️ SPOILER</span>
+                      <span class="spoiler-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+                        </svg>
+                        SPOILER
+                      </span>
                       {% endif %}
                     </div>
                   </div>
@@ -544,39 +589,7 @@
             </div>
           </section>
 
-          <section class="social-stats">
-            <h3 class="sidebar-title">Estatísticas</h3>
-            <div class="stats-list">
-              <div class="stat-item">
-                <span class="stat-icon">👁️</span>
-                <div class="stat-info">
-                  <span class="stat-number">12.5K</span>
-                  <span class="stat-label">Assistiram</span>
-                </div>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">❤️</span>
-                <div class="stat-info">
-                  <span class="stat-number">8.3K</span>
-                  <span class="stat-label">Favoritaram</span>
-                </div>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">📝</span>
-                <div class="stat-info">
-                  <span class="stat-number">2.1K</span>
-                  <span class="stat-label">Críticas</span>
-                </div>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">📋</span>
-                <div class="stat-info">
-                  <span class="stat-number">5.7K</span>
-                  <span class="stat-label">Em listas</span>
-                </div>
-              </div>
-            </div>
-          </section>
+          
         </aside>
       </div>
     </div>
@@ -604,145 +617,7 @@
         </div>
       </div>
     </div>
-
-    <div class="tab-content" id="reviews">
-      <div class="reviews-full-section">
-        <div class="section-header">
-          <h2 class="section-title">Críticas dos Usuários</h2>
-          <div class="reviews-actions">
-            <select class="reviews-filter">
-              <option>Mais recentes</option>
-              <option>Mais curtidas</option>
-              <option>Melhor avaliadas</option>
-              <option>Pior avaliadas</option>
-            </select>
-            <button class="btn btn-primary">Escrever Crítica</button>
-          </div>
-        </div>
-        
-        <div class="reviews-stats">
-          <div class="stats-card">
-            <span class="stats-number">4.2</span>
-            <span class="stats-label">Média geral</span>
-            <div class="stats-stars">★★★★☆</div>
-          </div>
-          <div class="stats-card">
-            <span class="stats-number">1,247</span>
-            <span class="stats-label">Total de críticas</span>
-          </div>
-          <div class="stats-card">
-            <span class="stats-number">89%</span>
-            <span class="stats-label">Recomendaria</span>
-          </div>
-        </div>
-
-        <div class="reviews-list-full">
-          <!-- Reviews will be populated by JavaScript -->
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="media">
-      <div class="media-section">
-        <div class="media-tabs">
-          <button class="media-tab-btn active" data-media="photos">Fotos</button>
-          <button class="media-tab-btn" data-media="videos">Vídeos</button>
-          <button class="media-tab-btn" data-media="posters">Pôsteres</button>
-        </div>
-        
-        <div class="media-grid" id="photos">
-          <!-- Media will be populated by JavaScript -->
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="similar">
-      <div class="similar-section-full">
-        <div class="section-header">
-          <h2 class="section-title">Filmes Similares</h2>
-          <span class="similar-subtitle">Baseado em gêneros e diretor</span>
-        </div>
-        <div class="similar-grid-full">
-          <!-- Similar movies will be populated by JavaScript -->
-        </div>
-      </div>
-    </div>
   </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <div class="brand">
-            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
-                 alt="Backstage Logo"
-                 width="40" height="40">
-          </div>
-          <p class="footer-description">
-            Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
-          </p>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Explorar</h3>
-          <ul class="footer-links">
-            <li><a href="{% url 'backstage:index' %}">Início</a></li>
-            <li><a href="{% url 'backstage:movies' %}">Filmes</a></li>
-            <li><a href="{% url 'backstage:series' %}">Séries</a></li>
-            <li><a href="{% url 'backstage:lists' %}">Listas</a></li>
-            <li><a href="{% url 'backstage:comunidade' %}">Comunidade</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Suporte</h3>
-          <ul class="footer-links">
-            <li><a href="#">Ajuda</a></li>
-            <li><a href="#">Contato</a></li>
-            <li><a href="#">Política de Privacidade</a></li>
-            <li><a href="#">Termos de Uso</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Conecte-se</h3>
-          <div class="social-links">
-            <a href="#" class="social-link" aria-label="TikTok">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2v10.5A4.5 4.5 0 1 0 16.5 16V8h3V2h-7.5z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="Twitter">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="Facebook">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22 12a10 10 0 1 0-11.5 9.9V14.9h-2v-2.5h2v-1.9c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.8h2.2L18 14.9h-2v6.9A10 10 0 0 0 22 12z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="YouTube">
-              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="6" width="20" height="12" rx="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
-                <path d="M10 9l6 3-6 3V9z" fill="currentColor"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="LinkedIn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
-                <path d="M7 9h2v8H7zM8 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM11 9h2v1.1c.3-.6 1-1.1 2-1.1 2 0 3 1.2 3 3.6V17h-2v-4c0-1-0.5-1.9-1.7-1.9-1 0-1.6.7-1.9 1.4-.1.2-.1.5-.1.8V17h-2V9z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
 
   <!-- Passar dados do Django para o JavaScript -->
   <script id="movie-data" type="application/json">
@@ -772,6 +647,72 @@
   <script src="{% static 'js/search-suggestions.js' %}" defer></script>
   <script src="{% static 'js/profile_menu.js' %}"></script>
   <script src="{% static 'js/notifications.js' %}" defer></script>
+  
+  <!-- Inicialização do botão de trailer -->
+  <script>
+  (function() {
+    function initTrailerButton() {
+      console.log('[TRAILER INLINE] Tentando inicializar botão...');
+      const trailerBtn = document.querySelector('.trailer-btn');
+      console.log('[TRAILER INLINE] Botão encontrado:', trailerBtn);
+      
+      if (trailerBtn) {
+        // Remover listeners antigos se existirem
+        const newBtn = trailerBtn.cloneNode(true);
+        trailerBtn.parentNode.replaceChild(newBtn, trailerBtn);
+        
+        newBtn.addEventListener('click', async function(event) {
+          console.log('[TRAILER INLINE] Clique detectado!');
+          event.preventDefault();
+          event.stopPropagation();
+          
+          const movieId = {{ filme.tmdb_id }};
+          console.log('[TRAILER INLINE] Movie ID:', movieId);
+          
+          try {
+            const url = `/api/filme/${movieId}/videos/`;
+            console.log('[TRAILER INLINE] Buscando:', url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log('[TRAILER INLINE] Dados:', data);
+            
+            if (data.success && data.videos && data.videos.length > 0) {
+              const trailer = data.videos.find(v => v.type === 'Trailer' && v.site === 'YouTube') || data.videos[0];
+              
+              if (trailer && trailer.key) {
+                console.log('[TRAILER INLINE] Abrindo trailer:', trailer.key);
+                window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+              } else {
+                alert('Trailer não disponível.');
+              }
+            } else {
+              alert('Trailer não disponível.');
+            }
+          } catch (error) {
+            console.error('[TRAILER INLINE] Erro:', error);
+            alert('Erro ao buscar trailer.');
+          }
+        });
+        
+        console.log('[TRAILER INLINE] Evento adicionado com sucesso!');
+      }
+    }
+    
+    // Tentar múltiplas vezes para garantir que o DOM está pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTrailerButton);
+    } else {
+      initTrailerButton();
+    }
+    
+    // Tentar novamente após um delay
+    setTimeout(initTrailerButton, 500);
+    setTimeout(initTrailerButton, 1000);
+  })();
+  </script>
+  
   <script>
   // Inicialização simples e direta
   document.addEventListener('DOMContentLoaded', function() {
@@ -840,7 +781,7 @@
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json',
-                      'X-CSRFToken': getCookie('csrftoken')
+                      'X-CSRFToken': window.getCookie('csrftoken')
                   },
                   body: JSON.stringify({nome: name, publica: false})
               })
@@ -881,7 +822,7 @@
           fetch('/api/buscar-listas/?tipo=filme', {
               method: 'GET',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => {
@@ -898,8 +839,29 @@
               loadingEl.style.display = 'none';
 
               if (data.success && data.listas.length > 0) {
-                  // Mostrar listas existentes
-                  containerEl.innerHTML = data.listas.map(lista => `
+                  // Separar "Assistir Mais Tarde" das outras listas
+                  const assistirMaisTarde = data.listas.find(l => l.nome === "Assistir Mais Tarde");
+                  const outrasListas = data.listas.filter(l => l.nome !== "Assistir Mais Tarde");
+                  
+                  let html = '';
+                  
+                  // Adicionar "Assistir Mais Tarde" primeiro com estilo especial
+                  if (assistirMaisTarde) {
+                      html += `
+                          <div class="list-item list-item-featured">
+                              <div class="list-item-info">
+                                  <div class="list-item-name">${assistirMaisTarde.nome}</div>
+                                  <div class="list-item-meta">${assistirMaisTarde.count} filme${assistirMaisTarde.count !== 1 ? 's' : ''}</div>
+                              </div>
+                              <button class="list-item-add" onclick="addMovieToList(${assistirMaisTarde.id}, '${assistirMaisTarde.nome}')">
+                                  Adicionar
+                              </button>
+                          </div>
+                      `;
+                  }
+                  
+                  // Adicionar outras listas
+                  html += outrasListas.map(lista => `
                       <div class="list-item">
                           <div class="list-item-info">
                               <div class="list-item-name">${lista.nome}</div>
@@ -910,6 +872,8 @@
                           </button>
                       </div>
                   `).join('');
+                  
+                  containerEl.innerHTML = html;
                   containerEl.style.display = 'block';
               } else {
                   // Não tem listas
@@ -926,7 +890,7 @@
 
       // Função para adicionar filme a uma lista existente
       window.addMovieToList = function(listaId, listaNome) {
-          const tmdbId = getCurrentMovieTMDbId();
+          const tmdbId = window.getCurrentMovieTMDbId();
 
           if (!tmdbId) {
               alert('Erro: ID do filme não encontrado');
@@ -936,7 +900,7 @@
           fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
               method: 'POST',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => {
@@ -965,13 +929,13 @@
       }
 
       // Função para obter TMDb ID da URL (mesmo que no movie_details.js)
-      function getCurrentMovieTMDbId() {
+      window.getCurrentMovieTMDbId = function() {
           const path = window.location.pathname;
           const match = path.match(/\/filmes\/(\d+)\//);
           return match ? parseInt(match[1]) : null;
-      }
+      };
 
-      function getCookie(name) {
+      window.getCookie = function(name) {
           let cookieValue = null;
           if (document.cookie && document.cookie !== '') {
               const cookies = document.cookie.split(';');
@@ -984,13 +948,13 @@
               }
           }
           return cookieValue;
-      }
+      };
 
       // Sistema de avaliação por estrelas movido para movie_details.js
 
       // Função para "Assistir Mais Tarde"
       window.addToWatchLater = function() {
-          const tmdbId = getCurrentMovieTMDbId();
+          const tmdbId = window.getCurrentMovieTMDbId();
 
           if (!tmdbId) {
               alert('Erro: ID do filme não encontrado');
@@ -1001,7 +965,7 @@
           fetch('/api/watch-later/', {
               method: 'GET',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => response.json())
@@ -1020,12 +984,12 @@
       };
 
       function addMovieToWatchLater(listaId) {
-          const tmdbId = getCurrentMovieTMDbId();
+          const tmdbId = window.getCurrentMovieTMDbId();
 
           return fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
               method: 'POST',
               headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
+                  'X-CSRFToken': window.getCookie('csrftoken')
               }
           })
           .then(response => response.json())
@@ -1396,6 +1360,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         watchedOverlay.classList.add('show');
         document.body.style.overflow = 'hidden';
+        // Esconder header
+        document.querySelector('.site-header').style.display = 'none';
       });
     }
 
@@ -1422,6 +1388,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('watchedPopupOverlay');
     overlay.classList.remove('show');
     document.body.style.overflow = '';
+    // Mostrar header novamente
+    document.querySelector('.site-header').style.display = '';
     document.getElementById('watchedForm').reset();
     document.getElementById('watchedRating').value = '';
     
@@ -1457,22 +1425,22 @@ document.addEventListener('DOMContentLoaded', function() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
+        'X-CSRFToken': window.getCookie('csrftoken')
       },
       body: JSON.stringify(data)
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert('Filme adicionado ao diário!');
+        showNotification('Filme adicionado ao diário!');
         hideWatchedPopup();
       } else {
-        alert('Erro: ' + (data.message || 'Não foi possível adicionar o filme'));
+        showNotification('Erro: ' + (data.message || 'Não foi possível adicionar o filme'), 'error');
       }
     })
     .catch(error => {
       console.error('Erro:', error);
-      alert('Erro ao adicionar filme ao diário');
+      showNotification('Erro ao adicionar filme ao diário', 'error');
     });
   }
 
@@ -1482,10 +1450,655 @@ document.addEventListener('DOMContentLoaded', function() {
       hideWatchedPopup();
     }
   });
+
+  // ===== BOTÃO ASSISTIR MAIS TARDE =====
+  document.addEventListener('DOMContentLoaded', function() {
+    const watchLaterBtn = document.getElementById('watchLaterBtn');
+
+    if (watchLaterBtn) {
+      const tmdbId = window.getCurrentMovieTMDbId ? window.getCurrentMovieTMDbId() : null;
+
+      // Verificar se o filme já está na lista quando a página carrega
+      if (tmdbId) {
+        console.log('[Watch Later] Verificando filme:', tmdbId);
+        fetch(`/api/watch-later/verificar/${tmdbId}/`, {
+          method: 'GET',
+          headers: {
+            'X-CSRFToken': window.getCookie('csrftoken')
+          }
+        })
+        .then(response => {
+          console.log('[Watch Later] Response status:', response.status);
+          return response.json();
+        })
+        .then(data => {
+          console.log('[Watch Later] Data recebida:', data);
+          if (data.success && data.adicionado) {
+            // Marcar botão como selecionado
+            console.log('[Watch Later] Marcando botão como selecionado');
+            watchLaterBtn.classList.add('selected');
+            watchLaterBtn.dataset.listaId = data.lista_id;
+          } else {
+            console.log('[Watch Later] Filme não está na lista');
+          }
+        })
+        .catch(error => {
+          console.error('[Watch Later] Erro ao verificar:', error);
+        });
+      } else {
+        console.error('[Watch Later] tmdbId não encontrado');
+      }
+
+      // Handler do clique
+      watchLaterBtn.addEventListener('click', function() {
+        const tmdbId = window.getCurrentMovieTMDbId ? window.getCurrentMovieTMDbId() : null;
+
+        if (!tmdbId) {
+          alert('Erro: ID do filme não encontrado');
+          return;
+        }
+
+        const isAdded = watchLaterBtn.classList.contains('selected');
+
+        // Desabilitar botão temporariamente
+        watchLaterBtn.disabled = true;
+        watchLaterBtn.style.opacity = '0.6';
+
+        const originalText = watchLaterBtn.innerHTML;
+
+        if (isAdded) {
+          // Remover da lista
+          const listaId = watchLaterBtn.dataset.listaId;
+
+          fetch(`/api/lista/${listaId}/remover/${tmdbId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': window.getCookie('csrftoken')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Remover classe selected
+              watchLaterBtn.classList.remove('selected');
+              delete watchLaterBtn.dataset.listaId;
+
+              // Restaurar estado original
+              watchLaterBtn.innerHTML = originalText;
+              watchLaterBtn.style.opacity = '1';
+              watchLaterBtn.disabled = false;
+            } else {
+              throw new Error(data.message || 'Erro ao remover filme');
+            }
+          })
+          .catch(error => {
+            console.error('Erro:', error);
+            watchLaterBtn.innerHTML = originalText;
+            watchLaterBtn.disabled = false;
+            watchLaterBtn.style.opacity = '1';
+            alert('Erro ao remover da lista');
+          });
+
+        } else {
+          // Adicionar à lista
+          // Buscar ou criar lista "Assistir Mais Tarde"
+          fetch('/api/watch-later/', {
+            method: 'GET',
+            headers: {
+              'X-CSRFToken': window.getCookie('csrftoken')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Adicionar filme à lista
+              return fetch(`/api/lista/${data.lista_id}/adicionar/${tmdbId}/`, {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': window.getCookie('csrftoken')
+                }
+              });
+            } else {
+              throw new Error(data.message || 'Erro ao acessar lista');
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Adicionar classe selected
+              watchLaterBtn.classList.add('selected');
+
+              // Buscar o lista_id
+              fetch('/api/watch-later/', {
+                method: 'GET',
+                headers: {
+                  'X-CSRFToken': window.getCookie('csrftoken')
+                }
+              })
+              .then(response => response.json())
+              .then(listaData => {
+                watchLaterBtn.dataset.listaId = listaData.lista_id;
+              });
+
+              // Restaurar estado original
+              watchLaterBtn.innerHTML = originalText;
+              watchLaterBtn.style.opacity = '1';
+              watchLaterBtn.disabled = false;
+            } else {
+              throw new Error(data.message || 'Erro ao adicionar filme');
+            }
+          })
+          .catch(error => {
+            console.error('Erro:', error);
+            watchLaterBtn.innerHTML = `
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              ${error.message.includes('já está') ? 'Já está na lista' : 'Erro'}
+            `;
+            watchLaterBtn.style.opacity = '1';
+
+            setTimeout(() => {
+              watchLaterBtn.innerHTML = originalText;
+              watchLaterBtn.disabled = false;
+            }, 1500);
+          });
+        }
+      });
+    }
+  });
+</script>
+
+<!-- CSS para Sistema de Favoritos -->
+<style>
+  /* Botão de Favorito */
+  .action-btn.favorite {
+    transition: all 0.3s ease;
+  }
+
+  .action-btn.favorite.favorited {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+  }
+
+  .action-btn.favorite.favorited svg {
+    fill: white;
+    stroke: white;
+  }
+
+  .action-btn.favorite:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Modal de Favoritos */
+  .favorite-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+  }
+
+  .favorite-modal {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .favorite-modal-header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .favorite-modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .close-favorite-modal {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .close-favorite-modal:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .favorite-modal-body {
+    padding: 32px 24px;
+  }
+
+  .favorite-modal-body .modal-movie-title {
+    color: white;
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    text-align: center;
+  }
+
+  .favorite-star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0;
+  }
+
+  .favorite-star {
+    background: none;
+    border: none;
+    font-size: 48px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .favorite-star:hover,
+  .favorite-star.active {
+    color: #dc2626;
+    transform: scale(1.1);
+  }
+
+  .favorite-star.active {
+    animation: starPop 0.3s ease;
+  }
+
+  @keyframes starPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1.1); }
+  }
+
+  .favorite-modal-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .favorite-cancel-btn,
+  .favorite-submit-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .favorite-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .favorite-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .favorite-submit-btn {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+  }
+
+  .favorite-submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  }
+
+  .favorite-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<!-- JavaScript para Sistema de Favoritos -->
+<script>
+  let selectedRating = 0;
+
+  // Verificar se filme já está nos favoritos ao carregar
+  document.addEventListener('DOMContentLoaded', function() {
+    checkFavoritoStatus();
+    
+    // Configurar evento do botão de favorito
+    const favoritoBtn = document.getElementById('favoritoBtn');
+    if (favoritoBtn) {
+      favoritoBtn.addEventListener('click', function() {
+        // O updateFavoritoButton já define a ação correta
+      });
+    }
+  });
+
+  function checkFavoritoStatus() {
+    const tmdbId = {{ filme.tmdb_id }};
+    const username = "{{ request.user.username }}";
+
+    fetch(`/api/favoritos/${username}/`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const favorito = data.favoritos.find(f => f.tmdb_id === tmdbId);
+          if (favorito) {
+            updateFavoritoButton(true, favorito.nota);
+          } else {
+            // Se não é favorito, garantir que o botão está configurado
+            updateFavoritoButton(false);
+          }
+        } else {
+          // Se deu erro ou não tem favoritos, configurar botão padrão
+          updateFavoritoButton(false);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao verificar favorito:', error);
+        // Mesmo com erro, configurar o botão para funcionar
+        updateFavoritoButton(false);
+      });
+  }
+
+  function updateFavoritoButton(isFavorito, nota = null) {
+    const btn = document.getElementById('favoritoBtn');
+    const texto = document.getElementById('favoritoTexto');
+    
+    console.log('updateFavoritoButton chamado:', isFavorito, nota);
+    
+    if (!btn || !texto) {
+      console.error('Botão de favorito não encontrado!');
+      return;
+    }
+    
+    // Remover evento anterior
+    btn.onclick = null;
+    
+    if (isFavorito) {
+      btn.classList.add('favorited');
+      texto.textContent = 'Favorito';
+      btn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Clicou para remover favorito');
+        removerFavorito();
+      };
+    } else {
+      btn.classList.remove('favorited');
+      texto.textContent = 'Favoritos';
+      btn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Clicou para abrir modal de favoritos');
+        openFavoriteModal();
+      };
+    }
+    
+    console.log('Botão configurado com sucesso');
+  }
+
+  function openFavoriteModal() {
+    console.log('openFavoriteModal chamado');
+    
+    currentMovieData = {
+      tmdb_id: {{ filme.tmdb_id }},
+      titulo: "{{ filme.titulo|escapejs }}",
+      poster: "{{ tmdb_image_base }}w500{{ filme.poster_path }}"
+    };
+
+    console.log('Movie data:', currentMovieData);
+
+    selectedRating = 0;
+    const modalOverlay = document.getElementById('favoriteModalOverlay');
+    if (modalOverlay) {
+      modalOverlay.style.display = 'flex';
+      console.log('Modal exibido');
+    } else {
+      console.error('Modal overlay não encontrado!');
+    }
+    
+    document.getElementById('selectedRating').textContent = '';
+    document.querySelector('.favorite-submit-btn').disabled = true;
+
+    // Reset stars
+    document.querySelectorAll('.favorite-star').forEach(star => {
+      star.classList.remove('active');
+    });
+
+    // Setup star click handlers
+    setupStarRating();
+  }
+
+  function closeFavoriteModal() {
+    document.getElementById('favoriteModalOverlay').style.display = 'none';
+    selectedRating = 0;
+  }
+
+  function setupStarRating() {
+    console.log('setupStarRating chamado');
+    
+    const stars = document.querySelectorAll('.favorite-star');
+    const submitBtn = document.querySelector('.favorite-submit-btn');
+    const ratingText = document.getElementById('selectedRating');
+
+    console.log('Stars encontradas:', stars.length);
+    console.log('Submit button:', submitBtn);
+
+    stars.forEach((star, index) => {
+      star.addEventListener('click', () => {
+        selectedRating = index + 1;
+        console.log('Estrela clicada, rating:', selectedRating);
+        
+        // Update visual state
+        stars.forEach((s, i) => {
+          if (i < selectedRating) {
+            s.classList.add('active');
+          } else {
+            s.classList.remove('active');
+          }
+        });
+
+        // Update text and enable button
+        const labels = ['Péssimo', 'Ruim', 'Regular', 'Bom', 'Excelente'];
+        ratingText.textContent = `${selectedRating} estrela${selectedRating > 1 ? 's' : ''} - ${labels[selectedRating - 1]}`;
+        submitBtn.disabled = false;
+        console.log('Botão de submit habilitado');
+      });
+
+      star.addEventListener('mouseenter', () => {
+        stars.forEach((s, i) => {
+          if (i <= index) {
+            s.style.color = '#dc2626';
+          } else {
+            s.style.color = '#374151';
+          }
+        });
+      });
+
+      star.addEventListener('mouseleave', () => {
+        stars.forEach((s, i) => {
+          if (i < selectedRating) {
+            s.style.color = '#dc2626';
+          } else {
+            s.style.color = '#374151';
+          }
+        });
+      });
+    });
+  }
+
+  function submitFavorito() {
+    console.log('submitFavorito chamado, rating:', selectedRating);
+    
+    if (!selectedRating || !currentMovieData) {
+      console.error('Rating ou movie data inválido');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.favorite-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adicionando...';
+
+    console.log('Enviando requisição para adicionar favorito:', {
+      tmdb_id: currentMovieData.tmdb_id,
+      titulo: currentMovieData.titulo,
+      nota: selectedRating
+    });
+
+    fetch('/api/favoritos/adicionar/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': window.getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        tmdb_id: currentMovieData.tmdb_id,
+        titulo: currentMovieData.titulo,
+        poster: currentMovieData.poster,
+        nota: selectedRating
+      })
+    })
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Response data:', data);
+      if (data.success) {
+        updateFavoritoButton(true, selectedRating);
+        closeFavoriteModal();
+        
+        // Show success message
+        showNotification('Filme adicionado aos favoritos!');
+      } else {
+        throw new Error(data.error || 'Erro ao adicionar favorito');
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao adicionar aos favoritos: ' + error.message);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Adicionar aos Favoritos';
+    });
+  }
+
+  function removerFavorito() {
+    const tmdbId = {{ filme.tmdb_id }};
+
+    fetch('/api/favoritos/remover/', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': window.getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        tmdb_id: tmdbId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        updateFavoritoButton(false);
+        showNotification('Filme removido dos favoritos');
+      } else {
+        throw new Error(data.error || 'Erro ao remover favorito');
+      }
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+      alert('Erro ao remover dos favoritos: ' + error.message);
+    });
+  }
+
+  function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    const bgColor = type === 'error'
+      ? 'linear-gradient(135deg, #dc2626, #b91c1c)'
+      : 'linear-gradient(135deg, #22c55e, #16a34a)';
+    notification.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: ${bgColor};
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 10001;
+      animation: slideInBottom 0.3s ease;
+      font-weight: 600;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Adicionar animação se não existir
+    if (!document.getElementById('notification-animations')) {
+      const style = document.createElement('style');
+      style.id = 'notification-animations';
+      style.textContent = `
+        @keyframes slideInBottom {
+          from { transform: translateY(100px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideOutBottom {
+          from { transform: translateY(0); opacity: 1; }
+          to { transform: translateY(100px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    setTimeout(() => {
+      notification.style.animation = 'slideOutBottom 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('favoriteModalOverlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'favoriteModalOverlay') {
+      closeFavoriteModal();
+    }
+  });
 </script>
 
 {% include 'backstage/_mobile_search.html' %}
 {% include 'backstage/_mobile_bottom_nav.html' %}
 {% include 'backstage/_mobile_scripts.html' %}
+
+{% include 'backstage/footer_default.html' %}
 </body>
 </html>

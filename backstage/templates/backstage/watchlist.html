@@ -14,154 +14,143 @@
   <link rel="stylesheet" href="{% static 'css/lists.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
   <style>
-    .watchlist-grid {
-      display: flex;
-      flex-direction: column;
+    .lists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 24px;
+      margin-top: 32px;
     }
 
-    .watchlist-item {
-      display: flex;
-      gap: 24px;
+    .list-card {
       background: var(--surface);
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 24px;
       border: 1px solid var(--border);
       transition: all var(--transition-base);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .watchlist-item:hover {
+    .list-card:hover {
       border-color: var(--border-hover);
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
     }
 
-    .watchlist-poster {
-      flex-shrink: 0;
-      width: 150px;
-      height: 225px;
-      border-radius: var(--radius-md);
-      overflow: hidden;
+    .list-card-featured {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+      border-color: rgba(59, 130, 246, 0.5);
     }
 
-    .watchlist-poster img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform var(--transition-base);
+    .list-card-featured:hover {
+      border-color: var(--blue);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
     }
 
-    .watchlist-poster:hover img {
-      transform: scale(1.05);
-    }
-
-    .watchlist-poster .no-poster {
-      width: 100%;
-      height: 100%;
+    .list-card-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      background: var(--bg-tertiary);
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    .watchlist-details {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       gap: 12px;
     }
 
-    .watchlist-header {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .watchlist-title {
-      font-size: 24px;
+    .list-card-title {
+      font-size: 20px;
       font-weight: 700;
       color: var(--text-primary);
       margin: 0;
+      flex: 1;
     }
 
-    .watchlist-title a {
-      color: var(--text-primary);
-      text-decoration: none;
-      transition: color var(--transition-fast);
-    }
-
-    .watchlist-title a:hover {
-      color: var(--primary);
-    }
-
-    .watchlist-year {
-      font-size: 18px;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .watchlist-description {
-      color: var(--text-secondary);
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .watchlist-meta {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .watchlist-genre {
-      padding: 4px 12px;
+    .list-card-count {
       background: var(--bg-tertiary);
-      border-radius: var(--radius-sm);
-      font-size: 13px;
       color: var(--text-secondary);
-      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
     }
 
-    .watchlist-added {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .watchlist-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: auto;
-    }
-
-    .btn-sm {
-      padding: 8px 16px;
+    .list-card-description {
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin: 0;
       font-size: 14px;
     }
 
+    .list-card-meta {
+      display: flex;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+      align-items: center;
+    }
+
+    .list-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+
+    .list-card-actions .btn-sm {
+      flex: 1;
+    }
+
+    .list-card-actions .btn-ghost {
+      flex: 0;
+      padding: 8px;
+      min-width: auto;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .empty-state svg {
+      opacity: 0.3;
+    }
+
+    .empty-state h2 {
+      color: var(--text-primary);
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin: 0;
+      max-width: 400px;
+    }
+
+    .list-header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
     @media (max-width: 768px) {
-      .watchlist-item {
+      .lists-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .list-header-content {
         flex-direction: column;
-        gap: 16px;
+        align-items: stretch;
       }
 
-      .watchlist-poster {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 2/3;
-      }
-
-      .watchlist-title {
-        font-size: 20px;
-      }
-
-      .watchlist-actions {
-        flex-direction: column;
-      }
-
-      .btn-sm {
+      .list-header-content .btn {
         width: 100%;
         justify-content: center;
       }
@@ -209,172 +198,164 @@
     <div class="list-header">
       <div class="list-header-content">
         <div class="list-title-section">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="list-icon">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2" stroke-linecap="round"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 29 39" fill="none" class="list-icon">
+            <path d="M1.72505 34.5051L2.05744 35.7208C2.11819 35.943 2.2334 36.1465 2.39265 36.3129C2.95883 36.9045 3.91204 36.8782 4.44466 36.2561L13.7613 25.3749C14.1532 24.9172 14.8579 24.9075 15.2622 25.3542L24.3211 35.3616C25.1134 36.2368 26.5154 36.1413 27.1816 35.1667C27.389 34.8632 27.5 34.5042 27.5 34.1366V18.3989V14.0676C27.5 12.889 27.2916 11.7196 26.8845 10.6136L26.4758 9.50293C26.0782 8.42285 25.4972 7.4195 24.7584 6.53707L24.1058 5.75772C23.7691 5.35564 23.4013 4.98067 23.0059 4.63627L22.5401 4.2307C21.9488 3.71572 21.2989 3.27209 20.6039 2.90895L20.3611 2.7821C19.4918 2.32788 18.5603 2.00403 17.5967 1.82094L16.8325 1.67575C15.9318 1.50461 15.0118 1.45815 14.0984 1.53769L12.8183 1.64917C11.9926 1.72107 11.1791 1.89534 10.3964 2.16798L9.13134 2.60864C8.16615 2.94485 7.25821 3.42703 6.43916 4.03839L6.06743 4.31586C5.62325 4.64741 5.2074 5.01531 4.82418 5.41577L4.55395 5.69815C4.03629 6.23911 3.58102 6.8365 3.19669 7.47908L3.05731 7.71213C2.45709 8.71569 2.03754 9.81675 1.81773 10.9653L1.67827 11.6939C1.55969 12.3135 1.5 12.9429 1.5 13.5737V30.6254V32.8286C1.5 33.395 1.57569 33.9588 1.72505 34.5051Z" stroke="currentColor" stroke-width="3"/>
           </svg>
           <div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <h1 class="list-title">{{ lista.nome }}</h1>
-              <span class="list-count">{{ itens|length }} {% if itens|length == 1 %}item{% else %}itens{% endif %}</span>
-            </div>
-            <p class="list-description">{{ lista.descricao }}</p>
+            <h1 class="list-title">Minhas Listas</h1>
+            <p class="list-description">Organize seus filmes e séries favoritos</p>
           </div>
         </div>
+        <button class="btn btn-primary" onclick="showCreateListModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Criar Nova Lista
+        </button>
       </div>
     </div>
 
-    <!-- Lista Items -->
-    <div class="list-items">
-      {% if itens %}
-        <div class="watchlist-grid">
-          {% for item in itens %}
-            {% if item.filme %}
-              <div class="watchlist-item">
-                <a href="{% url 'backstage:detalhes_filme' item.filme.tmdb_id %}" class="watchlist-poster">
-                  {% if item.filme.poster %}
-                    {% if 'http' in item.filme.poster %}
-                      <img src="{{ item.filme.poster }}" alt="{{ item.filme.titulo }}" loading="lazy" />
-                    {% else %}
-                      <img src="https://image.tmdb.org/t/p/w500{{ item.filme.poster }}" alt="{{ item.filme.titulo }}" loading="lazy" />
-                    {% endif %}
-                  {% else %}
-                    <div class="no-poster">Sem imagem</div>
-                  {% endif %}
-                </a>
-                <div class="watchlist-details">
-                  <div class="watchlist-header">
-                    <h3 class="watchlist-title">
-                      <a href="{% url 'backstage:detalhes_filme' item.filme.tmdb_id %}">{{ item.filme.titulo }}</a>
-                    </h3>
-                    <span class="watchlist-year">{{ item.filme.data_lancamento.year|default:"—" }}</span>
-                  </div>
-                  {% if item.filme.descricao %}
-                    <p class="watchlist-description">{{ item.filme.descricao|truncatewords:30 }}</p>
-                  {% endif %}
-                  <div class="watchlist-meta">
-                    {% if item.filme.categoria %}
-                      <span class="watchlist-genre">{{ item.filme.categoria }}</span>
-                    {% endif %}
-                    <span class="watchlist-added">Adicionado em {{ item.adicionado_em|date:"d/m/Y" }}</span>
-                  </div>
-                  <div class="watchlist-actions">
-                    <a href="{% url 'backstage:detalhes_filme' item.filme.tmdb_id %}" class="btn btn-primary btn-sm">Ver Detalhes</a>
-                    <button class="btn btn-secondary btn-sm" onclick="removeFromWatchlist({{ item.filme.tmdb_id }}, 'filme')">Remover</button>
-                  </div>
-                </div>
-              </div>
-            {% elif item.serie %}
-              <div class="watchlist-item">
-                <a href="{% url 'backstage:detalhes_serie' item.serie.tmdb_id %}" class="watchlist-poster">
-                  {% if item.serie.poster %}
-                    {% if 'http' in item.serie.poster %}
-                      <img src="{{ item.serie.poster }}" alt="{{ item.serie.titulo }}" loading="lazy" />
-                    {% else %}
-                      <img src="https://image.tmdb.org/t/p/w500{{ item.serie.poster }}" alt="{{ item.serie.titulo }}" loading="lazy" />
-                    {% endif %}
-                  {% else %}
-                    <div class="no-poster">Sem imagem</div>
-                  {% endif %}
-                </a>
-                <div class="watchlist-details">
-                  <div class="watchlist-header">
-                    <h3 class="watchlist-title">
-                      <a href="{% url 'backstage:detalhes_serie' item.serie.tmdb_id %}">{{ item.serie.titulo }}</a>
-                    </h3>
-                    <span class="watchlist-year">{{ item.serie.data_primeira_exibicao.year|default:"—" }}</span>
-                  </div>
-                  {% if item.serie.descricao %}
-                    <p class="watchlist-description">{{ item.serie.descricao|truncatewords:30 }}</p>
-                  {% endif %}
-                  <div class="watchlist-meta">
-                    {% if item.serie.numero_temporadas %}
-                      <span class="watchlist-genre">{{ item.serie.numero_temporadas }} temporada{{ item.serie.numero_temporadas|pluralize }}</span>
-                    {% endif %}
-                    <span class="watchlist-added">Adicionado em {{ item.adicionado_em|date:"d/m/Y" }}</span>
-                  </div>
-                  <div class="watchlist-actions">
-                    <a href="{% url 'backstage:detalhes_serie' item.serie.tmdb_id %}" class="btn btn-primary btn-sm">Ver Detalhes</a>
-                    <button class="btn btn-secondary btn-sm" onclick="removeFromWatchlist({{ item.serie.tmdb_id }}, 'serie')">Remover</button>
-                  </div>
-                </div>
-              </div>
+    <!-- Listas Grid -->
+    <div class="lists-grid">
+      {% if listas_data %}
+        {% for item in listas_data %}
+          <div class="list-card {% if item.lista.nome == 'Assistir Mais Tarde' %}list-card-featured{% endif %}">
+            <div class="list-card-header">
+              <h3 class="list-card-title">{{ item.lista.nome }}</h3>
+              <span class="list-card-count">{{ item.total_itens }}</span>
+            </div>
+            {% if item.lista.descricao %}
+              <p class="list-card-description">{{ item.lista.descricao }}</p>
             {% endif %}
-          {% endfor %}
-        </div>
+            <div class="list-card-meta">
+              <span>{{ item.total_filmes }} filme{{ item.total_filmes|pluralize }}</span>
+              <span>•</span>
+              <span>{{ item.total_series }} série{{ item.total_series|pluralize }}</span>
+            </div>
+            <div class="list-card-actions">
+              <a href="{% url 'backstage:lista_detalhes' item.lista.id %}" class="btn btn-secondary btn-sm">Ver Lista</a>
+              {% if item.lista.nome != 'Assistir Mais Tarde' %}
+                <button class="btn btn-ghost btn-sm" onclick="deleteList({{ item.lista.id }}, '{{ item.lista.nome }}')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
       {% else %}
         <div class="empty-state">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2" stroke-linecap="round"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 29 39" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1.72505 34.5051L2.05744 35.7208C2.11819 35.943 2.2334 36.1465 2.39265 36.3129C2.95883 36.9045 3.91204 36.8782 4.44466 36.2561L13.7613 25.3749C14.1532 24.9172 14.8579 24.9075 15.2622 25.3542L24.3211 35.3616C25.1134 36.2368 26.5154 36.1413 27.1816 35.1667C27.389 34.8632 27.5 34.5042 27.5 34.1366V18.3989V14.0676C27.5 12.889 27.2916 11.7196 26.8845 10.6136L26.4758 9.50293C26.0782 8.42285 25.4972 7.4195 24.7584 6.53707L24.1058 5.75772C23.7691 5.35564 23.4013 4.98067 23.0059 4.63627L22.5401 4.2307C21.9488 3.71572 21.2989 3.27209 20.6039 2.90895L20.3611 2.7821C19.4918 2.32788 18.5603 2.00403 17.5967 1.82094L16.8325 1.67575C15.9318 1.50461 15.0118 1.45815 14.0984 1.53769L12.8183 1.64917C11.9926 1.72107 11.1791 1.89534 10.3964 2.16798L9.13134 2.60864C8.16615 2.94485 7.25821 3.42703 6.43916 4.03839L6.06743 4.31586C5.62325 4.64741 5.2074 5.01531 4.82418 5.41577L4.55395 5.69815C4.03629 6.23911 3.58102 6.8365 3.19669 7.47908L3.05731 7.71213C2.45709 8.71569 2.03754 9.81675 1.81773 10.9653L1.67827 11.6939C1.55969 12.3135 1.5 12.9429 1.5 13.5737V30.6254V32.8286C1.5 33.395 1.57569 33.9588 1.72505 34.5051Z" stroke="currentColor" stroke-width="3"/>
           </svg>
-          <h2>Sua Watchlist está vazia</h2>
-          <p>Adicione filmes e séries que você deseja assistir mais tarde</p>
-          <a href="{% url 'backstage:movies' %}" class="btn btn-primary">Explorar Filmes</a>
+          <h2>Você ainda não criou nenhuma lista</h2>
+          <p>Crie listas para organizar seus filmes e séries favoritos</p>
+          <button class="btn btn-primary" onclick="showCreateListModal()">Criar Minha Primeira Lista</button>
         </div>
       {% endif %}
     </div>
   </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
 
   {% include 'backstage/_mobile_bottom_nav.html' %}
   {% include 'backstage/_mobile_search.html' %}
   {% include 'backstage/_mobile_scripts.html' %}
 
   <script src="{% static 'js/profile_menu.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
   <script>
-    function removeFromWatchlist(tmdbId, type) {
-      if (!confirm('Tem certeza que deseja remover este item da watchlist?')) {
+    function showCreateListModal() {
+      // Abrir modal usando o mesmo sistema do movie_details
+      const movieId = null; // Nenhum filme selecionado inicialmente
+      const popup = document.createElement('div');
+      popup.className = 'list-popup-overlay show';
+      popup.innerHTML = `
+        <div class="list-popup">
+          <div class="popup-header">
+            <h3 id="popupTitle" style="display: block; flex: 1; color: var(--text-primary); font-size: 18px; font-weight: 600; margin: 0;">Criar Nova Lista</h3>
+            <button class="close-popup" onclick="this.closest('.list-popup-overlay').remove()">&times;</button>
+          </div>
+          <div class="popup-content">
+            <form onsubmit="createList(event)">
+              <div class="form-group">
+                <label for="listName">Nome da Lista:</label>
+                <input type="text" id="listName" placeholder="Ex: Meus Filmes Favoritos" required>
+              </div>
+              <div class="form-group">
+                <label for="listDescription">Descrição (opcional):</label>
+                <input type="text" id="listDescription" placeholder="Descreva sua lista">
+              </div>
+              <div class="form-actions">
+                <button type="button" onclick="this.closest('.list-popup-overlay').remove()">Cancelar</button>
+                <button type="submit">Criar Lista</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(popup);
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('listName').focus(), 100);
+    }
+
+    function createList(event) {
+      event.preventDefault();
+      const name = document.getElementById('listName').value.trim();
+      const description = document.getElementById('listDescription').value.trim();
+      
+      if (!name) return;
+
+      fetch('/api/criar-lista/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          nome: name,
+          descricao: description,
+          publica: false
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Lista "' + name + '" criada com sucesso!');
+          location.reload();
+        } else {
+          alert('Erro: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao criar lista');
+      });
+    }
+
+    function deleteList(listaId, listaNome) {
+      if (!confirm('Tem certeza que deseja excluir a lista "' + listaNome + '"?')) {
         return;
       }
 
-      // Buscar a lista "Assistir Mais Tarde"
-      fetch('/api/buscar-listas/')
-        .then(response => response.json())
-        .then(data => {
-          const watchlist = data.listas.find(lista => lista.nome === 'Assistir Mais Tarde');
-          if (!watchlist) {
-            alert('Lista "Assistir Mais Tarde" não encontrada');
-            return;
-          }
-
-          // Remover o item
-          const url = type === 'filme' 
-            ? `/api/lista/${watchlist.id}/remover/${tmdbId}/`
-            : `/api/lista/${watchlist.id}/remover-serie/${tmdbId}/`;
-
-          fetch(url, {
-            method: 'DELETE',
-            headers: {
-              'X-CSRFToken': getCookie('csrftoken'),
-              'Content-Type': 'application/json'
-            }
-          })
-          .then(response => response.json())
-          .then(result => {
-            if (result.success) {
-              alert('Item removido da watchlist!');
-              location.reload();
-            } else {
-              alert('Erro ao remover item: ' + (result.message || 'Erro desconhecido'));
-            }
-          })
-          .catch(error => {
-            console.error('Erro ao remover:', error);
-            alert('Erro ao remover item da lista');
-          });
-        })
-        .catch(error => {
-          console.error('Erro ao buscar listas:', error);
-          alert('Erro ao buscar listas do usuário');
-        });
+      fetch(`/api/lista/${listaId}/deletar/`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Lista excluída com sucesso!');
+          location.reload();
+        } else {
+          alert('Erro: ' + (data.message || 'Erro ao excluir lista'));
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao excluir lista');
+      });
     }
 
     function getCookie(name) {
@@ -392,5 +373,7 @@
       return cookieValue;
     }
   </script>
+
+{% include 'backstage/footer_default.html' %}
 </body>
 </html>

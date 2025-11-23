@@ -254,14 +254,10 @@
     </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <p>&copy; 2024 Backstage. Todos os direitos reservados.</p>
-    </div>
-  </footer>
-
   <script src="{% static 'js/profile_menu.js' %}"></script>
   <script src="{% static 'js/configuracoes.js' %}"></script>
   <script src="{% static 'js/notifications.js' %}" defer></script>
+
+{% include 'backstage/footer_default.html' %}
 </body>
 </html>

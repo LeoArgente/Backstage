@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme
+from .models import Filme, Critica, Lista, ItemLista, Serie, CriticaSerie, ItemListaSerie, Comunidade, MembroComunidade, SolicitacaoAmizade, Amizade, DiarioFilme, DiarioSerie, MensagemComunidade, FilmeFavorito
 from django.contrib import messages
 import json
 from django.http import JsonResponse
@@ -21,6 +21,7 @@ from .services.tmdb import (
     obter_top_filmes,
     obter_trending,
     obter_recomendados,
+    obter_recomendados_por_favoritos,
     obter_goats,
     obter_em_cartaz,
     obter_classicos,
@@ -31,6 +32,7 @@ from .services.tmdb import (
     buscar_filme_destaque,
     buscar_filmes_populares,
     buscar_filme_por_titulo,
+    buscar_serie_por_titulo,
 )
 #####################
 from django.db.models import Q, Count
@@ -103,6 +105,8 @@ def salvar_critica(request):
             return redirect(f'/filmes/{filme_id}/')
 
         try:
+            from datetime import date
+            
             # Validar nota
             nota_int = int(float(nota))
             if nota_int < 1 or nota_int > 5:
@@ -134,6 +138,17 @@ def salvar_critica(request):
                 texto=texto,
                 nota=nota_int,
                 tem_spoiler=tem_spoiler
+            )
+            
+            # Adicionar também ao diário com a data de hoje
+            DiarioFilme.objects.update_or_create(
+                usuario=request.user,
+                filme=filme,
+                data_assistido=date.today(),
+                defaults={
+                    'nota': nota_int,
+                    'assistido_com': ''
+                }
             )
 
             messages.success(request, 'Sua avaliação foi salva com sucesso!')
@@ -207,9 +222,22 @@ def index(request):
             atividades_amigos.sort(key=lambda x: x['data'], reverse=True)
             atividades_amigos = atividades_amigos[:10]  # Limitar a 10 atividades
 
+    # Buscar recomendações personalizadas
+    filmes_recomendados = []
+    filmes_recomendados_json = '[]'
+    if request.user.is_authenticated:
+        try:
+            filmes_recomendados = obter_recomendados_por_favoritos(request.user, limit=12)
+            filmes_recomendados_json = json.dumps(filmes_recomendados)
+        except Exception as e:
+            print(f"Erro ao buscar recomendações: {str(e)}")
+            filmes_recomendados = []
+            filmes_recomendados_json = '[]'
+
     context = {
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'atividades_amigos': atividades_amigos,
+        'filmes_recomendados': filmes_recomendados_json,
     }
     return render(request, 'backstage/index.html', context)
 
@@ -321,7 +349,7 @@ def comunidade(request):
             usuario=request.user
         ).select_related('comunidade').order_by('-data_entrada')
     
-    # Buscar todas as comunidades públicas
+    # Buscar todas as comunidades públicas (paginação inicial - 12 primeiras)
     comunidades_publicas = Comunidade.objects.filter(
         publica=True
     ).order_by('-data_criacao')
@@ -331,11 +359,62 @@ def comunidade(request):
         ids_minhas_comunidades = [mc.comunidade.id for mc in minhas_comunidades]
         comunidades_publicas = comunidades_publicas.exclude(id__in=ids_minhas_comunidades)
     
+    # Paginação inicial
+    comunidades_publicas = comunidades_publicas[:12]
+    
     context = {
         'minhas_comunidades': minhas_comunidades,
         'comunidades_publicas': comunidades_publicas,
     }
     return render(request, "backstage/community.html", context)
+
+
+def comunidade_api(request):
+    """API endpoint para carregar mais comunidades"""
+    try:
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        offset = (page - 1) * per_page
+        
+        # Buscar comunidades públicas
+        comunidades_query = Comunidade.objects.filter(
+            publica=True
+        ).order_by('-data_criacao')
+        
+        # Se o usuário estiver autenticado, excluir as que ele já é membro
+        if request.user.is_authenticated:
+            ids_minhas_comunidades = MembroComunidade.objects.filter(
+                usuario=request.user
+            ).values_list('comunidade_id', flat=True)
+            comunidades_query = comunidades_query.exclude(id__in=ids_minhas_comunidades)
+        
+        # Buscar total e slice para verificar se tem mais
+        total_count = comunidades_query.count()
+        comunidades = list(comunidades_query[offset:offset + per_page])
+        
+        # Preparar dados
+        items = []
+        for comunidade in comunidades:
+            items.append({
+                'nome': comunidade.nome,
+                'slug': comunidade.slug,
+                'descricao': comunidade.descricao,
+                'membros_count': comunidade.membros.count(),
+                'publica': comunidade.publica,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'items': items,
+            'has_more': offset + per_page < total_count,
+            'page': page,
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @login_required(login_url='backstage:login')
 def minhas_comunidades(request):
@@ -370,16 +449,590 @@ def detalhes_comunidade(request, slug):
         comunidade=comunidade
     ).select_related('usuario').order_by('role', '-data_entrada')
     
-    # Buscar atividades recentes (implementar depois se necessário)
-    atividades = []
+    # Buscar mensagens recentes do chat (últimas 50)
+    mensagens_list = list(MensagemComunidade.objects.filter(
+        comunidade=comunidade
+    ).select_related('usuario', 'usuario__profile').order_by('criado_em')[:50])
     
+    # Adicionar flag para identificar se deve mostrar header (primeira mensagem ou usuário diferente)
+    for i, mensagem in enumerate(mensagens_list):
+        if i == 0:
+            mensagem.mostrar_header = True
+        else:
+            mensagem.mostrar_header = mensagens_list[i-1].usuario != mensagem.usuario
+        # Adicionar flag para identificar mensagens do usuário logado
+        mensagem.is_own = mensagem.usuario == request.user
+    
+    # Buscar todas as comunidades que o usuário participa
+    minhas_comunidades = Comunidade.objects.filter(
+        membros=request.user
+    ).order_by('-data_atualizacao')
+
     context = {
         'comunidade': comunidade,
         'meu_papel': meu_papel,
         'membros': membros,
-        'atividades': atividades,
+        'mensagens': mensagens_list,
+        'minhas_comunidades': minhas_comunidades,
+        'is_admin': meu_papel == 'admin' if meu_papel else False,
     }
     return render(request, "backstage/community_details.html", context)
+
+
+@login_required(login_url='backstage:login')
+def buscar_filmes_para_recomendar(request):
+    """API para buscar filmes para recomendar"""
+    try:
+        query = request.GET.get('q', '').strip()
+        
+        if not query or len(query) < 2:
+            return JsonResponse({'success': False, 'error': 'Digite pelo menos 2 caracteres'}, status=400)
+        
+        # Buscar filmes via TMDB
+        filmes = buscar_filme_por_titulo(query)
+        
+        if not filmes:
+            return JsonResponse({'success': True, 'filmes': []})
+        
+        # Limitar a 10 resultados e formatar
+        filmes_data = []
+        for filme in filmes[:10]:
+            poster_url = None
+            if filme.get('poster_path'):
+                poster_url = f"https://image.tmdb.org/t/p/w200{filme['poster_path']}"
+            
+            filmes_data.append({
+                'tmdb_id': filme.get('tmdb_id'),
+                'titulo': filme.get('titulo'),
+                'ano': filme.get('ano_lancamento', ''),
+                'poster': poster_url,
+                'sinopse': (filme.get('sinopse', '')[:150] + '...') if filme.get('sinopse') and len(filme.get('sinopse', '')) > 150 else filme.get('sinopse', '')
+            })
+        
+        return JsonResponse({'success': True, 'filmes': filmes_data})
+        
+    except Exception as e:
+        print(f"Erro em buscar_filmes_para_recomendar: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def buscar_midia_para_chat(request):
+    """API para buscar filmes e séries para anexar no chat"""
+    try:
+        query = request.GET.get('q', '').strip()
+
+        if not query or len(query) < 2:
+            return JsonResponse({'success': False, 'error': 'Digite pelo menos 2 caracteres'}, status=400)
+
+        resultados = []
+
+        # Buscar filmes via TMDB
+        try:
+            filmes = buscar_filme_por_titulo(query)
+            if filmes:
+                for filme in filmes[:5]:  # Limitar a 5 filmes
+                    poster_url = None
+                    if filme.get('poster_path'):
+                        poster_url = f"https://image.tmdb.org/t/p/w200{filme['poster_path']}"
+
+                    resultados.append({
+                        'tmdb_id': filme.get('tmdb_id'),
+                        'tipo': 'filme',
+                        'titulo': filme.get('titulo'),
+                        'ano': filme.get('ano_lancamento', ''),
+                        'poster': poster_url
+                    })
+        except Exception as e:
+            print(f"Erro ao buscar filmes: {str(e)}")
+
+        # Buscar séries via TMDB
+        try:
+            series = buscar_serie_por_titulo(query)
+            if series:
+                for serie in series[:5]:  # Limitar a 5 séries
+                    poster_url = None
+                    if serie.get('poster_path'):
+                        poster_url = f"https://image.tmdb.org/t/p/w200{serie['poster_path']}"
+
+                    resultados.append({
+                        'tmdb_id': serie.get('tmdb_id'),
+                        'tipo': 'serie',
+                        'titulo': serie.get('titulo'),
+                        'ano': serie.get('ano_lancamento', ''),
+                        'poster': poster_url
+                    })
+        except Exception as e:
+            print(f"Erro ao buscar séries: {str(e)}")
+
+        return JsonResponse({'success': True, 'resultados': resultados})
+
+    except Exception as e:
+        print(f"Erro em buscar_midia_para_chat: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def recomendar_filme_chat(request, comunidade_id):
+    """API para recomendar filme na comunidade (via chat)"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        mensagem_texto = data.get('mensagem', '').strip()
+
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+
+        # Buscar detalhes do filme no TMDB
+        detalhes = obter_detalhes_com_cache(tmdb_id)
+        if not detalhes:
+            return JsonResponse({'success': False, 'error': 'Filme não encontrado'}, status=404)
+
+        # Criar mensagem de recomendação
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            tipo_mensagem='recomendacao',
+            conteudo=mensagem_texto if mensagem_texto else '',
+            filme_tmdb_id=tmdb_id,
+            filme_titulo=detalhes.get('title'),
+            filme_poster=f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}" if detalhes.get('poster_path') else None,
+        )
+
+        # Get user role
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+
+        # Get user's profile photo
+        foto_perfil = None
+        if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+            foto_perfil = request.user.profile.foto_perfil.url
+
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': {
+                    'username': request.user.username,
+                    'foto_perfil': foto_perfil,
+                    'role': membro.role
+                },
+                'conteudo': mensagem.conteudo,
+                'tipo_mensagem': mensagem.tipo_mensagem,
+                'filme_tmdb_id': mensagem.filme_tmdb_id,
+                'filme_titulo': mensagem.filme_titulo,
+                'filme_poster': mensagem.filme_poster,
+                'criado_em': mensagem.criado_em.isoformat(),
+            }
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def recomendar_serie_chat(request, comunidade_id):
+    """API para recomendar série na comunidade (via chat)"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        mensagem_texto = data.get('mensagem', '').strip()
+
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID da série não fornecido'}, status=400)
+
+        # Buscar detalhes da série no TMDB
+        detalhes = buscar_detalhes_serie(tmdb_id)
+        if not detalhes:
+            return JsonResponse({'success': False, 'error': 'Série não encontrada'}, status=404)
+
+        # Criar mensagem de recomendação
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            tipo_mensagem='recomendacao',
+            conteudo=mensagem_texto if mensagem_texto else '',
+            filme_tmdb_id=tmdb_id,
+            filme_titulo=detalhes.get('titulo') or detalhes.get('name'),
+            filme_poster=f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}" if detalhes.get('poster_path') else None,
+        )
+
+        # Get user role
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+
+        # Get user's profile photo
+        foto_perfil = None
+        if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+            foto_perfil = request.user.profile.foto_perfil.url
+
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': {
+                    'username': request.user.username,
+                    'foto_perfil': foto_perfil,
+                    'role': membro.role
+                },
+                'conteudo': mensagem.conteudo,
+                'tipo_mensagem': mensagem.tipo_mensagem,
+                'filme_tmdb_id': mensagem.filme_tmdb_id,
+                'filme_titulo': mensagem.filme_titulo,
+                'filme_poster': mensagem.filme_poster,
+                'criado_em': mensagem.criado_em.isoformat(),
+            }
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def limpar_chat_comunidade(request, comunidade_id):
+    """API para limpar todas as mensagens do chat (apenas admin)"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin da comunidade
+        try:
+            membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+            if membro.role != 'admin':
+                return JsonResponse({'success': False, 'error': 'Apenas administradores podem limpar o chat'}, status=403)
+        except MembroComunidade.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Deletar todas as mensagens da comunidade
+        deleted_count = MensagemComunidade.objects.filter(comunidade=comunidade).delete()[0]
+
+        return JsonResponse({
+            'success': True,
+            'mensagens_deletadas': deleted_count
+        })
+
+    except Exception as e:
+        print(f"Erro em limpar_chat_comunidade: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def adicionar_favorito(request):
+    """API para adicionar filme aos favoritos com nota"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        titulo = data.get('titulo')
+        poster = data.get('poster')
+        nota = data.get('nota')
+        
+        # Validações
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        if not titulo:
+            return JsonResponse({'success': False, 'error': 'Título do filme não fornecido'}, status=400)
+        
+        if not nota or nota not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5 estrelas'}, status=400)
+        
+        # Criar ou atualizar favorito
+        favorito, criado = FilmeFavorito.objects.update_or_create(
+            usuario=request.user,
+            tmdb_id=tmdb_id,
+            defaults={
+                'titulo': titulo,
+                'poster': poster,
+                'nota': nota
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'criado': criado,
+            'favorito': {
+                'id': favorito.id,
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'poster': favorito.poster,
+                'nota': favorito.nota,
+                'adicionado_em': favorito.adicionado_em.strftime('%d/%m/%Y %H:%M')
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE", "POST"])
+def remover_favorito(request):
+    """API para remover filme dos favoritos"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        # Buscar e deletar favorito
+        favorito = FilmeFavorito.objects.filter(usuario=request.user, tmdb_id=tmdb_id).first()
+        
+        if not favorito:
+            return JsonResponse({'success': False, 'error': 'Filme não está nos favoritos'}, status=404)
+        
+        favorito.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'mensagem': 'Filme removido dos favoritos'
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["PUT", "POST"])
+def atualizar_nota_favorito(request):
+    """API para atualizar nota de um favorito"""
+    try:
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        nova_nota = data.get('nota')
+        
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
+        
+        if not nova_nota or nova_nota not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5 estrelas'}, status=400)
+        
+        # Buscar e atualizar favorito
+        favorito = FilmeFavorito.objects.filter(usuario=request.user, tmdb_id=tmdb_id).first()
+        
+        if not favorito:
+            return JsonResponse({'success': False, 'error': 'Filme não está nos favoritos'}, status=404)
+        
+        favorito.nota = nova_nota
+        favorito.save()
+        
+        return JsonResponse({
+            'success': True,
+            'favorito': {
+                'id': favorito.id,
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'nota': favorito.nota,
+                'atualizado_em': favorito.atualizado_em.strftime('%d/%m/%Y %H:%M')
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+def buscar_favoritos_usuario(request, username):
+    """API para buscar favoritos de um usuário (ranking público)"""
+    try:
+        # Buscar usuário
+        usuario = get_object_or_404(User, username=username)
+        
+        # Buscar favoritos ordenados por nota (ranking)
+        favoritos = FilmeFavorito.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')
+        
+        favoritos_data = []
+        for favorito in favoritos:
+            favoritos_data.append({
+                'tmdb_id': favorito.tmdb_id,
+                'titulo': favorito.titulo,
+                'poster': favorito.poster,
+                'nota': favorito.nota,
+                'adicionado_em': favorito.adicionado_em.strftime('%d/%m/%Y'),
+                'atualizado_em': favorito.atualizado_em.strftime('%d/%m/%Y')
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'usuario': username,
+            'total': len(favoritos_data),
+            'favoritos': favoritos_data
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+def buscar_series_favoritas_usuario(request, username):
+    """API para buscar séries favoritas de um usuário (ranking público)"""
+    try:
+        from .models import SerieFavorita
+
+        # Buscar usuário
+        usuario = get_object_or_404(User, username=username)
+
+        # Buscar séries favoritas ordenadas por nota (ranking)
+        series_favoritas = SerieFavorita.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')
+
+        series_data = []
+        for serie in series_favoritas:
+            series_data.append({
+                'tmdb_id': serie.tmdb_id,
+                'titulo': serie.titulo,
+                'poster': serie.poster,
+                'nota': serie.nota,
+                'adicionado_em': serie.adicionado_em.strftime('%d/%m/%Y'),
+                'atualizado_em': serie.atualizado_em.strftime('%d/%m/%Y')
+            })
+
+        return JsonResponse({
+            'success': True,
+            'usuario': username,
+            'total': len(series_data),
+            'series_favoritas': series_data
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def adicionar_serie_favorita(request):
+    """API para adicionar uma série aos favoritos"""
+    try:
+        from .models import SerieFavorita
+        import json
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        titulo = data.get('titulo', '')
+        poster = data.get('poster', '')
+        nota = data.get('nota')
+
+        if not tmdb_id or not nota:
+            return JsonResponse({'success': False, 'error': 'tmdb_id e nota são obrigatórios'}, status=400)
+
+        if nota < 1 or nota > 5:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5'}, status=400)
+
+        # Criar ou atualizar favorito
+        favorito, created = SerieFavorita.objects.update_or_create(
+            usuario=request.user,
+            tmdb_id=tmdb_id,
+            defaults={
+                'titulo': titulo,
+                'poster': poster,
+                'nota': nota
+            }
+        )
+
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'message': 'Série adicionada aos favoritos!' if created else 'Avaliação atualizada!'
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE"])
+def remover_serie_favorita(request):
+    """API para remover uma série dos favoritos"""
+    try:
+        from .models import SerieFavorita
+        import json
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'tmdb_id é obrigatório'}, status=400)
+
+        deleted, _ = SerieFavorita.objects.filter(
+            usuario=request.user,
+            tmdb_id=tmdb_id
+        ).delete()
+
+        if deleted:
+            return JsonResponse({'success': True, 'message': 'Série removida dos favoritos'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Série não encontrada nos favoritos'}, status=404)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def verificar_serie_favorita(request, tmdb_id):
+    """API para verificar se uma série está nos favoritos do usuário"""
+    try:
+        from .models import SerieFavorita
+
+        favorito = SerieFavorita.objects.filter(
+            usuario=request.user,
+            tmdb_id=tmdb_id
+        ).first()
+
+        if favorito:
+            return JsonResponse({
+                'success': True,
+                'is_favorito': True,
+                'nota': favorito.nota
+            })
+        else:
+            return JsonResponse({
+                'success': True,
+                'is_favorito': False
+            })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
@@ -391,6 +1044,7 @@ def criar_comunidade(request):
         nome = request.POST.get('nome', '').strip()
         descricao = request.POST.get('descricao', '').strip()
         publica = request.POST.get('publica') == 'on'
+        foto_perfil = request.FILES.get('foto_perfil')
         
         # Validações
         if not nome:
@@ -404,7 +1058,8 @@ def criar_comunidade(request):
             nome=nome,
             descricao=descricao,
             publica=publica,
-            criador=request.user
+            criador=request.user,
+            foto_perfil=foto_perfil
         )
         
         # Adicionar o criador como admin
@@ -489,9 +1144,227 @@ def sair_comunidade(request):
             'success': True,
             'message': f'Você saiu da comunidade {comunidade.nome}'
         })
-        
+
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def promover_admin_comunidade(request, slug):
+    """API para promover um membro a administrador"""
+    try:
+        data = json.loads(request.body)
+        member_id = data.get('member_id')
+
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+
+        # Verificar se o usuário atual é admin
+        membro_atual = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario=request.user)
+        if membro_atual.role != 'admin':
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem promover membros'
+            }, status=403)
+
+        # Buscar o membro a ser promovido
+        membro_alvo = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario_id=member_id)
+
+        # Verificar se já é admin
+        if membro_alvo.role == 'admin':
+            return JsonResponse({
+                'success': False,
+                'error': 'Este membro já é administrador'
+            })
+
+        # Promover a admin
+        membro_alvo.role = 'admin'
+        membro_alvo.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{membro_alvo.usuario.username} foi promovido a administrador'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def expulsar_membro_comunidade(request, slug):
+    """API para expulsar um membro da comunidade"""
+    try:
+        data = json.loads(request.body)
+        member_id = data.get('member_id')
+
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+
+        # Verificar se o usuário atual é admin
+        membro_atual = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario=request.user)
+        if membro_atual.role != 'admin':
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem expulsar membros'
+            }, status=403)
+
+        # Buscar o membro a ser expulso
+        membro_alvo = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario_id=member_id)
+
+        # Não pode expulsar o criador
+        if membro_alvo.usuario == comunidade.criador:
+            return JsonResponse({
+                'success': False,
+                'error': 'Não é possível expulsar o criador da comunidade'
+            })
+
+        # Não pode se autoexpulsar
+        if membro_alvo.usuario == request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Você não pode se expulsar. Use a opção "Sair" para deixar a comunidade'
+            })
+
+        username = membro_alvo.usuario.username
+        membro_alvo.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{username} foi expulso da comunidade'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def deletar_comunidade(request):
+    """API para deletar uma comunidade (apenas criador)"""
+    try:
+        data = json.loads(request.body)
+        slug = data.get('slug')
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+        
+        # Verificar se o usuário é o criador
+        if comunidade.criador != request.user:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Apenas o criador pode deletar a comunidade.'
+            }, status=403)
+        
+        nome_comunidade = comunidade.nome
+        comunidade.delete()  # Isso deletará em cascata membros e mensagens
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Comunidade "{nome_comunidade}" deletada com sucesso.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def api_comunidade_detalhes(request, comunidade_id):
+    """API para buscar detalhes de uma comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin
+        membro = MembroComunidade.objects.filter(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        ).first()
+
+        if not membro:
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem acessar estes dados'
+            }, status=403)
+
+        return JsonResponse({
+            'success': True,
+            'id': comunidade.id,
+            'nome': comunidade.nome,
+            'descricao': comunidade.descricao,
+            'foto_perfil': comunidade.foto_perfil.url if comunidade.foto_perfil else None,
+            'slug': comunidade.slug
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def api_editar_comunidade(request, comunidade_id):
+    """API para editar uma comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin
+        membro = MembroComunidade.objects.filter(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        ).first()
+
+        if not membro:
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem editar a comunidade'
+            }, status=403)
+
+        # Atualizar dados
+        nome = request.POST.get('name', '').strip()
+        descricao = request.POST.get('description', '').strip()
+        foto_perfil = request.FILES.get('foto_perfil')
+
+        if nome:
+            comunidade.nome = nome
+        if descricao:
+            comunidade.descricao = descricao
+        if foto_perfil:
+            comunidade.foto_perfil = foto_perfil
+
+        comunidade.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Comunidade atualizada com sucesso!'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE"])
+def api_excluir_comunidade(request, comunidade_id):
+    """API para excluir uma comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin
+        membro = MembroComunidade.objects.filter(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        ).first()
+
+        if not membro:
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem excluir a comunidade'
+            }, status=403)
+
+        nome_comunidade = comunidade.nome
+        comunidade.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Comunidade "{nome_comunidade}" excluída com sucesso!'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
@@ -575,21 +1448,79 @@ def filmes(request):
 def lists(request):
     from django.db.models import Count
 
+    page = int(request.GET.get('page', 1))
+    per_page = 12
+    offset = (page - 1) * per_page
+
     minhas_listas = Lista.objects.filter(usuario=request.user).annotate(
         num_filmes=Count('itens', distinct=True),
         num_series=Count('itens_serie', distinct=True)
-    ).order_by('-atualizada_em')
+    ).order_by('-atualizada_em')[offset:offset + per_page]
 
     listas_publicas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
         num_filmes=Count('itens', distinct=True),
         num_series=Count('itens_serie', distinct=True)
-    ).order_by('-atualizada_em')
+    ).order_by('-atualizada_em')[offset:offset + per_page]
 
     context = {
         'minhas_listas': minhas_listas,
         'listas_publicas': listas_publicas,
     }
     return render(request, "backstage/lists.html", context)
+
+def lists_api(request):
+    """API endpoint para carregar listas com paginação"""
+    from django.db.models import Count
+    
+    try:
+        filter_type = request.GET.get('filter', 'my-lists')
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        offset = (page - 1) * per_page
+
+        if filter_type == 'my-lists':
+            listas = Lista.objects.filter(usuario=request.user).annotate(
+                num_filmes=Count('itens', distinct=True),
+                num_series=Count('itens_serie', distinct=True)
+            ).order_by('-atualizada_em')[offset:offset + per_page]
+        else:  # public
+            listas = Lista.objects.filter(publica=True).exclude(usuario=request.user).annotate(
+                num_filmes=Count('itens', distinct=True),
+                num_series=Count('itens_serie', distinct=True)
+            ).order_by('-atualizada_em')[offset:offset + per_page]
+
+        listas_data = []
+        for lista in listas:
+            listas_data.append({
+                'id': lista.id,
+                'nome': lista.nome,
+                'descricao': lista.descricao or '',
+                'publica': lista.publica,
+                'usuario': lista.usuario.username,
+                'num_filmes': lista.num_filmes,
+                'num_series': lista.num_series,
+                'atualizada_em': lista.atualizada_em.strftime('%d/%m/%Y'),
+                'is_mine': lista.usuario == request.user
+            })
+
+        has_more = len(listas) == per_page
+
+        return JsonResponse({
+            'success': True,
+            'listas': listas_data,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar listas na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'listas': [],
+            'has_more': False
+        }, status=500)
 
 def movies(request):
     try:
@@ -696,6 +1627,69 @@ def series(request):
     }
     return render(request, "backstage/series.html", context)
 
+def series_api(request):
+    """API endpoint para carregar séries com paginação"""
+    try:
+        # Obter parâmetros
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB (séries)
+        generos_map = {
+            'action': 10759,  # Action & Adventure
+            'adventure': 10759,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 10765,  # Sci-Fi & Fantasy
+            'thriller': 9648,  # Mystery
+            'horror': 9648,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 10765,
+            'reality': 10764,
+            'news': 10763,
+            'kids': 10762,
+            'soap': 10766,
+            'talk': 10767,
+            'western': 37,
+            'war': 10768,
+            'mystery': 9648
+        }
+
+        # Buscar séries conforme filtros
+        from .services.tmdb import buscar_series_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        series_list = buscar_series_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+        
+        # Verificar se há mais séries
+        has_more = len(series_list) > 0 and page < 500
+
+        return JsonResponse({
+            'success': True,
+            'series': series_list,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar séries na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'series': [],
+            'has_more': False
+        }, status=500)
+
 def wireframer(request):
     return render(request, "backstage/wireframer.html")
 
@@ -716,6 +1710,13 @@ def detalhes_filme(request, tmdb_id):
     else:
         dados_filme['data_lancamento_formatada'] = None
 
+    # Buscar ratings do OMDB (Metacritic, Rotten Tomatoes, etc)
+    from .services.tmdb import obter_ratings_omdb
+    ratings_omdb = None
+    if dados_filme.get('imdb_id'):
+        ratings_omdb = obter_ratings_omdb(dados_filme['imdb_id'])
+        print(f"[DEBUG] Ratings OMDB para {tmdb_id}: {ratings_omdb}")
+
     # Criar ou buscar filme local para críticas
     filme_local, created = Filme.objects.get_or_create(
         tmdb_id=tmdb_id,
@@ -725,10 +1726,42 @@ def detalhes_filme(request, tmdb_id):
         })
 
     # Buscar críticas locais com contagem de likes
-    from .models import LikeCritica
+    from .models import LikeCritica, FilmeFavorito, DiarioFilme
+    from django.db.models import Avg
+
     criticas = Critica.objects.filter(filme=filme_local).annotate(
         total_likes=Count('likes', distinct=True)
     )
+
+    # Calcular média das notas do Backstage (uma nota por usuário)
+    # Prioridade: diário > favoritos > críticas (para evitar duplicatas)
+    notas_por_usuario = {}
+
+    # Notas das críticas
+    for usuario_id, nota in criticas.values_list('usuario_id', 'nota'):
+        if usuario_id not in notas_por_usuario:
+            notas_por_usuario[usuario_id] = nota
+
+    # Notas dos favoritos (sobrescreve críticas)
+    for usuario_id, nota in FilmeFavorito.objects.filter(tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    # Notas do diário (sobrescreve tudo - é a mais recente)
+    for usuario_id, nota in DiarioFilme.objects.filter(filme__tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    todas_notas = list(notas_por_usuario.values())
+
+    if todas_notas:
+        media_backstage = round(sum(todas_notas) / len(todas_notas), 1)
+        total_avaliacoes = len(todas_notas)
+    else:
+        media_backstage = None
+        total_avaliacoes = 0
+    
+    # Formatar média para 1 casa decimal, ou None se não houver avaliações
+    if media_backstage is not None:
+        media_backstage = round(media_backstage, 1)
 
     # Adicionar informação se o usuário atual deu like em cada crítica
     if request.user.is_authenticated:
@@ -759,9 +1792,12 @@ def detalhes_filme(request, tmdb_id):
         'filme': dados_filme,
         'filme_local': filme_local,
         'criticas': criticas,
+        'media_backstage': media_backstage,
+        'total_avaliacoes': total_avaliacoes,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'crew_data_json': json.dumps(equipe),
-        'cast_data_json': json.dumps(elenco_principal)
+        'cast_data_json': json.dumps(elenco_principal),
+        'ratings_omdb': ratings_omdb
     }
     return render(request, "backstage/movie_details.html", context)
 
@@ -890,11 +1926,21 @@ def filmes_home(request):
     """API endpoint que retorna dados para a página inicial com cache"""
     try:
         # Buscar dados com cache
+        print("[DEBUG] Buscando filmes para home...")
         hero_movies = obter_trending(limit=5)
+        print(f"[DEBUG] Hero movies: {len(hero_movies)}")
+        
         goats = obter_goats(limit=20)
-        recommended = obter_recomendados(limit=12)
+        print(f"[DEBUG] GOATS: {len(goats)}")
+        
+        recommended = obter_recomendados(limit=12, usuario=request.user)
+        print(f"[DEBUG] Recommended: {len(recommended)}")
+        
         em_cartaz = obter_em_cartaz(limit=12)
+        print(f"[DEBUG] Em cartaz: {len(em_cartaz)}")
+        
         classicos = obter_classicos(limit=12)
+        print(f"[DEBUG] Clássicos: {len(classicos)}")
         
 
         # Adicionar URL base para imagens
@@ -913,6 +1959,7 @@ def filmes_home(request):
             else:
                 movie['backdrop_url'] = None
 
+        print("[DEBUG] Retornando dados para home")
         return JsonResponse({
             'success': True,
             'hero_movies': hero_movies,
@@ -925,6 +1972,9 @@ def filmes_home(request):
         })
 
     except Exception as e:
+        print(f"[ERROR] Erro em filmes_home: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': str(e),
@@ -933,6 +1983,92 @@ def filmes_home(request):
             'recommended': [],
             'em_cartaz': [],
             'classicos': []
+        }, status=500)
+
+
+def filme_videos(request, tmdb_id):
+    """API endpoint que retorna vídeos (trailers) de um filme"""
+    try:
+        from .services.tmdb import obter_videos_filme
+        
+        print(f"[DEBUG] Buscando vídeos para filme TMDb ID: {tmdb_id}")
+        videos = obter_videos_filme(tmdb_id)
+        print(f"[DEBUG] Vídeos encontrados: {len(videos)}")
+        
+        return JsonResponse({
+            'success': True,
+            'videos': videos
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar vídeos: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'videos': []
+        }, status=500)
+
+
+def filmes_api(request):
+    """API endpoint para carregar filmes com paginação"""
+    try:
+        # Obter parâmetros
+        genero = request.GET.get('genre', 'all')
+        ordenacao = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+
+        # Mapear gêneros para IDs da TMDB
+        generos_map = {
+            'action': 28,
+            'adventure': 12,
+            'comedy': 35,
+            'drama': 18,
+            'scifi': 878,
+            'thriller': 53,
+            'horror': 27,
+            'romance': 10749,
+            'animation': 16,
+            'crime': 80,
+            'documentary': 99,
+            'family': 10751,
+            'fantasy': 14,
+            'history': 36,
+            'music': 10402,
+            'mystery': 9648,
+            'war': 10752,
+            'western': 37
+        }
+
+        # Buscar filmes conforme filtros
+        from .services.tmdb import buscar_filmes_por_filtros
+
+        genero_id = generos_map.get(genero) if genero != 'all' else None
+        filmes = buscar_filmes_por_filtros(
+            genero_id=genero_id,
+            ordenacao=ordenacao,
+            page=page
+        )
+        
+        # Verificar se há mais filmes
+        # A API da TMDB geralmente retorna 20 filmes por página, até 500 páginas
+        has_more = len(filmes) > 0 and page < 500
+
+        return JsonResponse({
+            'success': True,
+            'filmes': filmes,
+            'has_more': has_more,
+            'page': page
+        })
+    except Exception as e:
+        print(f"[ERROR] Erro ao buscar filmes na API: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'filmes': [],
+            'has_more': False
         }, status=500)
 
 
@@ -1026,6 +2162,76 @@ def buscar_ou_criar_lista_watch_later(request):
             'lista_id': lista.id,
             'created': created,
             'message': 'Lista criada com sucesso!' if created else 'Lista encontrada!'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
+def verificar_filme_watch_later(request, tmdb_id):
+    """Verifica se um filme está na lista 'Assistir Mais Tarde' do usuário"""
+    try:
+        print(f"[DEBUG] Verificando filme {tmdb_id} para usuário {request.user.username}")
+
+        # Busca a lista "Assistir Mais Tarde" do usuário
+        lista = Lista.objects.filter(
+            usuario=request.user,
+            nome='Assistir Mais Tarde'
+        ).first()
+
+        print(f"[DEBUG] Lista encontrada: {lista}")
+
+        if not lista:
+            print(f"[DEBUG] Lista 'Assistir Mais Tarde' não existe para o usuário")
+            return JsonResponse({
+                'success': True,
+                'adicionado': False
+            })
+
+        # Verifica se o filme está na lista
+        # ItemLista tem FK para Filme, então usamos filme__tmdb_id
+        item_existe = ItemLista.objects.filter(
+            lista=lista,
+            filme__tmdb_id=tmdb_id
+        ).exists()
+
+        print(f"[DEBUG] Item existe na lista? {item_existe}")
+
+        return JsonResponse({
+            'success': True,
+            'adicionado': item_existe,
+            'lista_id': lista.id
+        })
+    except Exception as e:
+        print(f"[DEBUG] Erro: {str(e)}")
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@api_login_required
+def verificar_serie_watch_later(request, tmdb_id):
+    """Verifica se uma série está na lista 'Assistir Mais Tarde' do usuário"""
+    try:
+        # Busca a lista "Assistir Mais Tarde" do usuário
+        lista = Lista.objects.filter(
+            usuario=request.user,
+            nome='Assistir Mais Tarde'
+        ).first()
+
+        if not lista:
+            return JsonResponse({
+                'success': True,
+                'adicionado': False
+            })
+
+        # Verifica se a série está na lista
+        # ItemListaSerie tem FK para Serie, então usamos serie__tmdb_id
+        item_existe = ItemListaSerie.objects.filter(
+            lista=lista,
+            serie__tmdb_id=tmdb_id
+        ).exists()
+
+        return JsonResponse({
+            'success': True,
+            'adicionado': item_existe,
+            'lista_id': lista.id
         })
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
@@ -1207,7 +2413,7 @@ def visualizar_lista(request, lista_id):
 
 @login_required(login_url='backstage:login')
 def remover_filme_da_lista(request, lista_id, tmdb_id):
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
 
     try:
@@ -1254,7 +2460,7 @@ def adicionar_serie_lista(request, lista_id, tmdb_id):
 
 @api_login_required
 def remover_serie_da_lista(request, lista_id, tmdb_id):
-    if request.method != 'DELETE':
+    if request.method not in ['DELETE', 'POST']:
         return JsonResponse({'success': False, 'message': 'Método não permitido'})
 
     try:
@@ -1334,10 +2540,36 @@ def detalhes_serie(request, tmdb_id):
     )
     
     # Buscar críticas locais com contagem de likes
-    from .models import LikeCriticaSerie
+    from .models import LikeCriticaSerie, SerieFavorita, DiarioSerie
     criticas = CriticaSerie.objects.filter(serie=serie_local).annotate(
         total_likes=Count('likes', distinct=True)
     ).order_by('-criado_em')
+
+    # Calcular média das notas do Backstage (uma nota por usuário)
+    # Prioridade: diário > favoritos > críticas (para evitar duplicatas)
+    notas_por_usuario = {}
+
+    # Notas das críticas
+    for usuario_id, nota in criticas.values_list('usuario_id', 'nota'):
+        if usuario_id not in notas_por_usuario:
+            notas_por_usuario[usuario_id] = nota
+
+    # Notas dos favoritos (sobrescreve críticas)
+    for usuario_id, nota in SerieFavorita.objects.filter(tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    # Notas do diário (sobrescreve tudo - é a mais recente)
+    for usuario_id, nota in DiarioSerie.objects.filter(serie__tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    todas_notas = list(notas_por_usuario.values())
+
+    if todas_notas:
+        media_backstage = round(sum(todas_notas) / len(todas_notas), 1)
+        total_avaliacoes = len(todas_notas)
+    else:
+        media_backstage = None
+        total_avaliacoes = 0
 
     # Adicionar informação se o usuário atual deu like em cada crítica
     if request.user.is_authenticated:
@@ -1359,6 +2591,8 @@ def detalhes_serie(request, tmdb_id):
         'serie': dados_serie,
         'serie_local': serie_local,
         'criticas': criticas,
+        'media_backstage': media_backstage,
+        'total_avaliacoes': total_avaliacoes,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'temporadas_json': temporadas_json,
         'videos_json': videos_json
@@ -1428,44 +2662,52 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
 def buscar_sugestoes(request):
     """API para sugestões de busca em tempo real"""
     query = request.GET.get('q', '').strip()
+    tipo_filtro = request.GET.get('tipo', 'all')  # 'filme', 'serie', ou 'all'
     print(f"\n=== BUSCAR_SUGESTOES ===")
     print(f"Query recebida: '{query}'")
-    
+    print(f"Tipo filtro: '{tipo_filtro}'")
+
     if not query or len(query) < 2:
         print("Query muito curta, retornando vazio")
         return JsonResponse({'sugestoes': []})
-    
+
     try:
         import requests
         from django.conf import settings
-        
-        # Buscar filmes
-        url_filmes = f"https://api.themoviedb.org/3/search/movie"
-        params_filmes = {
-            'api_key': settings.TMDB_API_KEY,
-            'language': 'pt-BR',
-            'query': query,
-            'page': 1
-        }
-        print(f"Buscando filmes na TMDb: {url_filmes}")
-        response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
-        print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
-        filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
-        print(f"Filmes encontrados: {len(filmes)}")
-        
-        # Buscar séries
-        url_series = f"https://api.themoviedb.org/3/search/tv"
-        params_series = {
-            'api_key': settings.TMDB_API_KEY,
-            'language': 'pt-BR',
-            'query': query,
-            'page': 1
-        }
-        response_series = requests.get(url_series, params=params_series, timeout=5)
-        series = response_series.json().get('results', [])[:5]  # Limitar a 5 resultados
-        
+
         # Formatar resultados
         sugestoes = []
+
+        # Buscar filmes (se tipo_filtro for 'filme' ou 'all')
+        if tipo_filtro in ['filme', 'all']:
+            url_filmes = f"https://api.themoviedb.org/3/search/movie"
+            params_filmes = {
+                'api_key': settings.TMDB_API_KEY,
+                'language': 'pt-BR',
+                'query': query,
+                'page': 1
+            }
+            print(f"Buscando filmes na TMDb: {url_filmes}")
+            response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
+            print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
+            filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
+            print(f"Filmes encontrados: {len(filmes)}")
+        else:
+            filmes = []
+
+        # Buscar séries (se tipo_filtro for 'serie' ou 'all')
+        if tipo_filtro in ['serie', 'all']:
+            url_series = f"https://api.themoviedb.org/3/search/tv"
+            params_series = {
+                'api_key': settings.TMDB_API_KEY,
+                'language': 'pt-BR',
+                'query': query,
+                'page': 1
+            }
+            response_series = requests.get(url_series, params=params_series, timeout=5)
+            series = response_series.json().get('results', [])[:5]  # Limitar a 5 resultados
+        else:
+            series = []
         
         # Adicionar filmes
         for filme in filmes:
@@ -1511,6 +2753,8 @@ def buscar_sugestoes(request):
 @login_required(login_url='backstage:login')
 def perfil(request, username=None):
     """Página de perfil do usuário"""
+    from .services.tmdb import buscar_detalhes_filme, buscar_detalhes_serie
+    
     if username:
         usuario_perfil = get_object_or_404(User, username=username)
     else:
@@ -1518,9 +2762,40 @@ def perfil(request, username=None):
     
     is_own_profile = (request.user == usuario_perfil)
     
-    # Buscar reviews do usuário (mostrando 12 em vez de 6)
-    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').order_by('-criado_em')[:12]
-    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').order_by('-criado_em')[:12]
+    # Buscar reviews do usuário com contagem de likes (últimas 4)
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')[:4]
+    
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')[:4]
+    
+    # Enriquecer críticas de filmes com dados do TMDB
+    for critica in criticas_filmes:
+        if critica.filme.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_filme(critica.filme.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.filme.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('release_date'):
+                    from datetime import datetime
+                    critica.filme.data_lancamento = datetime.strptime(detalhes['release_date'], '%Y-%m-%d').date()
+            except:
+                pass
+    
+    # Enriquecer críticas de séries com dados do TMDB
+    for critica in criticas_series:
+        if critica.serie.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_serie(critica.serie.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.serie.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('first_air_date'):
+                    from datetime import datetime
+                    critica.serie.data_primeira_exibicao = datetime.strptime(detalhes['first_air_date'], '%Y-%m-%d').date()
+            except:
+                pass
     
     # Buscar listas - se for perfil de amigo, mostrar todas as listas públicas
     listas = Lista.objects.filter(usuario=usuario_perfil).prefetch_related('itens__filme').order_by('-atualizada_em')
@@ -1574,14 +2849,58 @@ def meu_diario(request):
 
 
 @login_required(login_url='backstage:login')
-def reviews(request):
+def reviews(request, username=None):
     """Página com todas as reviews do usuário"""
-    criticas_filmes = Critica.objects.filter(usuario=request.user).select_related('filme').order_by('-data_criacao')
-    criticas_series = CriticaSerie.objects.filter(usuario=request.user).select_related('serie').order_by('-data_criacao')
+    from .services.tmdb import buscar_detalhes_filme, buscar_detalhes_serie
+    
+    # Determinar qual usuário mostrar
+    if username:
+        usuario_perfil = get_object_or_404(User, username=username)
+    else:
+        usuario_perfil = request.user
+    
+    is_own_profile = (request.user == usuario_perfil)
+    
+    # Buscar todas as reviews do usuário com contagem de likes
+    criticas_filmes = Critica.objects.filter(usuario=usuario_perfil).select_related('filme').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+    
+    criticas_series = CriticaSerie.objects.filter(usuario=usuario_perfil).select_related('serie').annotate(
+        total_likes=Count('likes', distinct=True)
+    ).order_by('-criado_em')
+    
+    # Enriquecer críticas de filmes com dados do TMDB
+    for critica in criticas_filmes:
+        if critica.filme.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_filme(critica.filme.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.filme.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('release_date'):
+                    from datetime import datetime
+                    critica.filme.data_lancamento = datetime.strptime(detalhes['release_date'], '%Y-%m-%d').date()
+            except:
+                pass
+    
+    # Enriquecer críticas de séries com dados do TMDB
+    for critica in criticas_series:
+        if critica.serie.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_serie(critica.serie.tmdb_id)
+                if detalhes.get('poster_path'):
+                    critica.serie.poster = f"https://image.tmdb.org/t/p/w300{detalhes['poster_path']}"
+                if detalhes.get('first_air_date'):
+                    from datetime import datetime
+                    critica.serie.data_primeira_exibicao = datetime.strptime(detalhes['first_air_date'], '%Y-%m-%d').date()
+            except:
+                pass
     
     context = {
         'criticas_filmes': criticas_filmes,
         'criticas_series': criticas_series,
+        'usuario_perfil': usuario_perfil,
+        'is_own_profile': is_own_profile,
     }
     
     return render(request, 'backstage/reviews.html', context)
@@ -1589,22 +2908,43 @@ def reviews(request):
 
 @login_required(login_url='backstage:login')
 def watchlist(request):
-    """Página da watchlist (assistir mais tarde)"""
-    try:
-        lista_watchlist = Lista.objects.get(usuario=request.user, nome="Assistir Mais Tarde")
-    except Lista.DoesNotExist:
-        lista_watchlist = Lista.objects.create(
-            usuario=request.user,
-            nome="Assistir Mais Tarde",
-            descricao="Filmes e séries para assistir mais tarde"
-        )
+    """Página de listas do usuário"""
+    # Buscar todas as listas do usuário ordenadas por data de criação
+    listas = Lista.objects.filter(usuario=request.user).order_by('-criada_em')
+    
+    # Preparar dados de cada lista com contagem de itens
+    listas_data = []
+    for lista in listas:
+        total_filmes = lista.itens.count()
+        total_series = lista.itens_serie.count()
+        total_itens = total_filmes + total_series
+        
+        listas_data.append({
+            'lista': lista,
+            'total_filmes': total_filmes,
+            'total_series': total_series,
+            'total_itens': total_itens,
+        })
+    
+    context = {
+        'listas_data': listas_data,
+    }
+    
+    return render(request, 'backstage/watchlist.html', context)
+
+
+@login_required(login_url='backstage:login')
+def lista_detalhes(request, lista_id):
+    """Página de detalhes de uma lista específica"""
+    from itertools import chain
+    
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
     
     # Buscar itens de filmes e séries
-    itens_filmes = lista_watchlist.itens.all().select_related('filme')
-    itens_series = lista_watchlist.itens_serie.all().select_related('serie')
+    itens_filmes = lista.itens.all().select_related('filme')
+    itens_series = lista.itens_serie.all().select_related('serie')
     
     # Combinar e ordenar por data de adição
-    from itertools import chain
     itens = sorted(
         chain(itens_filmes, itens_series),
         key=lambda x: x.adicionado_em,
@@ -1612,11 +2952,11 @@ def watchlist(request):
     )
     
     context = {
-        'lista': lista_watchlist,
+        'lista': lista,
         'itens': itens,
     }
     
-    return render(request, 'backstage/watchlist.html', context)
+    return render(request, 'backstage/lista_detalhes.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -1853,21 +3193,23 @@ def diario_entradas(request):
         print(f"  - Título atual: '{filme.titulo}'")
         print(f"  - Poster: {filme.poster}")
         
-        # Se o filme não tem título, buscar do TMDb (usando nosso payload normalizado)
-        if not filme.titulo and filme.tmdb_id:
-            print(f"  ⚠️  Filme sem título, buscando do TMDb...")
+        # Se o filme não tem título ou poster, buscar do TMDb (usando nosso payload normalizado)
+        if (not filme.titulo or not filme.poster) and filme.tmdb_id:
+            print(f"  ⚠️  Filme sem título ou poster, buscando do TMDb...")
             try:
                 detalhes = obter_detalhes_com_cache(filme.tmdb_id)
                 if detalhes and isinstance(detalhes, dict):
                     # Atualizar o filme com os dados normalizados do TMDb
-                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
-                    filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
-                    if detalhes.get('poster_path'):
+                    if not filme.titulo:
+                        filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
+                    if not filme.descricao:
+                        filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                    if not filme.poster and detalhes.get('poster_path'):
                         filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
-                    if detalhes.get('data_lancamento') or detalhes.get('release_date'):
+                    if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
                         filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()
-                    print(f"  ✓ Filme atualizado: {filme.titulo}")
+                    print(f"  ✓ Filme atualizado: {filme.titulo}, Poster: {filme.poster}")
             except Exception as e:
                 print(f"  ✗ Erro ao buscar detalhes: {e}")
         
@@ -1878,12 +3220,13 @@ def diario_entradas(request):
             'id': entrada.id,
             'filme_id': filme.tmdb_id or filme.id,
             'titulo': titulo_final,
-            'poster': filme.poster or '/static/images/no-poster.png',
+            'poster': filme.poster or '',
             'ano': entrada.data_assistido.year,
             'mes': entrada.data_assistido.month,
             'dia': entrada.data_assistido.day,
             'nota': entrada.nota,
             'assistido_com': entrada.assistido_com or '',
+            'generos': filme.categoria or '',
         })
     
     print(f"\n✓ Retornando {len(entradas_data)} entradas")
@@ -1893,95 +3236,192 @@ def diario_entradas(request):
 @api_login_required
 @require_http_methods(['POST'])
 def diario_adicionar(request):
-    """API para adicionar filme ao diário"""
+    """API para adicionar filme ou série ao diário"""
     from datetime import datetime
-    
+    from .services.tmdb import buscar_detalhes_serie
+
     try:
         data = json.loads(request.body)
-        filme_id = data.get('filme_id')
+        item_id = data.get('filme_id')
+        tipo = data.get('tipo', 'filme')  # 'filme' ou 'serie'
         data_assistido = data.get('data')
         nota = data.get('nota')
         assistido_com = data.get('assistido_com', '')
-        
-        if not filme_id or not data_assistido or not nota:
+        notas = data.get('notas', '').strip()
+
+        if not item_id or not data_assistido or not nota:
             return JsonResponse({
                 'success': False,
                 'message': 'Dados incompletos'
             })
         
-        # Buscar ou criar o filme
-        filme = None
-        try:
-            # Tentar buscar pelo TMDB ID
-            filme = Filme.objects.get(tmdb_id=filme_id)
-        except Filme.DoesNotExist:
-            # Se não encontrar, buscar os detalhes do TMDB (payload normalizado) e criar
-            detalhes = obter_detalhes_com_cache(filme_id)
-            if detalhes and isinstance(detalhes, dict):
-                # generos já vem como lista de strings ['Action', 'Drama'], não como dicts
-                generos = detalhes.get('generos', []) or []
-                generos_str = ', '.join(generos[:3]) if generos else ''
-                
-                filme = Filme.objects.create(
-                    tmdb_id=filme_id,
-                    titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
-                    descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
-                    data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
-                    poster=f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}" if detalhes.get('poster_path') else None,
-                    categoria=generos_str
-                )
-
-        # Se encontrou um Filme existente mas sem título, tentar completar agora
-        if filme and (not filme.titulo) and filme.tmdb_id:
-            try:
-                detalhes = obter_detalhes_com_cache(filme.tmdb_id)
-                if detalhes and isinstance(detalhes, dict):
-                    filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo or 'Sem título'
-                    if not filme.descricao:
-                        filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
-                    if not filme.poster and detalhes.get('poster_path'):
-                        filme.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
-                    if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
-                        filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
-                    filme.save()
-            except Exception as e:
-                print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
-        
-        if not filme:
-            return JsonResponse({
-                'success': False,
-                'message': 'Filme não encontrado'
-            })
-        
         # Converter string de data para objeto date
         data_obj = datetime.strptime(data_assistido, '%Y-%m-%d').date()
-        
-        # Criar ou atualizar entrada do diário
-        entrada, created = DiarioFilme.objects.update_or_create(
-            usuario=request.user,
-            filme=filme,
-            data_assistido=data_obj,
-            defaults={
-                'nota': nota,
-                'assistido_com': assistido_com
-            }
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Filme adicionado ao diário!' if created else 'Entrada atualizada!',
-            'entrada_id': entrada.id
-        })
+
+        if tipo == 'serie':
+            # Processar série
+            serie = None
+            try:
+                serie = Serie.objects.get(tmdb_id=item_id)
+            except Serie.DoesNotExist:
+                detalhes = buscar_detalhes_serie(item_id)
+                if detalhes and isinstance(detalhes, dict):
+                    generos = detalhes.get('generos', []) or []
+                    generos_str = ', '.join(generos[:3]) if generos else ''
+
+                    poster_path = detalhes.get('poster_path')
+                    poster_url = None
+                    if poster_path and poster_path != 'None' and str(poster_path).strip():
+                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+                    serie = Serie.objects.create(
+                        tmdb_id=item_id,
+                        titulo=detalhes.get('titulo') or detalhes.get('name') or 'Sem título',
+                        descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
+                        data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('first_air_date')) or None,
+                        poster=poster_url,
+                        categoria=generos_str
+                    )
+
+            if not serie:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Série não encontrada'
+                })
+
+            # Criar ou atualizar entrada do diário
+            entrada, created = DiarioSerie.objects.update_or_create(
+                usuario=request.user,
+                serie=serie,
+                data_assistido=data_obj,
+                defaults={
+                    'nota': nota,
+                    'assistido_com': assistido_com
+                }
+            )
+
+            # Se houver notas/review, criar ou atualizar a crítica
+            if notas:
+                CriticaSerie.objects.update_or_create(
+                    usuario=request.user,
+                    serie=serie,
+                    defaults={
+                        'texto': notas,
+                        'nota': nota,
+                        'tem_spoiler': False
+                    }
+                )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Série adicionada ao diário!' if created else 'Entrada atualizada!',
+                'entrada_id': entrada.id
+            })
+
+        else:
+            # Processar filme
+            filme = None
+            try:
+                filme = Filme.objects.get(tmdb_id=item_id)
+            except Filme.DoesNotExist:
+                detalhes = obter_detalhes_com_cache(item_id)
+                if detalhes and isinstance(detalhes, dict):
+                    generos = detalhes.get('generos', []) or []
+                    generos_str = ', '.join(generos[:3]) if generos else ''
+
+                    poster_path = detalhes.get('poster_path')
+                    poster_url = None
+                    if poster_path and poster_path != 'None' and str(poster_path).strip():
+                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+                    # Converter data_lancamento para objeto date se for string
+                    data_lanc = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                    data_lanc_obj = None
+                    if data_lanc:
+                        try:
+                            data_lanc_obj = datetime.strptime(data_lanc, '%Y-%m-%d').date()
+                        except (ValueError, TypeError):
+                            data_lanc_obj = None
+
+                    filme = Filme.objects.create(
+                        tmdb_id=item_id,
+                        titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
+                        descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
+                        data_lancamento=data_lanc_obj,
+                        poster=poster_url,
+                        categoria=generos_str
+                    )
+
+            # Se encontrou um Filme existente mas sem título/poster, tentar completar agora
+            if filme and (not filme.titulo or not filme.poster) and filme.tmdb_id:
+                try:
+                    detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                    if detalhes and isinstance(detalhes, dict):
+                        if not filme.titulo:
+                            filme.titulo = detalhes.get('titulo') or detalhes.get('title') or 'Sem título'
+                        if not filme.descricao:
+                            filme.descricao = detalhes.get('sinopse') or detalhes.get('overview') or ''
+                        if not filme.poster:
+                            poster_path = detalhes.get('poster_path')
+                            if poster_path and poster_path != 'None' and str(poster_path).strip():
+                                filme.poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
+                        if not filme.data_lancamento:
+                            data_lanc = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                            if data_lanc:
+                                try:
+                                    filme.data_lancamento = datetime.strptime(data_lanc, '%Y-%m-%d').date()
+                                except (ValueError, TypeError):
+                                    pass
+                        filme.save()
+                except Exception as e:
+                    print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
+
+            if not filme:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Filme não encontrado'
+                })
+
+            # Criar ou atualizar entrada do diário
+            entrada, created = DiarioFilme.objects.update_or_create(
+                usuario=request.user,
+                filme=filme,
+                data_assistido=data_obj,
+                defaults={
+                    'nota': nota,
+                    'assistido_com': assistido_com
+                }
+            )
+
+            # Se houver notas/review, criar ou atualizar a crítica
+            if notas:
+                Critica.objects.update_or_create(
+                    usuario=request.user,
+                    filme=filme,
+                    defaults={
+                        'texto': notas,
+                        'nota': nota,
+                        'tem_spoiler': False
+                    }
+                )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Filme adicionado ao diário!' if created else 'Entrada atualizada!',
+                'entrada_id': entrada.id
+            })
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Erro ao adicionar filme: {str(e)}'
-        })
+        }, status=500)
 
 
 @api_login_required
-@require_http_methods(['POST'])
+@require_http_methods(['DELETE', 'POST'])
 def diario_remover(request, entrada_id):
     """API para remover entrada do diário"""
     try:
@@ -2374,6 +3814,48 @@ def remover_amigo(request):
             'message': f'Erro ao remover amigo: {str(e)}'
         })
 
+
+@api_login_required
+@require_http_methods(['GET'])
+def buscar_amigos(request):
+    """API para buscar lista de amigos do usuário"""
+    try:
+        query = request.GET.get('q', '').strip()
+
+        # Buscar amizades onde o usuário é usuario1 ou usuario2
+        amizades = Amizade.objects.filter(
+            Q(usuario1=request.user) | Q(usuario2=request.user)
+        ).select_related('usuario1', 'usuario2')
+
+        amigos = []
+        for amizade in amizades:
+            # Pegar o outro usuário da amizade
+            amigo = amizade.usuario2 if amizade.usuario1 == request.user else amizade.usuario1
+
+            # Se houver query, filtrar pelo nome
+            if query and query.lower() not in amigo.username.lower():
+                continue
+
+            amigos.append({
+                'id': amigo.id,
+                'username': amigo.username,
+                'nome_completo': f"{amigo.first_name} {amigo.last_name}".strip() or amigo.username,
+                'foto_perfil': amigo.profile.foto.url if hasattr(amigo, 'profile') and amigo.profile.foto else None
+            })
+
+        return JsonResponse({
+            'success': True,
+            'amigos': amigos
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar amigos: {str(e)}',
+            'amigos': []
+        })
+
+
 @login_required(login_url='backstage:login')
 def buscar_notificacoes(request):
     """API para buscar notificações de solicitações de amizade pendentes"""
@@ -2518,3 +4000,285 @@ def toggle_like_critica_serie(request, critica_id):
             'success': False,
             'message': f'Erro ao processar like: {str(e)}'
         }, status=500)
+
+# Temporary file with the clear functions - to be appended to views.py
+
+@api_login_required
+@require_http_methods(['POST'])
+def limpar_reviews(request):
+    """API para limpar todas as reviews do usuário"""
+    try:
+        from .models import Critica, CriticaSerie
+
+        # Deletar todas as críticas de filmes
+        criticas_filmes = Critica.objects.filter(usuario=request.user)
+        count_filmes = criticas_filmes.count()
+        criticas_filmes.delete()
+
+        # Deletar todas as críticas de séries
+        criticas_series = CriticaSerie.objects.filter(usuario=request.user)
+        count_series = criticas_series.count()
+        criticas_series.delete()
+
+        total = count_filmes + count_series
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{total} reviews removidas com sucesso',
+            'total_removidas': total
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover reviews: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['POST'])
+def limpar_favoritos(request):
+    """API para limpar todos os favoritos do usuário"""
+    try:
+        from .models import FilmeFavorito
+
+        # Remover todos os filmes favoritos do usuário
+        favoritos = FilmeFavorito.objects.filter(usuario=request.user)
+        count = favoritos.count()
+        favoritos.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{count} favoritos removidos com sucesso',
+            'total_removidos': count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover favoritos: {str(e)}'
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['GET'])
+def api_recomendacoes(request):
+    """API para buscar recomendações personalizadas do usuário"""
+    try:
+        # Se tem parâmetro refresh, usar offset diferente para variar filmes
+        # Usar timestamp como offset para garantir sempre filmes diferentes
+        offset = 12 if request.GET.get('refresh') else 0
+
+        # Buscar recomendações baseadas nos favoritos
+        filmes = obter_recomendados_por_favoritos(request.user, limit=12, offset=offset)
+
+        return JsonResponse({
+            'success': True,
+            'filmes': filmes,
+            'total': len(filmes)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao buscar recomendações: {str(e)}',
+            'filmes': []
+        }, status=500)
+
+@api_login_required
+@require_http_methods(['POST'])
+def limpar_listas(request):
+    """API para limpar todas as listas do usuário"""
+    try:
+        from .models import Lista
+
+        # Deletar todas as listas do usuário
+        listas = Lista.objects.filter(criador=request.user)
+        count = listas.count()
+        listas.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{count} listas removidas com sucesso',
+            'total_removidas': count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao remover listas: {str(e)}'
+        }, status=500)
+
+
+# ========================================
+# COMMUNITY CHAT - NEW IMPLEMENTATION
+# ========================================
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def obter_mensagens_comunidade(request, comunidade_id):
+    """
+    API endpoint to get all messages from a community
+    """
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verify user is member
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Get messages
+        mensagens = MensagemComunidade.objects.filter(comunidade=comunidade).select_related('usuario', 'usuario__profile').order_by('criado_em')
+
+        # Get user's role
+        user_roles = {}
+        membros = MembroComunidade.objects.filter(comunidade=comunidade).select_related('usuario')
+        for membro in membros:
+            user_roles[membro.usuario.id] = membro.role
+
+        # Serialize messages
+        mensagens_data = []
+        for msg in mensagens:
+            foto_perfil = None
+            if hasattr(msg.usuario, 'profile') and msg.usuario.profile.foto_perfil:
+                foto_perfil = msg.usuario.profile.foto_perfil.url
+
+            mensagens_data.append({
+                'id': msg.id,
+                'usuario': {
+                    'username': msg.usuario.username,
+                    'foto_perfil': foto_perfil,
+                    'role': user_roles.get(msg.usuario.id, 'member')
+                },
+                'conteudo': msg.conteudo,
+                'tipo_mensagem': msg.tipo_mensagem,
+                'filme_tmdb_id': msg.filme_tmdb_id,
+                'filme_titulo': msg.filme_titulo,
+                'filme_poster': msg.filme_poster,
+                'criado_em': msg.criado_em.isoformat(),
+                'editado': msg.editado
+            })
+
+        return JsonResponse({'success': True, 'mensagens': mensagens_data})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def obter_mensagens_novas(request, comunidade_id):
+    """
+    API endpoint to get new messages after a specific message ID (for polling)
+    """
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verify user is member
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Get after_id parameter
+        after_id = request.GET.get('after', 0)
+
+        # Get new messages
+        mensagens = MensagemComunidade.objects.filter(
+            comunidade=comunidade,
+            id__gt=after_id
+        ).select_related('usuario', 'usuario__profile').order_by('criado_em')
+
+        # Get user's role
+        user_roles = {}
+        if mensagens.exists():
+            user_ids = mensagens.values_list('usuario_id', flat=True).distinct()
+            membros = MembroComunidade.objects.filter(comunidade=comunidade, usuario_id__in=user_ids).select_related('usuario')
+            for membro in membros:
+                user_roles[membro.usuario.id] = membro.role
+
+        # Serialize messages
+        mensagens_data = []
+        for msg in mensagens:
+            foto_perfil = None
+            if hasattr(msg.usuario, 'profile') and msg.usuario.profile.foto_perfil:
+                foto_perfil = msg.usuario.profile.foto_perfil.url
+
+            mensagens_data.append({
+                'id': msg.id,
+                'usuario': {
+                    'username': msg.usuario.username,
+                    'foto_perfil': foto_perfil,
+                    'role': user_roles.get(msg.usuario.id, 'member')
+                },
+                'conteudo': msg.conteudo,
+                'tipo_mensagem': msg.tipo_mensagem,
+                'filme_tmdb_id': msg.filme_tmdb_id,
+                'filme_titulo': msg.filme_titulo,
+                'filme_poster': msg.filme_poster,
+                'criado_em': msg.criado_em.isoformat(),
+                'editado': msg.editado
+            })
+
+        return JsonResponse({'success': True, 'mensagens': mensagens_data})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def enviar_mensagem_chat(request, comunidade_id):
+    """
+    API endpoint to send a new message
+    """
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verify user is member
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Get data from request
+        data = json.loads(request.body)
+        conteudo = data.get('conteudo', '').strip()
+
+        if not conteudo:
+            return JsonResponse({'success': False, 'error': 'Mensagem vazia'}, status=400)
+
+        # Create message
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            conteudo=conteudo,
+            tipo_mensagem='texto'
+        )
+
+        # Get user's role
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+
+        # Get user's profile photo
+        foto_perfil = None
+        if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+            foto_perfil = request.user.profile.foto_perfil.url
+
+        # Return created message
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': {
+                    'username': request.user.username,
+                    'foto_perfil': foto_perfil,
+                    'role': membro.role
+                },
+                'conteudo': mensagem.conteudo,
+                'tipo_mensagem': mensagem.tipo_mensagem,
+                'filme_tmdb_id': mensagem.filme_tmdb_id,
+                'filme_titulo': mensagem.filme_titulo,
+                'filme_poster': mensagem.filme_poster,
+                'criado_em': mensagem.criado_em.isoformat(),
+                'editado': mensagem.editado
+            }
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load movie data directly from TMDb API using URL
   await loadMovieData();
 
+  // Initialize trailer button
+  initializeTrailerButton();
+
   // Tab switching functionality
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -179,12 +182,33 @@ async function loadMovieData() {
       console.warn('No cast data available');
     }
 
+    // Buscar filmes similares
+    await loadSimilarMoviesData(tmdbMovieId);
+
     // Hide loading states
     hideLoadingState();
 
   } catch (error) {
     console.error('Error loading movie data:', error);
     showErrorState();
+  }
+}
+
+async function loadSimilarMoviesData(movieId) {
+  try {
+    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&language=pt-BR&page=1`);
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      currentSimilarMovies = data;
+      console.log('Similar movies loaded:', data.results.length);
+    } else {
+      console.warn('No similar movies found');
+      currentSimilarMovies = null;
+    }
+  } catch (error) {
+    console.error('Error loading similar movies:', error);
+    currentSimilarMovies = null;
   }
 }
 
@@ -1019,6 +1043,69 @@ function initNewsDropdown() {
       </div>
     </a>
   `).join('');
+}
+
+// ===== Trailer Button Functionality =====
+function initializeTrailerButton() {
+  console.log('[TRAILER] Inicializando botão de trailer...');
+  const trailerBtn = document.querySelector('.trailer-btn');
+  console.log('[TRAILER] Botão encontrado:', trailerBtn);
+  
+  if (trailerBtn) {
+    console.log('[TRAILER] Adicionando evento de clique ao botão');
+    trailerBtn.addEventListener('click', async (event) => {
+      console.log('[TRAILER] Botão clicado!');
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const movieId = getCurrentMovieTMDbId();
+      console.log('[TRAILER] Movie ID:', movieId);
+      
+      if (!movieId) {
+        alert('ID do filme não encontrado.');
+        return;
+      }
+      
+      try {
+        const url = `/api/filme/${movieId}/videos/`;
+        console.log('[TRAILER] Buscando trailer em:', url);
+        
+        const response = await fetch(url);
+        console.log('[TRAILER] Response status:', response.status);
+        
+        if (!response.ok) {
+          alert('Não foi possível carregar o trailer.');
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('[TRAILER] Dados recebidos:', data);
+        
+        if (data.success && data.videos && data.videos.length > 0) {
+          // Procurar por trailer no YouTube
+          const trailer = data.videos.find(video => 
+            video.type === 'Trailer' && video.site === 'YouTube'
+          ) || data.videos[0];
+          
+          console.log('[TRAILER] Trailer encontrado:', trailer);
+          
+          if (trailer && trailer.key) {
+            console.log('[TRAILER] Abrindo YouTube:', trailer.key);
+            window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+          } else {
+            alert('Trailer não disponível para este filme.');
+          }
+        } else {
+          alert('Trailer não disponível para este filme.');
+        }
+      } catch (error) {
+        console.error('[TRAILER] Erro ao buscar trailer:', error);
+        alert('Erro ao buscar trailer.');
+      }
+    });
+  } else {
+    console.warn('[TRAILER] Botão de trailer não encontrado no DOM');
+  }
 }
 
 // ===== Spoiler Reveal Functionality =====

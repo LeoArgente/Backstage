@@ -36,12 +36,28 @@ document.addEventListener('DOMContentLoaded', function() {
     movieSearchInput.addEventListener('input', function() {
       clearTimeout(searchTimeout);
       const query = this.value.trim();
-      
+
       if (query.length >= 2) {
         searchTimeout = setTimeout(() => searchMovies(query), 300);
       } else {
         document.getElementById('movieSearchResults').classList.remove('active');
       }
+    });
+  }
+
+  // Friend search in "Assistido com" field
+  const watchedWithInput = document.getElementById('watchedWith');
+  if (watchedWithInput) {
+    watchedWithInput.addEventListener('input', function() {
+      const query = this.value.trim();
+      searchFriends(query);
+    });
+
+    // Close results when clicking outside
+    watchedWithInput.addEventListener('blur', function() {
+      setTimeout(() => {
+        document.getElementById('friendsSearchResults').style.display = 'none';
+      }, 200);
     });
   }
 
@@ -57,15 +73,99 @@ document.addEventListener('DOMContentLoaded', function() {
       const filterType = this.dataset.filter;
       const filterValue = this.dataset.value;
 
-      // Toggle active class
+      // Check if this button is already active
+      const isActive = this.classList.contains('active');
+
+      // Remove active class from all buttons of this filter type
       document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(btn => {
         btn.classList.remove('active');
       });
-      this.classList.add('active');
 
-      // Apply filter
-      filterDiaryEntries(filterType, filterValue);
+      // If it wasn't active, activate it and apply filter
+      // If it was active, deselect it and show all
+      if (!isActive) {
+        this.classList.add('active');
+        filterDiaryEntries(filterType, filterValue);
+      } else {
+        // Deselected - show all entries
+        filterDiaryEntries(filterType, '');
+      }
     });
+  });
+
+  // Star rating filter
+  const starFilters = document.querySelectorAll('.star-filter');
+  let selectedRating = null;
+
+  starFilters.forEach((star) => {
+    // Hover effect - highlight stars from left to right (1 to rating)
+    star.addEventListener('mouseenter', function() {
+      const rating = parseInt(this.dataset.rating);
+      starFilters.forEach((s) => {
+        const starRating = parseInt(s.dataset.rating);
+        if (starRating <= rating) {
+          s.style.color = '#fbbf24';
+        } else {
+          s.style.color = selectedRating && starRating <= selectedRating ? '#fbbf24' : 'var(--text-muted)';
+        }
+      });
+    });
+
+    // Click to select rating
+    star.addEventListener('click', function() {
+      const rating = parseInt(this.dataset.rating);
+
+      // If clicking the same rating, deselect it
+      if (selectedRating === rating) {
+        selectedRating = null;
+        starFilters.forEach(s => {
+          s.classList.remove('active');
+          s.style.color = 'var(--text-muted)';
+        });
+        filterDiaryByRating(null);
+      } else {
+        selectedRating = rating;
+        starFilters.forEach((s) => {
+          const starRating = parseInt(s.dataset.rating);
+          if (starRating <= rating) {
+            s.classList.add('active');
+            s.style.color = '#fbbf24';
+          } else {
+            s.classList.remove('active');
+            s.style.color = 'var(--text-muted)';
+          }
+        });
+        filterDiaryByRating(rating);
+      }
+    });
+  });
+
+  // Mouse leave - restore selected state
+  document.querySelector('.star-rating-filter')?.addEventListener('mouseleave', function() {
+    if (selectedRating) {
+      starFilters.forEach((s) => {
+        const starRating = parseInt(s.dataset.rating);
+        if (starRating <= selectedRating) {
+          s.style.color = '#fbbf24';
+        } else {
+          s.style.color = 'var(--text-muted)';
+        }
+      });
+    } else {
+      starFilters.forEach(s => {
+        s.style.color = 'var(--text-muted)';
+      });
+    }
+  });
+
+  // Clear rating filter button
+  document.querySelector('.clear-rating-filter')?.addEventListener('click', function() {
+    selectedRating = null;
+    starFilters.forEach(s => {
+      s.classList.remove('active');
+      s.style.color = 'var(--text-muted)';
+    });
+    filterDiaryByRating(null);
   });
 
   // Initial render
@@ -109,53 +209,59 @@ function renderCalendar() {
     const date = new Date(currentYear, currentMonth, day);
     const dayOfWeek = dayNames[date.getDay()];
     const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const entries = diaryEntries[dateKey]; // Agora é um array
+    const entries = diaryEntries[dateKey]; // Array de filmes do dia
 
     if (entries && entries.length > 0) {
-      // Renderizar cada filme do dia
-      entries.forEach((entry, index) => {
-        const dayRow = document.createElement('div');
-        dayRow.className = 'calendar-day-row';
-        
-        // Mostrar data apenas na primeira linha do dia
-        if (index === 0) {
-          dayRow.innerHTML = `
-            <div class="calendar-date">
-              <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
-              <span class="calendar-day-number">${day}</span>
+      // Criar um único card para o dia
+      const dayRow = document.createElement('div');
+      dayRow.className = 'calendar-day-row';
+
+      const starIcon = '<span style="color: #fbbf24; font-size: 18px; margin: 0 2px;">★</span>';
+
+      // Gerar HTML dos filmes
+      const moviesHTML = entries.map(entry => {
+        const posterSrc = entry.poster || getPlaceholderPoster();
+        const ratingStars = starIcon.repeat(entry.nota);
+        return `
+          <div class="calendar-movie-item" data-genres="${entry.generos || ''}">
+            <div class="calendar-movie-main">
+              <div class="calendar-poster">
+                <a href="/filmes/${entry.filme_id}/">
+                  <img src="${posterSrc}" alt="${entry.titulo}">
+                </a>
+              </div>
+              <div class="calendar-movie-title">
+                <a href="/filmes/${entry.filme_id}/" style="color: inherit; text-decoration: none;">${entry.titulo}</a>
+              </div>
             </div>
-            <div class="calendar-day-name">${dayOfWeek}</div>
-            <div class="calendar-poster">
-              <a href="/filmes/${entry.filme_id}/">
-                <img src="${entry.poster}" alt="${entry.titulo}">
-              </a>
-            </div>
-            <div class="calendar-movie-title">
-              <a href="/filmes/${entry.filme_id}/" style="color: inherit; text-decoration: none;">${entry.titulo}</a>
-            </div>
-            <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
+            <div class="calendar-rating">${ratingStars}</div>
             <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
-          `;
-        } else {
-          // Filmes adicionais do mesmo dia (sem repetir data)
-          dayRow.innerHTML = `
-            <div class="calendar-date"></div>
-            <div class="calendar-day-name"></div>
-            <div class="calendar-poster">
-              <a href="/filmes/${entry.filme_id}/">
-                <img src="${entry.poster}" alt="${entry.titulo}">
-              </a>
+            <div class="calendar-actions">
+              <button class="delete-diary-btn" onclick="deleteDiaryEntry(${entry.id}, '${entry.titulo}')" title="Remover do diário">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
             </div>
-            <div class="calendar-movie-title">
-              <a href="/filmes/${entry.filme_id}/" style="color: inherit; text-decoration: none;">${entry.titulo}</a>
-            </div>
-            <div class="calendar-rating">${'⭐'.repeat(entry.nota)}</div>
-            <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
-          `;
-        }
-        
-        calendarDays.appendChild(dayRow);
-      });
+          </div>
+        `;
+      }).join('');
+
+      dayRow.innerHTML = `
+        <div class="calendar-date">
+          <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
+          <span class="calendar-day-number">${day}</span>
+          <span class="calendar-day-name">${dayOfWeek}</span>
+        </div>
+        <div class="calendar-movies-list">
+          ${moviesHTML}
+        </div>
+      `;
+
+      calendarDays.appendChild(dayRow);
     } else {
       // Dia sem filmes
       const dayRow = document.createElement('div');
@@ -164,11 +270,9 @@ function renderCalendar() {
         <div class="calendar-date">
           <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
           <span class="calendar-day-number">${day}</span>
+          <span class="calendar-day-name">${dayOfWeek}</span>
         </div>
-        <div class="calendar-day-name">${dayOfWeek}</div>
-        <div class="calendar-movie-title"></div>
-        <div class="calendar-rating"></div>
-        <div class="calendar-watched-with"></div>
+        <div class="calendar-movies-list empty"></div>
       `;
       calendarDays.appendChild(dayRow);
     }
@@ -262,37 +366,44 @@ function searchMovies(query) {
       
       if (data.sugestoes && data.sugestoes.length > 0) {
         console.log('Primeira sugestão:', data.sugestoes[0]);
-        
-        const filmes = data.sugestoes.filter(s => s.tipo === 'filme');
-        console.log(`Filmes após filtro (tipo='filme'): ${filmes.length}`);
-        
-        if (filmes.length > 0) {
-          console.log('Gerando HTML para', filmes.length, 'filmes');
-          
-          resultsContainer.innerHTML = filmes.map(filme => {
-            const filmeJson = JSON.stringify(filme).replace(/'/g, "&#39;");
+
+        // Incluir filmes e séries
+        const items = data.sugestoes.filter(s => s.tipo === 'filme' || s.tipo === 'serie');
+        console.log(`Filmes e séries após filtro: ${items.length}`);
+
+        if (items.length > 0) {
+          console.log('Gerando HTML para', items.length, 'items');
+
+          resultsContainer.innerHTML = items.map(item => {
+            const itemJson = JSON.stringify(item).replace(/'/g, "&#39;");
+            const posterSrc = item.poster || getPlaceholderPoster();
+            const tipoIcon = item.tipo === 'serie'
+              ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>'
+              : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>';
+            const tipoLabel = item.tipo === 'serie' ? 'Série' : 'Filme';
+            const starIcon = '<span style="color: #fbbf24; font-size: 14px; margin: 0 1px;">★</span>';
             return `
-              <div class="search-result-item" onclick='selectMovie(${filmeJson})'>
-                <img src="${filme.poster || '/static/images/no-poster.png'}" alt="${filme.titulo}" class="search-result-poster">
+              <div class="search-result-item" onclick='selectMovie(${itemJson})'>
+                <img src="${posterSrc}" alt="${item.titulo}" class="search-result-poster">
                 <div class="search-result-info">
-                  <h4>${filme.titulo}</h4>
-                  <p>${filme.ano} • ⭐ ${filme.nota}</p>
+                  <h4>${item.titulo}</h4>
+                  <p>${tipoIcon}${tipoLabel} • ${item.ano} • ${starIcon}${item.nota}</p>
                 </div>
               </div>
             `;
           }).join('');
-          
+
           console.log('HTML gerado, adicionando classe active');
           resultsContainer.classList.add('active');
           console.log('Classes do container:', resultsContainer.className);
         } else {
-          console.log('⚠️ Nenhum filme após filtrar tipo="filme"');
-          resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme encontrado</p>';
+          console.log('⚠️ Nenhum filme ou série encontrado');
+          resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme ou série encontrado</p>';
           resultsContainer.classList.add('active');
         }
       } else {
         console.log('⚠️ Nenhuma sugestão retornada pela API');
-        resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme encontrado</p>';
+        resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum resultado encontrado</p>';
         resultsContainer.classList.add('active');
       }
       
@@ -311,16 +422,82 @@ function searchMovies(query) {
     });
 }
 
-// Select movie from search
-function selectMovie(filme) {
-  selectedMovieData = filme;
-  document.getElementById('selectedMovieId').value = filme.id;
-  document.getElementById('selectedMovieTitle').textContent = filme.titulo;
-  document.getElementById('selectedMovieYear').textContent = filme.ano;
-  document.getElementById('selectedMoviePoster').src = filme.poster || '/static/images/no-poster.png';
+// Placeholder SVG for missing posters
+function getPlaceholderPoster() {
+  return 'data:image/svg+xml,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+      <rect width="300" height="450" fill="#1a1a1a"/>
+      <g transform="translate(150,225)">
+        <rect x="-40" y="-60" width="80" height="100" rx="8" fill="#333" stroke="#666" stroke-width="2"/>
+        <circle cx="0" cy="-30" r="12" fill="#666"/>
+        <path d="M -20,-10 L -20,30 L 20,30 L 20,-10 L 10,0 L 0,-10 L -10,0 Z" fill="#666"/>
+      </g>
+      <text x="150" y="400" text-anchor="middle" fill="#666" font-family="Arial" font-size="14">Sem Pôster</text>
+    </svg>
+  `);
+}
+
+// Search friends for "Assistido com" field
+let searchFriendsTimeout;
+function searchFriends(query) {
+  const resultsContainer = document.getElementById('friendsSearchResults');
+
+  if (!query || query.length < 1) {
+    resultsContainer.style.display = 'none';
+    return;
+  }
+
+  clearTimeout(searchFriendsTimeout);
+
+  searchFriendsTimeout = setTimeout(() => {
+    fetch(`/api/buscar-amigos/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.amigos && data.amigos.length > 0) {
+          resultsContainer.innerHTML = data.amigos.map(amigo => {
+            const fotoPerfil = amigo.foto_perfil || '/static/images/default-avatar.png';
+            return `
+              <div class="friend-result-item" onclick='selectFriend(${JSON.stringify(amigo)})'>
+                <img src="${fotoPerfil}" alt="${amigo.nome_completo}" class="friend-result-avatar">
+                <div class="friend-result-info">
+                  <h4>${amigo.nome_completo}</h4>
+                  <p>@${amigo.username}</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+          resultsContainer.style.display = 'block';
+        } else {
+          resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum amigo encontrado</p>';
+          resultsContainer.style.display = 'block';
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao buscar amigos:', error);
+        resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--red);">Erro ao buscar amigos</p>';
+        resultsContainer.style.display = 'block';
+      });
+  }, 300);
+}
+
+// Select friend from search results
+function selectFriend(friend) {
+  document.getElementById('watchedWith').value = friend.nome_completo;
+  document.getElementById('selectedFriendId').value = friend.id;
+  document.getElementById('friendsSearchResults').style.display = 'none';
+}
+
+// Select movie or series from search
+function selectMovie(item) {
+  selectedMovieData = item;
+  document.getElementById('selectedMovieId').value = item.id;
+  document.getElementById('selectedMovieTitle').textContent = item.titulo;
+  const tipoLabel = item.tipo === 'serie' ? 'Série' : 'Filme';
+  document.getElementById('selectedMovieYear').textContent = `${tipoLabel} • ${item.ano}`;
+  document.getElementById('selectedMoviePoster').src = item.poster || getPlaceholderPoster();
   document.getElementById('selectedMovieInfo').style.display = 'block';
   document.getElementById('movieSearchResults').classList.remove('active');
-  document.getElementById('movieSearch').value = filme.titulo;
+  document.getElementById('movieSearch').value = item.titulo;
 }
 
 // Save movie to diary
@@ -350,6 +527,7 @@ function saveMovieToDiary() {
 
   const data = {
     filme_id: movieId,
+    tipo: selectedMovieData?.tipo || 'filme',
     data: date,
     nota: parseInt(rating),
     assistido_com: watchedWith
@@ -381,10 +559,101 @@ function saveMovieToDiary() {
 
 // Filter diary entries
 function filterDiaryEntries(filterType, filterValue) {
-  // This would typically make an API call to filter entries
-  // For now, we'll just reload to keep it simple
-  console.log('Filtering by', filterType, filterValue);
-  // In a real implementation, you'd filter the displayed entries
+  const calendarRows = document.querySelectorAll('.calendar-day-row');
+
+  if (!filterValue || filterValue === '') {
+    // Show all entries
+    calendarRows.forEach(row => {
+      row.style.display = '';
+      const movieItems = row.querySelectorAll('.calendar-movie-item');
+      movieItems.forEach(item => {
+        item.style.display = '';
+      });
+    });
+    return;
+  }
+
+  if (filterType === 'genre') {
+    calendarRows.forEach(row => {
+      const movieItems = row.querySelectorAll('.calendar-movie-item');
+
+      if (movieItems.length === 0) {
+        row.style.display = 'none';
+        return;
+      }
+
+      let hasMatchingMovie = false;
+
+      movieItems.forEach(item => {
+        const genres = item.getAttribute('data-genres') || '';
+
+        // Check if the genre is in the comma-separated list
+        const genresList = genres.split(',').map(g => g.trim());
+
+        if (genresList.includes(filterValue)) {
+          item.style.display = '';
+          hasMatchingMovie = true;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      // Show row only if at least one movie matches
+      row.style.display = hasMatchingMovie ? '' : 'none';
+    });
+  }
+}
+
+// Filter diary by rating
+function filterDiaryByRating(rating) {
+  const calendarRows = document.querySelectorAll('.calendar-day-row');
+
+  if (!rating) {
+    // Show all entries and all movie items
+    calendarRows.forEach(row => {
+      row.style.display = '';
+      const movieItems = row.querySelectorAll('.calendar-movie-item');
+      movieItems.forEach(item => {
+        item.style.display = '';
+      });
+    });
+    return;
+  }
+
+  calendarRows.forEach(row => {
+    // Get all movie items in this day
+    const movieItems = row.querySelectorAll('.calendar-movie-item');
+
+    if (movieItems.length === 0) {
+      // Empty day - hide it when filtering
+      row.style.display = 'none';
+      return;
+    }
+
+    let hasMatchingMovie = false;
+
+    // Check each movie item
+    movieItems.forEach(item => {
+      const ratingElement = item.querySelector('.calendar-rating');
+      if (ratingElement) {
+        const stars = ratingElement.querySelectorAll('span');
+        const entryRating = stars.length;
+
+        // Show or hide individual movie item
+        if (entryRating === rating) {
+          item.style.display = '';
+          hasMatchingMovie = true;
+        } else {
+          item.style.display = 'none';
+        }
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    // Show row only if at least one movie matches
+    row.style.display = hasMatchingMovie ? '' : 'none';
+  });
 }
 
 // Get CSRF Token
@@ -401,6 +670,34 @@ function getCookie(name) {
     }
   }
   return cookieValue;
+}
+
+// Delete diary entry
+async function deleteDiaryEntry(entryId, movieTitle) {
+  if (!confirm(`Tem certeza que deseja remover "${movieTitle}" do seu diário?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/diario/remover/${entryId}/`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showNotification('Filme removido do diário!', 'success');
+      loadDiaryEntries(); // Recarregar o calendário
+    } else {
+      showNotification(data.message || 'Erro ao remover filme', 'error');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    showNotification('Erro ao remover filme do diário', 'error');
+  }
 }
 
 // Show Notification

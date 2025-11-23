@@ -522,12 +522,117 @@ def obter_trending(limit=20, usar_cache=True):
 
     return trending_movies
 
-def obter_recomendados(limit=12, usar_cache=True):
-    """Busca filmes recomendados (populares com boa nota)"""
+def obter_recomendados(limit=12, usar_cache=True, usuario=None):
+    """Busca filmes recomendados personalizados baseados no histórico do usuário"""
+    
+    print(f"[DEBUG obter_recomendados] usuario={usuario}, is_authenticated={usuario.is_authenticated if usuario else 'N/A'}")
+    
+    # Se o usuário estiver autenticado, fazer recomendações personalizadas
+    if usuario and usuario.is_authenticated:
+        try:
+            from backstage.models import DiarioFilme, Critica, Filme
+            from django.db.models import Count, Avg
+            
+            # Buscar gêneros favoritos do usuário baseado no diário e críticas
+            filmes_assistidos_ids = DiarioFilme.objects.filter(usuario=usuario).values_list('filme__tmdb_id', flat=True)
+            criticas_usuario = Critica.objects.filter(usuario=usuario, nota__gte=4).values_list('filme__tmdb_id', flat=True)
+            
+            # Combinar filmes do diário e bem avaliados
+            filmes_relevantes_ids = list(set(list(filmes_assistidos_ids) + list(criticas_usuario)))
+            
+            print(f"[DEBUG obter_recomendados] Filmes relevantes encontrados: {len(filmes_relevantes_ids)}")
+            
+            if filmes_relevantes_ids:
+                # Buscar gêneros mais comuns nos filmes que o usuário gostou
+                filmes_relevantes = Filme.objects.filter(tmdb_id__in=filmes_relevantes_ids)
+                generos_contagem = {}
+                
+                for filme in filmes_relevantes:
+                    if filme.categoria:
+                        # Gêneros podem estar como string separada por vírgula
+                        generos_lista = [g.strip() for g in filme.categoria.split(',')]
+                        for genero in generos_lista:
+                            generos_contagem[genero] = generos_contagem.get(genero, 0) + 1
+                
+                # Pegar top 3 gêneros favoritos
+                generos_favoritos = sorted(generos_contagem.items(), key=lambda x: x[1], reverse=True)[:3]
+                
+                print(f"[DEBUG obter_recomendados] Gêneros favoritos: {generos_favoritos}")
+                
+                if generos_favoritos:
+                    # Mapear nomes de gêneros para IDs do TMDb
+                    generos_map = {
+                        'Action': 28, 'Adventure': 12, 'Animation': 16,
+                        'Comedy': 35, 'Crime': 80, 'Documentary': 99,
+                        'Drama': 18, 'Family': 10751, 'Fantasy': 14,
+                        'History': 36, 'Horror': 27, 'Music': 10402,
+                        'Mystery': 9648, 'Romance': 10749, 'Science Fiction': 878,
+                        'TV Movie': 10770, 'Thriller': 53, 'War': 10752,
+                        'Western': 37
+                    }
+                    
+                    # Buscar filmes com os gêneros favoritos
+                    filmes_recomendados = []
+                    for genero_nome, _ in generos_favoritos:
+                        genero_id = generos_map.get(genero_nome)
+                        if genero_id:
+                            try:
+                                data = _get("/discover/movie", params={
+                                    "language": "pt-BR",
+                                    "page": 1,
+                                    "with_genres": genero_id,
+                                    "vote_average.gte": 7,
+                                    "sort_by": "vote_count.desc"
+                                })
+                                filmes_recomendados.extend(data.get("results", []))
+                            except:
+                                pass
+                    
+                    # Remover filmes já assistidos e duplicatas
+                    filmes_unicos = {}
+                    for filme in filmes_recomendados:
+                        filme_id = filme.get('id')
+                        if filme_id not in filmes_relevantes_ids and filme_id not in filmes_unicos:
+                            filmes_unicos[filme_id] = filme
+                    
+                    # Pegar os mais votados
+                    filmes_finais = sorted(
+                        filmes_unicos.values(),
+                        key=lambda x: x.get('vote_count', 0),
+                        reverse=True
+                    )[:limit]
+                    
+                    print(f"[DEBUG obter_recomendados] Filmes finais encontrados: {len(filmes_finais)}")
+                    
+                    if filmes_finais:
+                        # Formatar recomendações personalizadas
+                        recommended_movies = []
+                        for filme in filmes_finais:
+                            recommended_movies.append({
+                                'tmdb_id': filme.get('id'),
+                                'titulo': filme.get('title'),
+                                'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                                'nota': filme.get('vote_average', 0),
+                                'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+                                'poster_path': filme.get('poster_path'),
+                                'backdrop_path': filme.get('backdrop_path'),
+                                'sinopse': filme.get('overview', ''),
+                                'generos': []
+                            })
+                        
+                        return recommended_movies
+        except Exception as e:
+            print(f"[ERROR obter_recomendados] Erro na personalização: {str(e)}")
+            import traceback
+            traceback.print_exc()
+    
+    # Fallback: recomendações genéricas se não houver histórico suficiente ou usuário não autenticado
+    print("[DEBUG] Usando fallback genérico para recomendações")
     cache_key = f"recommended_{limit}"
 
     if usar_cache:
         try:
+            from backstage.models import FilmeCache
             fc = FilmeCache.objects.filter(id_tmdb=999997).first()
             if fc and fc.payload.get('cache_type') == cache_key:
                 if (datetime.now(timezone.utc) - fc.atualizado_em) < timedelta(hours=3):
@@ -557,16 +662,123 @@ def obter_recomendados(limit=12, usar_cache=True):
 
     # Salvar no cache
     if usar_cache and recommended_movies:
-        cache_payload = {
-            'cache_type': cache_key,
-            'filmes': recommended_movies
-        }
-        FilmeCache.objects.update_or_create(
-            id_tmdb=999997,
-            defaults={'payload': cache_payload}
-        )
+        try:
+            from backstage.models import FilmeCache
+            cache_payload = {
+                'cache_type': cache_key,
+                'filmes': recommended_movies
+            }
+            FilmeCache.objects.update_or_create(
+                id_tmdb=999997,
+                defaults={'payload': cache_payload}
+            )
+        except:
+            pass
 
     return recommended_movies
+
+def obter_recomendados_por_favoritos(usuario, limit=12, offset=0):
+    """
+    Recomenda filmes baseado nos favoritos do usuário usando endpoint Similar do TMDb
+
+    Args:
+        usuario: Instância do usuário Django
+        limit: Número máximo de filmes a retornar (padrão: 12)
+        offset: Número de filmes para pular (para paginação)
+
+    Returns:
+        Lista de dicionários com dados dos filmes recomendados
+    """
+    from backstage.models import FilmeFavorito, DiarioFilme
+    import random
+
+    # Buscar top 5 favoritos do usuário (ordenados por nota)
+    favoritos = FilmeFavorito.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')[:5]
+
+    # Se usuário não tem favoritos, retornar filmes populares
+    if not favoritos.exists():
+        page = (offset // 20) + 1  # Cada página do TMDb tem ~20 filmes
+        return buscar_filmes_populares(page=page)[:limit]
+
+    # Buscar filmes que o usuário já assistiu para filtrar
+    filmes_assistidos = set(
+        DiarioFilme.objects.filter(usuario=usuario).values_list('filme__tmdb_id', flat=True)
+    )
+
+    # Adicionar os próprios favoritos à lista de "já vistos"
+    favoritos_ids = set(favoritos.values_list('tmdb_id', flat=True))
+    filmes_assistidos.update(favoritos_ids)
+
+    filmes_recomendados = []
+    filmes_unicos = {}  # Dict para evitar duplicatas (key: tmdb_id)
+
+    # Randomizar ordem dos favoritos para variar recomendações
+    favoritos_list = list(favoritos)
+    random.shuffle(favoritos_list)
+
+    # Buscar de múltiplas páginas para ter mais variedade
+    pages_to_fetch = [1, 2] if offset > 0 else [1]
+
+    # Para cada favorito, buscar filmes similares
+    for favorito in favoritos_list:
+        for page in pages_to_fetch:
+            try:
+                data = _get(
+                    f"/movie/{favorito.tmdb_id}/similar",
+                    params={"language": "pt-BR", "page": page}
+                )
+
+                similares = data.get("results", [])
+
+                for filme in similares:
+                    tmdb_id = filme.get('id')
+
+                    # Pular se já foi assistido ou já está na lista de recomendados
+                    if tmdb_id in filmes_assistidos or tmdb_id in filmes_unicos:
+                        continue
+
+                    # Adicionar à lista de recomendações
+                    filmes_unicos[tmdb_id] = {
+                        'tmdb_id': tmdb_id,
+                        'titulo': filme.get('title'),
+                        'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+                        'nota': round(filme.get('vote_average', 0), 1),
+                        'nota_estrelas': converter_para_estrelas(filme.get('vote_average', 0)),
+                        'poster_path': filme.get('poster_path'),
+                        'backdrop_path': filme.get('backdrop_path'),
+                        'sinopse': filme.get('overview', ''),
+                        'popularidade': filme.get('popularity', 0)
+                    }
+
+            except Exception as e:
+                print(f"Erro ao buscar similares para filme {favorito.tmdb_id} página {page}: {str(e)}")
+                continue
+
+    # Converter dict para lista e randomizar para variar nas atualizações
+    filmes_recomendados = list(filmes_unicos.values())
+
+    # Se for uma atualização (offset > 0), randomizar completamente
+    # Se for primeira carga, ordenar por popularidade
+    if offset > 0:
+        random.shuffle(filmes_recomendados)
+    else:
+        filmes_recomendados.sort(key=lambda x: x['popularidade'], reverse=True)
+
+    # Se ainda não temos filmes suficientes, complementar com populares
+    if len(filmes_recomendados) < limit + offset:
+        try:
+            page = max(1, (offset // 20) + 1)
+            populares = buscar_filmes_populares(page=page)
+            for popular in populares:
+                if popular['tmdb_id'] not in filmes_unicos and popular['tmdb_id'] not in filmes_assistidos:
+                    filmes_recomendados.append(popular)
+                    if len(filmes_recomendados) >= limit + offset:
+                        break
+        except:
+            pass
+
+    # Aplicar offset e retornar apenas o limite solicitado
+    return filmes_recomendados[offset:offset + limit]
 
 def obter_goats(limit=20, usar_cache=True):
     """Busca filmes GOATS (Greatest of All Time) - os com as maiores notas da história"""
@@ -899,3 +1111,79 @@ def buscar_serie_por_titulo(query, page=1):
         'nota_tmdb': serie.get('vote_average'),
         'tipo': 'serie'
     } for serie in series]
+
+
+def obter_videos_filme(tmdb_id):
+    """Busca vídeos (trailers, teasers, etc) de um filme"""
+    try:
+        # Buscar vídeos do filme
+        data = _get(f"/movie/{tmdb_id}/videos", params={"language": "pt-BR"})
+        videos = data.get('results', [])
+        
+        # Se não houver vídeos em português, buscar em inglês
+        if not videos:
+            data = _get(f"/movie/{tmdb_id}/videos", params={"language": "en-US"})
+            videos = data.get('results', [])
+        
+        return videos
+    except Exception as e:
+        print(f"Erro ao buscar vídeos do filme {tmdb_id}: {str(e)}")
+        return []
+
+
+def obter_ratings_omdb(imdb_id):
+    """
+    Busca ratings do Metacritic e Rotten Tomatoes via OMDB API
+    
+    Args:
+        imdb_id: ID do IMDb (ex: 'tt0111161')
+        
+    Returns:
+        dict com 'metacritic', 'rotten_tomatoes', 'imdb_rating', 'imdb_votes'
+    """
+    if not imdb_id:
+        return None
+        
+    try:
+        url = f"{settings.OMDB_BASE_URL}?apikey={settings.OMDB_API_KEY}&i={imdb_id}"
+        response = requests.get(url, timeout=5)
+        
+        if response.status_code != 200:
+            print(f"Erro OMDB API: status {response.status_code}")
+            return None
+            
+        data = response.json()
+        
+        if data.get('Response') == 'False':
+            print(f"OMDB não encontrou filme: {data.get('Error')}")
+            return None
+        
+        # Extrair ratings
+        ratings = {}
+        
+        # IMDb rating
+        if data.get('imdbRating') and data.get('imdbRating') != 'N/A':
+            ratings['imdb_rating'] = float(data['imdbRating'])
+        if data.get('imdbVotes') and data.get('imdbVotes') != 'N/A':
+            ratings['imdb_votes'] = data['imdbVotes']
+        
+        # Metacritic
+        if data.get('Metascore') and data.get('Metascore') != 'N/A':
+            ratings['metacritic'] = int(data['Metascore'])
+        
+        # Rotten Tomatoes - procurar no array de Ratings
+        for rating in data.get('Ratings', []):
+            if rating['Source'] == 'Rotten Tomatoes':
+                # Converte '87%' para 87
+                rt_value = rating['Value'].replace('%', '')
+                try:
+                    ratings['rotten_tomatoes'] = int(rt_value)
+                except ValueError:
+                    pass
+                break
+        
+        return ratings if ratings else None
+        
+    except Exception as e:
+        print(f"Erro ao buscar ratings OMDB para {imdb_id}: {str(e)}")
+        return None

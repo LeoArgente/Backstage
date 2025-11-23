@@ -12,6 +12,8 @@ const searchInput = document.querySelector('.search-input');
 
 // ===== State Variables =====
 let currentView = 'grid'; // 'grid' or 'list'
+let currentPage = 1;
+let isLoading = false;
 
 // ===== View Toggle Function =====
 function toggleView() {
@@ -52,6 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // View toggle
   if (viewToggle) {
     viewToggle.addEventListener('click', toggleView);
+  }
+
+  // Load more button
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', loadMoreMovies);
   }
 
   // Movie card clicks
@@ -250,7 +257,8 @@ function displaySearchResults(results, container) {
 }
 
 // Initialize search when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeSearch);
+// DESABILITADO: usando search-suggestions.js global
+// document.addEventListener('DOMContentLoaded', initializeSearch);
 
 // ===== Filter Functionality =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -319,3 +327,93 @@ document.addEventListener('DOMContentLoaded', () => {
     sortSelect.value = sortParam;
   }
 });
+
+// ===== Load More Movies Function =====
+async function loadMoreMovies() {
+  if (isLoading) return;
+  
+  isLoading = true;
+  currentPage++;
+  
+  // Update button state
+  loadMoreBtn.disabled = true;
+  loadMoreBtn.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+    </svg>
+    Carregando...
+  `;
+  
+  try {
+    // Get current filters
+    const urlParams = new URLSearchParams(window.location.search);
+    const genre = urlParams.get('genre') || 'all';
+    const sort = urlParams.get('sort') || 'popular';
+    
+    // Build API URL
+    const apiUrl = `/api/filmes/?page=${currentPage}&genre=${genre}&sort=${sort}`;
+    console.log('[LOAD MORE] Fetching:', apiUrl);
+    
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    console.log('[LOAD MORE] Response:', data);
+    
+    if (data.success && data.filmes && data.filmes.length > 0) {
+      // Add movies to grid
+      appendMoviesToGrid(data.filmes);
+      
+      // Check if there are more movies to load
+      if (!data.has_more) {
+        loadMoreBtn.style.display = 'none';
+      }
+    } else {
+      // No more movies
+      loadMoreBtn.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('[LOAD MORE] Erro ao carregar filmes:', error);
+    alert('Erro ao carregar mais filmes. Tente novamente.');
+    currentPage--; // Revert page increment
+  } finally {
+    isLoading = false;
+    loadMoreBtn.disabled = false;
+    loadMoreBtn.innerHTML = `
+      Carregar mais filmes
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    `;
+  }
+}
+
+function appendMoviesToGrid(movies) {
+  const tmdbImageBase = 'https://image.tmdb.org/t/p/';
+  
+  movies.forEach(filme => {
+    const movieCard = document.createElement('div');
+    movieCard.className = 'movie-card';
+    movieCard.onclick = () => window.location.href = `/filmes/${filme.tmdb_id}/`;
+    
+    movieCard.innerHTML = `
+      <div class="movie-card-poster">
+        <img src="${tmdbImageBase}w500${filme.poster_path}" alt="${filme.titulo}" />
+        <div class="movie-card-overlay">
+          <div class="movie-card-rating">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            ${parseFloat(filme.nota_tmdb || 0).toFixed(1)}
+          </div>
+        </div>
+      </div>
+      <div class="movie-card-info">
+        <h3 class="movie-card-title">${filme.titulo}</h3>
+        <span class="movie-card-year">${filme.ano_lancamento || ''}</span>
+      </div>
+    `;
+    
+    moviesGrid.appendChild(movieCard);
+  });
+}
+

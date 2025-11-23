@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/perfil.css' %}">
+  <link rel="stylesheet" href="{% static 'css/lists.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
@@ -118,6 +119,7 @@
       <div class="container">
         <div class="profile-tabs">
           <button class="tab-btn active" data-tab="reviews">Reviews</button>
+          <button class="tab-btn" data-tab="favoritos">Favoritos</button>
           <button class="tab-btn" data-tab="listas">Listas</button>
           <button class="tab-btn" data-tab="atividades">Atividades</button>
         </div>
@@ -126,60 +128,129 @@
         <div class="tab-content active" id="tab-reviews">
           <div class="section-header">
             <h2>Reviews Recentes</h2>
-            <a href="{% url 'backstage:reviews' %}" class="link-more">Ver todas</a>
+            <div class="section-header-actions">
+              <a href="{% if is_own_profile %}{% url 'backstage:reviews' %}{% else %}{% url 'backstage:reviews_usuario' username=usuario_perfil.username %}{% endif %}" class="link-more">Ver todas</a>
+              {% if is_own_profile and criticas_filmes or criticas_series %}
+              <button onclick="limparTodasReviews()" class="btn-limpar-tudo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Limpar Tudo
+              </button>
+              {% endif %}
+            </div>
           </div>
 
           {% if criticas_filmes or criticas_series %}
           <div class="reviews-grid">
             {% for critica in criticas_filmes %}
             <div class="review-card">
-              <div class="review-header">
-                <div class="review-rating">
-                  {% for i in "12345" %}
-                    {% if forloop.counter <= critica.nota %}
-                    <svg class="star filled" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    {% else %}
-                    <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-width="2"/>
-                    </svg>
-                    {% endif %}
-                  {% endfor %}
+              <div class="review-poster">
+                {% if critica.filme.poster %}
+                <img src="{{ critica.filme.poster }}" alt="{{ critica.filme.titulo }}" loading="lazy">
+                {% else %}
+                <div class="poster-placeholder">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 15l6-6 3 3 6-6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
                 </div>
-                <span class="review-date">{{ critica.criado_em|date:"d/m/Y" }}</span>
+                {% endif %}
               </div>
-              <h3 class="review-title">{{ critica.filme.titulo }}</h3>
-              <p class="review-text">{{ critica.texto|truncatewords:30 }}</p>
-              {% if critica.tem_spoiler %}
-              <span class="spoiler-badge">⚠️ Spoiler</span>
-              {% endif %}
+              <div class="review-content">
+                <div class="review-meta-header">
+                  <h3 class="review-movie-title">
+                    {{ critica.filme.titulo }}
+                    {% if critica.filme.data_lancamento %}
+                    <span class="review-year">{{ critica.filme.data_lancamento|date:"Y" }}</span>
+                    {% endif %}
+                  </h3>
+                  <div class="review-rating">
+                    {% for i in "12345" %}
+                      {% if forloop.counter <= critica.nota %}
+                      <svg class="star filled" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      {% else %}
+                      <svg class="star" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-width="2"/>
+                      </svg>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="review-info">
+                  <span class="review-watched">Watched {{ critica.criado_em|date:"d M Y" }}</span>
+                  <span class="review-comments">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                    </svg>
+                    15
+                  </span>
+                </div>
+                <p class="review-text">{{ critica.texto|truncatewords:30 }}</p>
+                <div class="review-footer">
+                  <button class="review-like-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span class="like-count">{{ critica.total_likes }} like{{ critica.total_likes|pluralize }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
             {% endfor %}
 
             {% for critica in criticas_series %}
             <div class="review-card">
-              <div class="review-header">
-                <div class="review-rating">
-                  {% for i in "12345" %}
-                    {% if forloop.counter <= critica.nota %}
-                    <svg class="star filled" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    {% else %}
-                    <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-width="2"/>
-                    </svg>
-                    {% endif %}
-                  {% endfor %}
+              <div class="review-poster">
+                {% if critica.serie.poster %}
+                <img src="{{ critica.serie.poster }}" alt="{{ critica.serie.titulo }}" loading="lazy">
+                {% else %}
+                <div class="poster-placeholder">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 15l6-6 3 3 6-6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
                 </div>
-                <span class="review-date">{{ critica.criado_em|date:"d/m/Y" }}</span>
+                {% endif %}
               </div>
-              <h3 class="review-title">{{ critica.serie.titulo }}</h3>
-              <p class="review-text">{{ critica.texto|truncatewords:30 }}</p>
-              {% if critica.tem_spoiler %}
-              <span class="spoiler-badge">⚠️ Spoiler</span>
-              {% endif %}
+              <div class="review-content">
+                <div class="review-meta-header">
+                  <h3 class="review-movie-title">
+                    {{ critica.serie.titulo }}
+                    {% if critica.serie.data_primeira_exibicao %}
+                    <span class="review-year">{{ critica.serie.data_primeira_exibicao|date:"Y" }}</span>
+                    {% endif %}
+                  </h3>
+                  <div class="review-rating">
+                    {% for i in "12345" %}
+                      {% if forloop.counter <= critica.nota %}
+                      <svg class="star filled" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      {% else %}
+                      <svg class="star" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-width="2"/>
+                      </svg>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="review-info">
+                  <span class="review-watched">Watched {{ critica.criado_em|date:"d M Y" }}</span>
+                </div>
+                <p class="review-text">{{ critica.texto|truncatewords:30 }}</p>
+                <div class="review-footer">
+                  <button class="review-like-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span class="like-count">{{ critica.total_likes }} like{{ critica.total_likes|pluralize }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
             {% endfor %}
           </div>
@@ -194,34 +265,107 @@
           {% endif %}
         </div>
 
+        <!-- Favoritos Tab -->
+        <div class="tab-content" id="tab-favoritos">
+          <div class="section-header">
+            <div>
+              <h2>{% if is_own_profile %}Meus Favoritos{% else %}Favoritos de {{ usuario_perfil.username }}{% endif %}</h2>
+              <span class="favoritos-subtitle">Ranking baseado nas avaliações</span>
+            </div>
+            <div class="favoritos-actions">
+              <!-- Toggle Filmes/Séries -->
+              <div class="favoritos-toggle">
+                <button class="toggle-btn active" data-tipo="filmes" onclick="toggleFavoritosTipo('filmes')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                    <line x1="7" y1="2" x2="7" y2="22"/>
+                    <line x1="17" y1="2" x2="17" y2="22"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <line x1="2" y1="7" x2="7" y2="7"/>
+                    <line x1="2" y1="17" x2="7" y2="17"/>
+                    <line x1="17" y1="7" x2="22" y2="7"/>
+                    <line x1="17" y1="17" x2="22" y2="17"/>
+                  </svg>
+                  Filmes
+                </button>
+                <button class="toggle-btn" data-tipo="series" onclick="toggleFavoritosTipo('series')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+                    <polyline points="17 2 12 7 7 2"/>
+                  </svg>
+                  Séries
+                </button>
+              </div>
+              {% if is_own_profile %}
+              <button onclick="limparTodosFavoritos()" class="btn-limpar-tudo" id="btnLimparFavoritos" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Limpar Tudo
+              </button>
+              {% endif %}
+            </div>
+          </div>
+
+          <div id="favoritosContainer" class="favoritos-loading">
+            <div class="loading-spinner">Carregando favoritos...</div>
+          </div>
+
+          <div id="favoritosGrid" class="favoritos-grid" style="display: none;">
+            <!-- Favoritos serão carregados via JavaScript -->
+          </div>
+
+          <div id="favoritosEmpty" class="empty-state-favoritos" style="display: none;">
+            <div class="empty-favoritos-icon">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 id="favoritosEmptyTitle">Nenhum filme favorito</h3>
+            {% if is_own_profile %}
+            <p id="favoritosEmptyText">Comece adicionando seus filmes favoritos com avaliação em estrelas!</p>
+            {% else %}
+            <p id="favoritosEmptyText">{{ usuario_perfil.username }} ainda não adicionou nenhum favorito.</p>
+            {% endif %}
+          </div>
+        </div>
+
         <!-- Listas Tab -->
         <div class="tab-content" id="tab-listas">
           <div class="section-header">
             <h2>{% if is_own_profile %}Minhas Listas{% else %}Listas de {{ usuario_perfil.username }}{% endif %}</h2>
-            {% if is_own_profile %}
-            <a href="{% url 'backstage:lists' %}" class="link-more">Ver todas</a>
-            {% endif %}
+            <div class="section-header-actions">
+              {% if is_own_profile %}
+              <a href="{% url 'backstage:lists' %}" class="link-more">Ver todas</a>
+              {% if listas %}
+              <button onclick="limparTodasListas()" class="btn-limpar-tudo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Limpar Tudo
+              </button>
+              {% endif %}
+              {% endif %}
+            </div>
           </div>
 
           {% if listas %}
           <div class="lists-grid">
+            <div class="lists-section">
             {% for lista in listas %}
             <a href="{% url 'backstage:visualizar_lista' lista.id %}" class="list-card">
-              <div class="list-header">
-                <h3>{{ lista.nome }}</h3>
-                {% if lista.publica %}
-                <span class="list-badge public">Pública</span>
-                {% else %}
-                <span class="list-badge private">Privada</span>
-                {% endif %}
-              </div>
+              <span class="list-badge">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+              <h3 class="list-title">{{ lista.nome }}</h3>
               <p class="list-description">{{ lista.descricao|truncatewords:20 }}</p>
-              <div class="list-footer">
+              <div class="list-meta">
                 <span class="list-count">{{ lista.itens.count }} itens</span>
                 <span class="list-date">{{ lista.atualizada_em|date:"d/m/Y" }}</span>
               </div>
             </a>
             {% endfor %}
+            </div>
           </div>
           {% else %}
           <div class="empty-state">
@@ -256,43 +400,759 @@
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-brand">
-          <img src="{% static 'images/Logo_Backstage_branca.png' %}" alt="Backstage" width="150">
-          <p>Sua jornada cinematográfica começa aqui</p>
-        </div>
-        <div class="footer-links">
-          <div class="footer-col">
-            <h4>Navegação</h4>
-            <a href="{% url 'backstage:movies' %}">Filmes</a>
-            <a href="{% url 'backstage:series' %}">Séries</a>
-            <a href="{% url 'backstage:lists' %}">Listas</a>
-          </div>
-          <div class="footer-col">
-            <h4>Comunidade</h4>
-            <a href="{% url 'backstage:amigos' %}">Amigos</a>
-            <a href="{% url 'backstage:comunidade' %}">Comunidades</a>
-          </div>
-          <div class="footer-col">
-            <h4>Suporte</h4>
-            <a href="{% url 'backstage:ajuda' %}">Ajuda</a>
-            <a href="#">Sobre</a>
-          </div>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 Backstage. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
-
   {% include 'backstage/_mobile_bottom_nav.html' %}
 
   <script src="{% static 'js/profile_menu.js' %}"></script>
   <script src="{% static 'js/perfil.js' %}"></script>
   <script src="{% static 'js/notifications.js' %}" defer></script>
+
+  <!-- JavaScript para Favoritos -->
+  <script>
+    const username = "{{ usuario_perfil.username }}";
+    let favoritosLoaded = false;
+    let seriesFavoritasLoaded = false;
+    let tipoFavoritosAtual = 'filmes';
+
+    // Carregar favoritos quando a tab for clicada
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const tab = this.dataset.tab;
+        if (tab === 'favoritos' && !favoritosLoaded) {
+          carregarFavoritos('filmes');
+          favoritosLoaded = true;
+        }
+      });
+    });
+
+    // Toggle entre filmes e séries favoritas
+    function toggleFavoritosTipo(tipo) {
+      tipoFavoritosAtual = tipo;
+
+      // Atualizar botões
+      document.querySelectorAll('.favoritos-toggle .toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tipo === tipo) {
+          btn.classList.add('active');
+        }
+      });
+
+      // Atualizar textos do empty state
+      const emptyTitle = document.getElementById('favoritosEmptyTitle');
+      const emptyText = document.getElementById('favoritosEmptyText');
+      if (emptyTitle) {
+        emptyTitle.textContent = tipo === 'filmes' ? 'Nenhum filme favorito' : 'Nenhuma série favorita';
+      }
+      if (emptyText) {
+        const isOwnProfile = {{ is_own_profile|yesno:"true,false" }};
+        if (isOwnProfile) {
+          emptyText.textContent = tipo === 'filmes'
+            ? 'Comece adicionando seus filmes favoritos com avaliação em estrelas!'
+            : 'Comece adicionando suas séries favoritas com avaliação em estrelas!';
+        } else {
+          emptyText.textContent = tipo === 'filmes'
+            ? '{{ usuario_perfil.username }} ainda não adicionou nenhum filme favorito.'
+            : '{{ usuario_perfil.username }} ainda não adicionou nenhuma série favorita.';
+        }
+      }
+
+      // Carregar dados do tipo selecionado
+      carregarFavoritos(tipo);
+    }
+
+    function carregarFavoritos(tipo = 'filmes') {
+      const loadingEl = document.querySelector('.favoritos-loading');
+      const gridEl = document.getElementById('favoritosGrid');
+      const emptyEl = document.getElementById('favoritosEmpty');
+      const btnLimpar = document.getElementById('btnLimparFavoritos');
+
+      // Mostrar loading
+      loadingEl.style.display = 'block';
+      gridEl.style.display = 'none';
+      emptyEl.style.display = 'none';
+
+      const endpoint = tipo === 'filmes'
+        ? `/api/favoritos/${username}/`
+        : `/api/series-favoritas/${username}/`;
+
+      fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+          loadingEl.style.display = 'none';
+
+          const favoritos = data.success ? (data.favoritos || data.series_favoritas || []) : [];
+
+          if (favoritos.length > 0) {
+            if (btnLimpar) btnLimpar.style.display = 'inline-flex';
+            renderizarFavoritos(favoritos, tipo);
+          } else {
+            renderizarFavoritos([], tipo);
+            if (btnLimpar) btnLimpar.style.display = 'none';
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao carregar favoritos:', error);
+          loadingEl.innerHTML = '<p style="color: #dc2626;">Erro ao carregar favoritos</p>';
+        });
+    }
+
+    function renderizarFavoritos(favoritos, tipo = 'filmes') {
+      console.log('renderizarFavoritos chamado com', favoritos.length, 'favoritos do tipo', tipo);
+      const gridEl = document.getElementById('favoritosGrid');
+      const emptyEl = document.getElementById('favoritosEmpty');
+      gridEl.innerHTML = '';
+
+      // URL base dependendo do tipo
+      const urlBase = tipo === 'filmes' ? '/filmes/' : '/series/';
+
+      // Mostrar/esconder empty state baseado na quantidade de favoritos
+      if (favoritos.length === 0) {
+        console.log('Sem favoritos - mostrando empty state');
+        gridEl.style.setProperty('display', 'none', 'important');
+        emptyEl.style.setProperty('display', 'flex', 'important');
+        return;
+      } else {
+        console.log('Com favoritos - mostrando grid');
+        gridEl.style.setProperty('display', 'block', 'important');
+        emptyEl.style.setProperty('display', 'none', 'important');
+      }
+
+      // Separar top 3 do restante
+      const top3 = favoritos.slice(0, 3);
+      const restante = favoritos.slice(3);
+
+      // Criar pódio se houver top 3
+      if (top3.length > 0) {
+        const podio = document.createElement('div');
+        podio.className = 'favoritos-podio';
+
+        // Reordenar para pódio: 2º, 1º, 3º
+        const podioOrder = top3.length >= 3 ? [top3[1], top3[0], top3[2]] :
+                          top3.length === 2 ? [top3[1], top3[0]] : [top3[0]];
+
+        podioOrder.forEach((favorito, idx) => {
+          if (!favorito) return;
+
+          // Posição real (1º, 2º, 3º)
+          const posicaoReal = top3.indexOf(favorito) + 1;
+          const estrelas = '★'.repeat(favorito.nota);
+
+          const pedestal = document.createElement('a');
+          pedestal.href = `${urlBase}${favorito.tmdb_id}/`;
+          pedestal.className = `podio-pedestal podio-posicao-${posicaoReal}`;
+
+          pedestal.innerHTML = `
+            <div class="podio-posicao">${posicaoReal}º</div>
+            <div class="podio-poster">
+              ${favorito.poster ?
+                `<img src="${favorito.poster}" alt="${favorito.titulo}" loading="lazy">` :
+                `<div class="poster-placeholder">${tipo === 'filmes' ? '🎬' : '📺'}</div>`
+              }
+            </div>
+            <div class="podio-info">
+              <h3 class="podio-titulo">${favorito.titulo}</h3>
+              <div class="podio-rating">
+                <span class="podio-stars">${estrelas}</span>
+              </div>
+            </div>
+          `;
+
+          podio.appendChild(pedestal);
+        });
+
+        gridEl.appendChild(podio);
+      }
+
+      // Criar lista do restante
+      if (restante.length > 0) {
+        const listaRestante = document.createElement('div');
+        listaRestante.className = 'favoritos-lista';
+
+        restante.forEach((favorito, index) => {
+          const ranking = index + 4; // Começa do 4º
+          const estrelas = '★'.repeat(favorito.nota);
+
+          const item = document.createElement('a');
+          item.href = `${urlBase}${favorito.tmdb_id}/`;
+          item.className = 'favorito-item';
+
+          item.innerHTML = `
+            <div class="favorito-numero">#${ranking}</div>
+            <div class="favorito-item-poster">
+              ${favorito.poster ?
+                `<img src="${favorito.poster}" alt="${favorito.titulo}" loading="lazy">` :
+                `<div class="poster-placeholder">${tipo === 'filmes' ? '🎬' : '📺'}</div>`
+              }
+            </div>
+            <div class="favorito-item-info">
+              <h4 class="favorito-item-titulo">${favorito.titulo}</h4>
+              <div class="favorito-item-rating">
+                <span class="favorito-item-stars">${estrelas}</span>
+                <span class="favorito-item-nota">${favorito.nota}/5</span>
+              </div>
+            </div>
+          `;
+
+          listaRestante.appendChild(item);
+        });
+
+        gridEl.appendChild(listaRestante);
+      }
+    }
+
+    // Função para limpar todas as reviews
+    function limparTodasReviews() {
+      if (!confirm('Tem certeza que deseja excluir TODAS as suas reviews? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+
+      fetch('/api/limpar-reviews/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Todas as reviews foram removidas com sucesso!');
+          location.reload();
+        } else {
+          alert('Erro ao remover reviews: ' + (data.message || 'Erro desconhecido'));
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao remover reviews');
+      });
+    }
+
+    // Função para limpar todos os favoritos
+    function limparTodosFavoritos() {
+      if (!confirm('Tem certeza que deseja remover TODOS os seus favoritos? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+
+      fetch('/api/limpar-favoritos/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Todos os favoritos foram removidos com sucesso!');
+          renderizarFavoritos([]);
+          document.getElementById('btnLimparFavoritos').style.display = 'none';
+        } else {
+          alert('Erro ao remover favoritos: ' + (data.message || 'Erro desconhecido'));
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao remover favoritos');
+      });
+    }
+
+    // Função para limpar todas as listas
+    function limparTodasListas() {
+      if (!confirm('Tem certeza que deseja excluir TODAS as suas listas? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+
+      fetch('/api/limpar-listas/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Todas as listas foram removidas com sucesso!');
+          location.reload();
+        } else {
+          alert('Erro ao remover listas: ' + (data.message || 'Erro desconhecido'));
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao remover listas');
+      });
+    }
+
+    // Função para obter CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+
+  <!-- CSS para Favoritos -->
+  <style>
+    .favoritos-subtitle {
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .favoritos-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .favoritos-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .favoritos-toggle .toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .favoritos-toggle .toggle-btn:hover {
+      color: #fff;
+    }
+
+    .favoritos-toggle .toggle-btn.active {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .favoritos-toggle .toggle-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .favoritos-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .favoritos-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .favoritos-toggle .toggle-btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    .favoritos-loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+
+    .loading-spinner {
+      font-size: 16px;
+    }
+
+    .favoritos-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+      margin-top: 24px;
+    }
+
+    .favorito-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .favorito-card:hover {
+      transform: translateY(-4px);
+      border-color: #dc2626;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2);
+    }
+
+    .favorito-ranking {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .favorito-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      overflow: hidden;
+      background: #1a1a1a;
+      position: relative;
+    }
+
+    .favorito-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .favorito-card:hover .favorito-poster img {
+      transform: scale(1.05);
+    }
+
+    .poster-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      background: linear-gradient(135deg, #374151, #1f2937);
+    }
+
+    .favorito-info {
+      padding: 16px;
+    }
+
+    .favorito-titulo {
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .favorito-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .favorito-stars {
+      color: #dc2626;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .favorito-nota {
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .favorito-data {
+      color: #6b7280;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    /* Pódio Styles */
+    .favoritos-podio {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .podio-pedestal {
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .podio-pedestal:hover {
+      transform: translateY(-8px);
+    }
+
+    /* 1º Lugar - Centro e maior */
+    .podio-posicao-1 {
+      order: 2;
+      width: 280px;
+    }
+
+    .podio-posicao-1 .podio-poster {
+      height: 400px;
+      border: 4px solid #FFD700;
+      box-shadow: 0 12px 40px rgba(255, 215, 0, 0.4);
+    }
+
+    .podio-posicao-1 .podio-posicao {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      font-size: 28px;
+      width: 60px;
+      height: 60px;
+    }
+
+    /* 2º Lugar - Esquerda */
+    .podio-posicao-2 {
+      order: 1;
+      width: 240px;
+      margin-top: 40px;
+    }
+
+    .podio-posicao-2 .podio-poster {
+      height: 340px;
+      border: 4px solid #C0C0C0;
+      box-shadow: 0 8px 30px rgba(192, 192, 192, 0.3);
+    }
+
+    .podio-posicao-2 .podio-posicao {
+      background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+      font-size: 24px;
+      width: 50px;
+      height: 50px;
+    }
+
+    /* 3º Lugar - Direita */
+    .podio-posicao-3 {
+      order: 3;
+      width: 220px;
+      margin-top: 60px;
+    }
+
+    .podio-posicao-3 .podio-poster {
+      height: 320px;
+      border: 4px solid #CD7F32;
+      box-shadow: 0 8px 30px rgba(205, 127, 50, 0.3);
+    }
+
+    .podio-posicao-3 .podio-posicao {
+      background: linear-gradient(135deg, #CD7F32, #B8860B);
+      font-size: 22px;
+      width: 48px;
+      height: 48px;
+    }
+
+    .podio-posicao {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+      font-weight: 800;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .podio-poster {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #1a1a1a;
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .podio-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .podio-pedestal:hover .podio-poster img {
+      transform: scale(1.05);
+    }
+
+    .podio-info {
+      text-align: center;
+      width: 100%;
+    }
+
+    .podio-titulo {
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .podio-stars {
+      color: #fbbf24;
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+
+    /* Lista do Restante */
+    .favoritos-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .favorito-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .favorito-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: #dc2626;
+      transform: translateX(8px);
+    }
+
+    .favorito-numero {
+      font-size: 24px;
+      font-weight: 700;
+      color: #dc2626;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .favorito-item-poster {
+      width: 80px;
+      height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
+      flex-shrink: 0;
+    }
+
+    .favorito-item-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .favorito-item-info {
+      flex: 1;
+    }
+
+    .favorito-item-titulo {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      line-height: 1.4;
+    }
+
+    .favorito-item-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .favorito-item-stars {
+      color: #fbbf24;
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
+
+    .favorito-item-nota {
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .favoritos-podio {
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+      }
+
+      .podio-posicao-1,
+      .podio-posicao-2,
+      .podio-posicao-3 {
+        width: 100%;
+        max-width: 280px;
+        margin-top: 0 !important;
+        order: unset;
+      }
+
+      .podio-posicao-1 .podio-poster,
+      .podio-posicao-2 .podio-poster,
+      .podio-posicao-3 .podio-poster {
+        height: 380px;
+      }
+
+      .favorito-item {
+        flex-direction: row;
+        gap: 12px;
+        padding: 12px;
+      }
+
+      .favorito-numero {
+        min-width: 40px;
+        font-size: 20px;
+      }
+
+      .favorito-item-poster {
+        width: 60px;
+        height: 90px;
+      }
+
+      .favorito-item-titulo {
+        font-size: 16px;
+      }
+    }
+  </style>
+
+{% include 'backstage/footer_default.html' %}
 </body>
 </html>

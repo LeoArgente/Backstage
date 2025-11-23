@@ -130,6 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 # STATIC_URL = "static/"
 STATIC_URL = os.environ.get('DJANGO_STATIC_URL', "/static/")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'backstage/static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = ('whitenoise.storage.CompressedManifestStaticFilesStorage')
@@ -157,3 +158,8 @@ TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"
 TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/original/"
 TMDB_DEFAULT_REGION = "BR"
+
+# ===== Configurações OMDB API =====
+# API para obter ratings do Metacritic e Rotten Tomatoes
+OMDB_API_KEY = os.getenv("OMDB_API_KEY", "2d97868b")
+OMDB_BASE_URL = "http://www.omdbapi.com/"

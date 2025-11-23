@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
   <link rel="stylesheet" href="{% static 'css/intro.css' %}">
@@ -114,11 +115,6 @@
               <path d="M12 5v14M5 12h14"/>
             </svg>
             Adicionar à Lista
-          </button>
-          <button class="btn btn-ghost btn-large">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
           </button>
         </div>
       </div>
@@ -297,84 +293,51 @@
     </section>
   </main>
 
-  <!-- Footer aprimorado -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <div class="brand">
-            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
-                 alt="Backstage Logo"
-                 width="40" height="40">
-          </div>
-          <p class="footer-description">
-            Sua jornada cinematográfica começa aqui. Entre no Backstage e registre cada frame.
-          </p>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Explorar</h3>
-          <ul class="footer-links">
-            <li><a href="{% url 'backstage:index' %}">Início</a></li>
-            <li><a href="{% url 'backstage:movies' %}">Filmes</a></li>
-            <li><a href="{% url 'backstage:series' %}">Séries</a></li>
-            <li><a href="{% url 'backstage:lists' %}">Listas</a></li>
-            <li><a href="{% url 'backstage:comunidade' %}">Comunidade</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Suporte</h3>
-          <ul class="footer-links">
-            <li><a href="#">Ajuda</a></li>
-            <li><a href="#">Contato</a></li>
-            <li><a href="#">Política de Privacidade</a></li>
-            <li><a href="#">Termos de Uso</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h3 class="footer-title">Conecte-se</h3>
-          <div class="social-links">
-            <a href="#" class="social-link" aria-label="TikTok">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2v10.5A4.5 4.5 0 1 0 16.5 16V8h3V2h-7.5z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="Twitter">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="Facebook">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22 12a10 10 0 1 0-11.5 9.9V14.9h-2v-2.5h2v-1.9c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.8h2.2L18 14.9h-2v6.9A10 10 0 0 0 22 12z"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="YouTube">
-              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="6" width="20" height="12" rx="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
-                <path d="M10 9l6 3-6 3V9z" fill="currentColor"/>
-              </svg>
-            </a>
-            <a href="#" class="social-link" aria-label="LinkedIn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
-                <path d="M7 9h2v8H7zM8 6.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM11 9h2v1.1c.3-.6 1-1.1 2-1.1 2 0 3 1.2 3 3.6V17h-2v-4c0-1-0.5-1.9-1.7-1.9-1 0-1.6.7-1.9 1.4-.1.2-.1.5-.1.8V17h-2V9z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-            </a>
-          </div>
-        </div>
+  <!-- Popup de Adicionar à Lista -->
+  <div class="list-popup-overlay" id="listPopupOverlay">
+    <div class="list-popup">
+      <div class="popup-header">
+        <h3 id="popupTitle">Adicionar à Lista</h3>
+        <button class="close-popup" onclick="hideListPopup()">&times;</button>
       </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2025 Backstage. Todos os direitos reservados.</p>
+
+      <!-- Opções principais -->
+      <div class="popup-content" id="popupOptions">
+        <!-- Lista de listas existentes -->
+        <div id="existingLists">
+          <div id="loadingLists">
+            Carregando suas listas...
+          </div>
+          <div id="listsContainer" style="display: none;">
+            <!-- As listas serão carregadas aqui via JavaScript -->
+          </div>
+          <div id="noLists" style="display: none;">
+            Você ainda não criou nenhuma lista
+          </div>
+        </div>
+
+        <!-- Botões de ação -->
+        <button class="popup-option create-list" onclick="showCreateListForm()">
+          <span class="icon">+</span>
+          <span>Criar Nova Lista</span>
+        </button>
+      </div>
+
+      <!-- Formulário de criar lista -->
+      <div class="popup-content" id="createListForm" style="display: none;">
+        <form onsubmit="createNewList(event)">
+          <div class="form-group">
+            <label for="listName">Nome da Lista:</label>
+            <input type="text" id="listName" placeholder="Ex: Meus Filmes Favoritos" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" onclick="showListOptions()">Voltar</button>
+            <button type="submit">Criar Lista</button>
+          </div>
+        </form>
       </div>
     </div>
-  </footer>
+  </div>
 
   {% include 'backstage/_mobile_search.html' %}
   {% include 'backstage/_mobile_bottom_nav.html' %}
@@ -385,5 +348,389 @@
     <script src="{% static 'js/profile_menu.js' %}" defer></script>
     <script src="{% static 'js/search-suggestions.js' %}" defer></script>
     <script src="{% static 'js/notifications.js' %}" defer></script>
+    
+    <script>
+    // Sistema de Lista no Hero
+    document.addEventListener('DOMContentLoaded', function() {
+      // Adicionar evento ao botão "Adicionar à Lista" no hero
+      const heroAddBtn = document.querySelector('.hero-actions .btn-secondary');
+      if (heroAddBtn) {
+        heroAddBtn.addEventListener('click', function() {
+          // Pegar o ID do filme atual do hero
+          const heroTitle = document.querySelector('.hero-title');
+          if (heroTitle) {
+            const movieId = heroTitle.dataset.movieId;
+            if (movieId) {
+              window.currentHeroMovieId = movieId;
+              loadUserLists();
+              document.getElementById('listPopupOverlay').classList.add('show');
+              document.body.style.overflow = 'hidden';
+            }
+          }
+        });
+      }
+
+      // Adicionar evento ao botão "Assistir Trailer" no hero
+      const heroTrailerBtn = document.querySelector('.hero-actions .btn-primary');
+      if (heroTrailerBtn) {
+        heroTrailerBtn.addEventListener('click', async function(event) {
+          // Prevenir comportamento padrão e propagação
+          event.preventDefault();
+          event.stopPropagation();
+          
+          const heroTitle = document.querySelector('.hero-title');
+          if (heroTitle) {
+            const movieId = heroTitle.dataset.movieId;
+            console.log('Movie ID do hero:', movieId);
+            
+            if (movieId) {
+              try {
+                // Buscar vídeos do filme
+                const url = `/api/filme/${movieId}/videos/`;
+                console.log('Buscando trailer em:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('Erro na resposta:', errorText);
+                  alert('Não foi possível carregar o trailer.');
+                  return;
+                }
+
+                const data = await response.json();
+                console.log('Dados recebidos:', data);
+                
+                if (data.success && data.videos && data.videos.length > 0) {
+                  // Procurar por trailer no YouTube
+                  const trailer = data.videos.find(video => 
+                    video.type === 'Trailer' && video.site === 'YouTube'
+                  ) || data.videos[0];
+
+                  console.log('Trailer encontrado:', trailer);
+
+                  if (trailer && trailer.key) {
+                    window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+                  } else {
+                    alert('Trailer não disponível para este filme.');
+                  }
+                } else {
+                  alert('Trailer não disponível para este filme.');
+                }
+              } catch (error) {
+                console.error('Erro ao buscar trailer:', error);
+                alert('Erro ao buscar trailer.');
+              }
+            } else {
+              console.error('Movie ID não encontrado no hero-title');
+              alert('ID do filme não encontrado.');
+            }
+          }
+        });
+      }
+    });
+
+    function hideListPopup() {
+      document.getElementById('listPopupOverlay').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function showCreateListForm() {
+      document.getElementById('popupOptions').style.display = 'none';
+      document.getElementById('createListForm').style.display = 'block';
+      document.getElementById('popupTitle').textContent = 'Criar Nova Lista';
+      setTimeout(() => document.getElementById('listName').focus(), 100);
+    }
+
+    function showListOptions() {
+      document.getElementById('popupOptions').style.display = 'block';
+      document.getElementById('createListForm').style.display = 'none';
+      document.getElementById('popupTitle').textContent = 'Adicionar à Lista';
+    }
+
+    function createNewList(event) {
+      event.preventDefault();
+      const name = document.getElementById('listName').value.trim();
+      if (name) {
+        fetch('/api/criar-lista/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({nome: name, publica: false})
+        })
+        .then(response => {
+          if (response.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data) return;
+          if (data.success) {
+            alert('Lista "' + name + '" criada!');
+            document.getElementById('listName').value = '';
+            showListOptions();
+            loadUserLists();
+          } else {
+            alert('Erro: ' + data.message);
+          }
+        });
+      }
+    }
+
+    function loadUserLists() {
+      const loadingEl = document.getElementById('loadingLists');
+      const containerEl = document.getElementById('listsContainer');
+      const noListsEl = document.getElementById('noLists');
+
+      loadingEl.style.display = 'block';
+      containerEl.style.display = 'none';
+      noListsEl.style.display = 'none';
+
+      fetch('/api/buscar-listas/?tipo=filme', {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => {
+        if (response.status === 401) {
+          window.location.href = '/login/';
+          return;
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data) return;
+        loadingEl.style.display = 'none';
+
+        if (data.success && data.listas.length > 0) {
+          // Separar "Assistir Mais Tarde" das outras listas
+          const assistirMaisTarde = data.listas.find(l => l.nome === "Assistir Mais Tarde");
+          const outrasListas = data.listas.filter(l => l.nome !== "Assistir Mais Tarde");
+          
+          let html = '';
+          
+          // Adicionar "Assistir Mais Tarde" primeiro com estilo especial
+          if (assistirMaisTarde) {
+            html += `
+              <div class="list-item list-item-featured">
+                <div class="list-item-info">
+                  <div class="list-item-name">${assistirMaisTarde.nome}</div>
+                  <div class="list-item-meta">${assistirMaisTarde.count} filme${assistirMaisTarde.count !== 1 ? 's' : ''}</div>
+                </div>
+                <button class="list-item-add" onclick="addMovieToList(${assistirMaisTarde.id}, '${assistirMaisTarde.nome}')">
+                  Adicionar
+                </button>
+              </div>
+            `;
+          }
+          
+          // Adicionar outras listas
+          html += outrasListas.map(lista => `
+            <div class="list-item">
+              <div class="list-item-info">
+                <div class="list-item-name">${lista.nome}</div>
+                <div class="list-item-meta">${lista.count} filme${lista.count !== 1 ? 's' : ''}</div>
+              </div>
+              <button class="list-item-add" onclick="addMovieToList(${lista.id}, '${lista.nome}')">
+                Adicionar
+              </button>
+            </div>
+          `).join('');
+          
+          containerEl.innerHTML = html;
+          containerEl.style.display = 'block';
+        } else {
+          noListsEl.style.display = 'block';
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao carregar listas:', error);
+        loadingEl.style.display = 'none';
+        noListsEl.style.display = 'block';
+        noListsEl.textContent = 'Erro ao carregar listas';
+      });
+    }
+
+    function addMovieToList(listaId, listaNome) {
+      const tmdbId = window.currentHeroMovieId;
+
+      if (!tmdbId) {
+        alert('Erro: ID do filme não encontrado');
+        return;
+      }
+
+      fetch(`/api/lista/${listaId}/adicionar/${tmdbId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => {
+        if (response.status === 401) {
+          window.location.href = '/login/';
+          return;
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data) return;
+        if (data.success) {
+          alert('Filme adicionado à lista "' + listaNome + '"!');
+          loadUserLists();
+          hideListPopup();
+        } else {
+          alert('Erro: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao adicionar filme à lista:', error);
+        alert('Erro ao adicionar filme à lista');
+      });
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Fechar popup clicando fora
+    document.getElementById('listPopupOverlay')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        hideListPopup();
+      }
+    });
+
+    // ========================================
+    // RECOMENDAÇÕES PERSONALIZADAS
+    // ========================================
+
+    function getFullImageUrl(path) {
+      if (!path) return 'https://via.placeholder.com/500x750/1a1f2e/ffffff?text=No+Image';
+      const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+      return `${IMAGE_BASE_URL}${path}`;
+    }
+
+    function createMovieCard(movie) {
+      const posterUrl = getFullImageUrl(movie.poster_path);
+
+      // Converter nota da escala 10 para escala 5 com 1 casa decimal
+      const notaEscala10 = movie.nota || 0;
+      const notaEscala5 = (notaEscala10 / 2).toFixed(1);
+
+      return `
+        <div class="movie-card" data-id="${movie.tmdb_id}" onclick="window.location.href='/filmes/${movie.tmdb_id}/'">
+          <div class="movie-card-poster">
+            <img src="${posterUrl}" alt="${movie.titulo}" loading="lazy" />
+            <div class="movie-card-overlay">
+              <span class="movie-card-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                ${notaEscala5}
+              </span>
+            </div>
+          </div>
+          <div class="movie-card-info">
+            <h4 class="movie-card-title">${movie.titulo}</h4>
+            <span class="movie-card-year">${movie.ano}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderizarRecomendacoes(filmes) {
+      const container = document.getElementById('recommended-movies');
+      if (!container) return;
+
+      if (!filmes || filmes.length === 0) {
+        container.innerHTML = '<div class="empty-message">Adicione filmes aos favoritos para receber recomendações personalizadas!</div>';
+        return;
+      }
+
+      container.innerHTML = filmes.map(movie => createMovieCard(movie)).join('');
+    }
+
+    function carregarRecomendacoes() {
+      const refreshBtn = document.querySelector('.refresh-btn');
+      const container = document.getElementById('recommended-movies');
+
+      if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.style.opacity = '0.5';
+      }
+
+      // Adicionar efeito de fade out
+      if (container) {
+        container.style.transition = 'opacity 0.3s ease';
+        container.style.opacity = '0.3';
+      }
+
+      // Usar timestamp para forçar novas recomendações a cada clique
+      const timestamp = new Date().getTime();
+      fetch(`/api/recomendacoes/?refresh=${timestamp}`)
+        .then(response => {
+          if (response.status === 401) {
+            // Usuário não autenticado
+            return null;
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data && data.success) {
+            renderizarRecomendacoes(data.filmes);
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao carregar recomendações:', error);
+        })
+        .finally(() => {
+          if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.style.opacity = '1';
+          }
+          if (container) {
+            container.style.opacity = '1';
+          }
+        });
+    }
+
+    // Carregar recomendações imediatamente
+    (function() {
+      try {
+        const filmesRecomendados = JSON.parse('{{ filmes_recomendados|escapejs }}');
+        if (filmesRecomendados && filmesRecomendados.length > 0) {
+          renderizarRecomendacoes(filmesRecomendados);
+        }
+      } catch (e) {
+        console.error('Erro ao parsear recomendações:', e);
+      }
+    })();
+
+    // Configurar botão atualizar
+    document.addEventListener('DOMContentLoaded', function() {
+      const refreshBtn = document.querySelector('.refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', carregarRecomendacoes);
+      }
+    });
+    </script>
+
+{% include 'backstage/footer_default.html' %}
 </body>
 </html>    

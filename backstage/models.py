@@ -99,6 +99,7 @@ class Comunidade(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome da Comunidade")
     slug = models.SlugField(max_length=120, unique=True, blank=True)
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    foto_perfil = models.ImageField(upload_to='comunidades/', blank=True, null=True, verbose_name="Foto de Perfil")
     publica = models.BooleanField(default=True, verbose_name="Comunidade pública")
     codigo_convite = models.CharField(max_length=8, unique=True, blank=True)
     criador = models.ForeignKey(
@@ -250,6 +251,37 @@ class DiarioFilme(models.Model):
     def __str__(self):
         return f"{self.usuario.username} - {self.filme.titulo} ({self.data_assistido})"
 
+class DiarioSerie(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='diario_series'
+    )
+    serie = models.ForeignKey(Serie, on_delete=models.CASCADE)
+    data_assistido = models.DateField(verbose_name="Data que assistiu")
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        default=5,
+        verbose_name="Avaliação"
+    )
+    assistido_com = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Assistido com"
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('usuario', 'serie', 'data_assistido')
+        verbose_name = "Entrada do Diário (Série)"
+        verbose_name_plural = "Entradas do Diário (Séries)"
+        ordering = ['-data_assistido', '-criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.serie.titulo} ({self.data_assistido})"
+
 
 class Profile(models.Model):
     usuario = models.OneToOneField(
@@ -262,6 +294,12 @@ class Profile(models.Model):
         blank=True,
         null=True,
         verbose_name="Foto de Perfil"
+    )
+    banner = models.ImageField(
+        upload_to='banners/',
+        blank=True,
+        null=True,
+        verbose_name="Banner de Perfil"
     )
     bio = models.TextField(
         max_length=500,
@@ -334,3 +372,87 @@ class LikeCriticaSerie(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} curtiu crítica de série de {self.critica.usuario.username}"
+
+
+class MensagemComunidade(models.Model):
+    comunidade = models.ForeignKey(
+        Comunidade,
+        on_delete=models.CASCADE,
+        related_name='mensagens'
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='mensagens_comunidade'
+    )
+    conteudo = models.TextField(verbose_name="Mensagem", blank=True, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    editado_em = models.DateTimeField(auto_now=True)
+    editado = models.BooleanField(default=False)
+    
+    # Campos para recomendação de filme
+    tipo_mensagem = models.CharField(
+        max_length=20,
+        choices=[('texto', 'Texto'), ('recomendacao', 'Recomendação de Filme')],
+        default='texto'
+    )
+    filme_tmdb_id = models.IntegerField(blank=True, null=True, verbose_name="ID do Filme (TMDB)")
+    filme_titulo = models.CharField(max_length=255, blank=True, null=True)
+    filme_poster = models.URLField(blank=True, null=True)
+    filme_trailer = models.URLField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Mensagem da Comunidade"
+        verbose_name_plural = "Mensagens da Comunidade"
+        ordering = ['criado_em']
+
+    def __str__(self):
+        return f"{self.usuario.username} em {self.comunidade.nome}: {self.conteudo[:50]}"
+
+
+class FilmeFavorito(models.Model):
+    """Modelo para filmes favoritos dos usuários com sistema de ranking por estrelas"""
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='filmes_favoritos')
+    tmdb_id = models.IntegerField(verbose_name="ID do Filme (TMDB)")
+    titulo = models.CharField(max_length=255)
+    poster = models.URLField(blank=True, null=True)
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        verbose_name="Nota em estrelas",
+        help_text="Avalie de 1 a 5 estrelas"
+    )
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Filme Favorito"
+        verbose_name_plural = "Filmes Favoritos"
+        ordering = ['-nota', '-atualizado_em']  # Ordenado por nota (ranking) e depois por data
+        unique_together = ['usuario', 'tmdb_id']  # Um usuário não pode adicionar o mesmo filme duas vezes
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.titulo} ({self.nota}⭐)"
+
+
+class SerieFavorita(models.Model):
+    """Modelo para séries favoritas dos usuários com sistema de ranking por estrelas"""
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='series_favoritas')
+    tmdb_id = models.IntegerField(verbose_name="ID da Série (TMDB)")
+    titulo = models.CharField(max_length=255)
+    poster = models.URLField(blank=True, null=True)
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        verbose_name="Nota em estrelas",
+        help_text="Avalie de 1 a 5 estrelas"
+    )
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Série Favorita"
+        verbose_name_plural = "Séries Favoritas"
+        ordering = ['-nota', '-atualizado_em']
+        unique_together = ['usuario', 'tmdb_id']
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.titulo} ({self.nota}⭐)"

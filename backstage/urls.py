@@ -7,7 +7,10 @@ urlpatterns = [
     path('', views.index, name='index'),
     #path('login/', RedirectView.as_view(pattern_name='backstage:login', permanent=False)),
     path('login/', views.pagina_login, name='login'),
+    # === COMUNIDADES ===
     path('comunidade/', views.comunidade, name='comunidade'),
+    path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
+    path('convite/<str:codigo>/', views.entrar_por_convite, name='entrar_por_convite'),
     path('filmes/', views.filmes, name='filmes'),
     path('movies/', views.movies, name='movies'),
     path('lists/', views.lists, name='lists'),
@@ -24,9 +27,26 @@ urlpatterns = [
     path("pesquisar/", views.barra_buscar, name="barra_buscar"),
     path("filmes/<int:tmdb_id>/relatorio/", views.relatorio, name="relatorio"),
     path('api/filmes-home/', views.filmes_home, name='filmes_home'),
+    path('api/filmes/', views.filmes_api, name='filmes_api'),
+    path('api/series/', views.series_api, name='series_api'),
+    path('api/listas/', views.lists_api, name='lists_api'),
+    # APIs de Comunidades (CRUD)
+    path('api/comunidades/', views.comunidade_api, name='comunidade_api'),
+    path('criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
+    path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
+    path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
+    path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
+    path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
+    path('comunidade/api/<int:comunidade_id>/', views.api_comunidade_detalhes, name='api_comunidade_detalhes'),
+    path('comunidade/api/<int:comunidade_id>/editar/', views.api_editar_comunidade, name='api_editar_comunidade'),
+    path('comunidade/api/<int:comunidade_id>/excluir/', views.api_excluir_comunidade, name='api_excluir_comunidade'),
+    path('comunidade/buscar-filmes/', views.buscar_filmes_para_recomendar, name='buscar_filmes_para_recomendar'),
+    path('api/filme/<int:tmdb_id>/videos/', views.filme_videos, name='filme_videos'),
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
     path('api/watch-later/', views.buscar_ou_criar_lista_watch_later, name='watch_later'),
+    path('api/watch-later/verificar/<int:tmdb_id>/', views.verificar_filme_watch_later, name='verificar_filme_watch_later'),
+    path('api/watch-later/verificar-serie/<int:tmdb_id>/', views.verificar_serie_watch_later, name='verificar_serie_watch_later'),
     path('api/lista/<int:lista_id>/', views.editar_lista, name='editar_lista'),
     path('api/lista/<int:lista_id>/deletar/', views.deletar_lista, name='deletar_lista'),
     path('api/lista/<int:lista_id>/visualizar/', views.visualizar_lista, name='visualizar_lista'),
@@ -42,23 +62,43 @@ urlpatterns = [
     # API de sugestões de busca
     path('api/sugestoes/', views.buscar_sugestoes, name='buscar_sugestoes'),
     
-    # URLs para comunidades
-    path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
-    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
-    path('convite/<str:codigo>/', views.entrar_por_convite, name='entrar_por_convite'),
+    # APIs de Filmes Favoritos
+    path('api/favoritos/adicionar/', views.adicionar_favorito, name='adicionar_favorito'),
+    path('api/favoritos/remover/', views.remover_favorito, name='remover_favorito'),
+    path('api/favoritos/atualizar-nota/', views.atualizar_nota_favorito, name='atualizar_nota_favorito'),
+    path('api/favoritos/<str:username>/', views.buscar_favoritos_usuario, name='buscar_favoritos_usuario'),
+
+    # APIs de Séries Favoritas
+    path('api/series-favoritas/adicionar/', views.adicionar_serie_favorita, name='adicionar_serie_favorita'),
+    path('api/series-favoritas/remover/', views.remover_serie_favorita, name='remover_serie_favorita'),
+    path('api/series-favoritas/verificar/<int:tmdb_id>/', views.verificar_serie_favorita, name='verificar_serie_favorita'),
+    path('api/series-favoritas/<str:username>/', views.buscar_series_favoritas_usuario, name='buscar_series_favoritas_usuario'),
     
-    # APIs para comunidades
-    path('criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
-    path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
-    path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
-    path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
+    # APIs de Chat da Comunidade
+    # IMPORTANT: These must come BEFORE slug-based URLs to match correctly
+    path('comunidade/<int:comunidade_id>/mensagens/', views.obter_mensagens_comunidade, name='obter_mensagens_comunidade'),
+    path('comunidade/<int:comunidade_id>/mensagens/novas/', views.obter_mensagens_novas, name='obter_mensagens_novas'),
+    path('comunidade/<int:comunidade_id>/enviar-mensagem/', views.enviar_mensagem_chat, name='enviar_mensagem_chat'),
+    path('comunidade/<int:comunidade_id>/recomendar-filme/', views.recomendar_filme_chat, name='recomendar_filme_chat'),
+    path('comunidade/<int:comunidade_id>/recomendar-serie/', views.recomendar_serie_chat, name='recomendar_serie_chat'),
+    path('comunidade/<int:comunidade_id>/limpar-chat/', views.limpar_chat_comunidade, name='limpar_chat_comunidade'),
+    path('api/buscar-midia/', views.buscar_midia_para_chat, name='buscar_midia_chat'),
+
+    # APIs de Gestão de Membros (slug-based)
+    path('comunidade/<slug:slug>/promover-admin/', views.promover_admin_comunidade, name='promover_admin_comunidade'),
+    path('comunidade/<slug:slug>/expulsar-membro/', views.expulsar_membro_comunidade, name='expulsar_membro_comunidade'),
+
+    # Comunidade específica (slug-based URL - must come AFTER int-based URLs)
+    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
     
     # URLs do menu do usuário
     path('perfil/', views.perfil, name='perfil'),
     path('perfil/<str:username>/', views.perfil, name='perfil_usuario'),
     path('meu-diario/', views.meu_diario, name='meu_diario'),
     path('reviews/', views.reviews, name='reviews'),
+    path('reviews/<str:username>/', views.reviews, name='reviews_usuario'),
     path('watchlist/', views.watchlist, name='watchlist'),
+    path('lista/<int:lista_id>/', views.lista_detalhes, name='lista_detalhes'),
     path('favoritos/', views.favoritos, name='favoritos'),
     path('configuracoes/', views.configuracoes, name='configuracoes'),
     path('ajuda/', views.ajuda, name='ajuda'),
@@ -77,11 +117,20 @@ urlpatterns = [
     path('api/rejeitar-solicitacao/', views.rejeitar_solicitacao, name='rejeitar_solicitacao'),
     path('api/cancelar-solicitacao/', views.cancelar_solicitacao, name='cancelar_solicitacao'),
     path('api/remover-amigo/', views.remover_amigo, name='remover_amigo'),
-    
+    path('api/buscar-amigos/', views.buscar_amigos, name='buscar_amigos'),
+
     # URLs de Notificações
     path('api/notificacoes/', views.buscar_notificacoes, name='buscar_notificacoes'),
 
     # URLs de Likes
     path('api/critica/<int:critica_id>/like/', views.toggle_like_critica, name='toggle_like_critica'),
     path('api/critica-serie/<int:critica_id>/like/', views.toggle_like_critica_serie, name='toggle_like_critica_serie'),
+
+    # URLs de Limpeza
+    path('api/limpar-reviews/', views.limpar_reviews, name='limpar_reviews'),
+    path('api/limpar-favoritos/', views.limpar_favoritos, name='limpar_favoritos'),
+    path('api/limpar-listas/', views.limpar_listas, name='limpar_listas'),
+
+    # URLs de Recomendações
+    path('api/recomendacoes/', views.api_recomendacoes, name='api_recomendacoes'),
 ]

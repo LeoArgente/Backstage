@@ -149,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const nome = document.getElementById('community-name').value.trim();
             const descricao = document.getElementById('community-description').value.trim();
+            const fotoInput = document.getElementById('community-photo');
             
             // Validação básica
             if (!nome) {
@@ -166,6 +167,11 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('descricao', descricao);
             formData.append('publica', 'on'); // Por padrão, comunidades são públicas
             
+            // Adicionar foto se foi selecionada
+            if (fotoInput && fotoInput.files.length > 0) {
+                formData.append('foto_perfil', fotoInput.files[0]);
+            }
+            
             const submitBtn = formCriarComunidade.querySelector('button[type="submit"]');
             
             // Desabilitar botão durante envio
@@ -175,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Enviando requisição para criar comunidade...');
             console.log('Nome:', nome);
             console.log('Descrição:', descricao);
+            console.log('Foto:', fotoInput && fotoInput.files.length > 0 ? 'Sim' : 'Não');
             
             try {
                 const response = await fetch('/criar-comunidade/', {
@@ -363,6 +370,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Tornar showNotification global para uso em outros scripts
     window.showNotification = showNotification;
+
+    // Tornar getCsrfToken global para uso em outros scripts
+    window.getCsrfToken = getCsrfToken;
 });
 
 // Estilos CSS para as notificações (inseridos dinamicamente)
@@ -372,52 +382,76 @@ style.textContent = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #fff;
+        background: rgba(30, 41, 59, 0.98);
         border-radius: 8px;
         padding: 16px 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         display: flex;
         align-items: center;
         justify-content: space-between;
         min-width: 300px;
+        max-width: 450px;
         z-index: 10000;
         animation: slideIn 0.3s ease;
-        border-left: 4px solid #007bff;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-left: 4px solid #3b82f6;
+        color: #ffffff;
+        font-size: 0.9375rem;
+        font-weight: 500;
     }
-    
+
     .notification.success {
-        border-left-color: #28a745;
-        background: #f8fff9;
+        border-left-color: #10b981;
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10b981;
     }
-    
+
     .notification.error {
-        border-left-color: #dc3545;
-        background: #fff8f8;
+        border-left-color: #ef4444;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
     }
-    
+
     .notification.warning {
-        border-left-color: #ffc107;
-        background: #fffdf5;
+        border-left-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
     }
-    
+
     .notification.info {
-        border-left-color: #17a2b8;
-        background: #f8ffff;
+        border-left-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
     }
-    
+
+    .notification span {
+        color: inherit;
+        flex: 1;
+    }
+
     .notification-close {
         background: none;
         border: none;
-        font-size: 18px;
+        font-size: 20px;
+        font-weight: bold;
         cursor: pointer;
-        margin-left: 10px;
-        color: #666;
+        margin-left: 12px;
+        color: inherit;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
     }
-    
+
     .notification-close:hover {
-        color: #000;
+        opacity: 1;
     }
-    
+
     @keyframes slideIn {
         from {
             transform: translateX(100%);
@@ -564,6 +598,105 @@ document.addEventListener('DOMContentLoaded', function() {
     const postType = document.getElementById('post-type');
     const movieSelector = document.getElementById('movie-selector');
     const ratingSelector = document.getElementById('rating-selector');
+
+    // ===== Load More Communities =====
+    let currentPage = 1;
+    let isLoadingCommunities = false;
+    const loadMoreBtn = document.getElementById('load-more');
+    const communitiesGrid = document.querySelector('.communities-section:last-of-type .communities-grid');
+
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreCommunities);
+    }
+
+    async function loadMoreCommunities() {
+        if (isLoadingCommunities) return;
+
+        isLoadingCommunities = true;
+        const button = loadMoreBtn;
+        const originalHTML = button.innerHTML;
+
+        // Mostrar loading
+        button.disabled = true;
+        button.innerHTML = `
+            <span class="loading-spinner"></span>
+            Carregando...
+        `;
+
+        try {
+            const response = await fetch(`/api/comunidades/?page=${currentPage + 1}`);
+            const data = await response.json();
+
+            if (data.success && data.items.length > 0) {
+                // Adicionar novas comunidades ao grid
+                data.items.forEach(comunidade => {
+                    const card = createCommunityCard(comunidade);
+                    communitiesGrid.insertBefore(card, communitiesGrid.lastElementChild);
+                });
+
+                currentPage = data.page;
+
+                // Ocultar botão se não houver mais
+                if (!data.has_more) {
+                    button.style.display = 'none';
+                }
+            } else if (!data.has_more) {
+                button.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar comunidades:', error);
+            if (window.showNotification) {
+                window.showNotification('Erro ao carregar comunidades', 'error');
+            }
+        } finally {
+            isLoadingCommunities = false;
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+        }
+    }
+
+    function createCommunityCard(comunidade) {
+        const card = document.createElement('div');
+        card.className = 'community-card';
+        
+        card.innerHTML = `
+            <img src="https://i.pinimg.com/1200x/bd/e3/e0/bde3e0aaf3dd35b4a42eed8ba9980591.jpg" alt="${comunidade.nome}" class="community-icon-img">
+            <div class="community-content">
+                <h3 class="community-name">${comunidade.nome}</h3>
+                <p class="community-description">${truncateText(comunidade.descricao, 20)}</p>
+                <div class="community-stats">
+                    <span class="stat">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        ${comunidade.membros_count} membros
+                    </span>
+                    <span class="stat">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        0 posts
+                    </span>
+                </div>
+                <div class="community-tags">
+                    <span class="tag">Público</span>
+                </div>
+            </div>
+            <button class="btn-join" data-slug="${comunidade.slug}">Entrar</button>
+        `;
+        
+        return card;
+    }
+
+    function truncateText(text, wordLimit) {
+        const words = text.split(' ');
+        if (words.length <= wordLimit) return text;
+        return words.slice(0, wordLimit).join(' ') + '...';
+    }
 
     // Função para abrir modal de criar post
     function openCreatePostModal() {
@@ -751,4 +884,389 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ===== Community Card Menu (3 pontos) =====
+    // Toggle menu dropdown
+    document.addEventListener('click', function(e) {
+        // Se clicou no botão de menu
+        if (e.target.closest('.community-menu-btn')) {
+            e.stopPropagation();
+            const btn = e.target.closest('.community-menu-btn');
+            const communityId = btn.getAttribute('data-community-id');
+            const menu = document.getElementById(`menu-${communityId}`);
+
+            // Fechar todos os outros menus
+            document.querySelectorAll('.community-dropdown-menu').forEach(m => {
+                if (m !== menu) m.classList.remove('active');
+            });
+
+            // Toggle o menu atual
+            menu.classList.toggle('active');
+        } else {
+            // Fechar todos os menus ao clicar fora
+            document.querySelectorAll('.community-dropdown-menu').forEach(m => {
+                m.classList.remove('active');
+            });
+        }
+    });
+
+    // Editar comunidade
+    document.addEventListener('click', async function(e) {
+        if (e.target.closest('.edit-community')) {
+            e.preventDefault();
+            const communityId = e.target.closest('.edit-community').getAttribute('data-community-id');
+
+            // Buscar dados da comunidade
+            try {
+                const response = await fetch(`/comunidade/api/${communityId}/`);
+                if (!response.ok) throw new Error('Erro ao carregar comunidade');
+
+                const data = await response.json();
+
+                // Preencher o formulário de edição
+                document.getElementById('edit-community-id').value = data.id;
+                document.getElementById('edit-community-name').value = data.nome;
+                document.getElementById('edit-community-description').value = data.descricao;
+
+                // Mostrar foto atual se existir
+                const editPhotoPreview = document.getElementById('edit-photo-preview');
+                if (data.foto_perfil) {
+                    editPhotoPreview.innerHTML = `<img src="${data.foto_perfil}" alt="${data.nome}">`;
+                    editPhotoPreview.classList.add('has-image');
+                } else {
+                    editPhotoPreview.innerHTML = `
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <path d="M21 15l-5-5L5 21"/>
+                        </svg>
+                        <p>Escolher imagem</p>
+                    `;
+                    editPhotoPreview.classList.remove('has-image');
+                }
+
+                // Abrir modal
+                document.getElementById('edit-community-modal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Erro ao carregar dados da comunidade', 'error');
+            }
+        }
+    });
+
+    // Fechar modal de edição
+    const editModalClose = document.getElementById('edit-modal-close');
+    const cancelEditCommunity = document.getElementById('cancel-edit-community');
+    const editCommunityModal = document.getElementById('edit-community-modal');
+
+    if (editModalClose) {
+        editModalClose.addEventListener('click', () => {
+            editCommunityModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    if (cancelEditCommunity) {
+        cancelEditCommunity.addEventListener('click', () => {
+            editCommunityModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    // Upload de foto no modal de edição
+    const editPhotoPreview = document.getElementById('edit-photo-preview');
+    const editCommunityPhoto = document.getElementById('edit-community-photo');
+
+    if (editPhotoPreview && editCommunityPhoto) {
+        editPhotoPreview.addEventListener('click', () => {
+            editCommunityPhoto.click();
+        });
+
+        editCommunityPhoto.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editPhotoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    editPhotoPreview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Submit do formulário de edição
+    const editCommunityForm = document.getElementById('edit-community-form');
+    if (editCommunityForm) {
+        editCommunityForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const communityId = document.getElementById('edit-community-id').value;
+
+            try {
+                const response = await fetch(`/comunidade/api/${communityId}/editar/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Comunidade atualizada com sucesso!', 'success');
+                    editCommunityModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+
+                    // Recarregar a página para mostrar as mudanças
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(data.error || 'Erro ao atualizar comunidade', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Erro ao atualizar comunidade', 'error');
+            }
+        });
+    }
+
+    // Excluir comunidade
+    document.addEventListener('click', async function(e) {
+        if (e.target.closest('.delete-community')) {
+            e.preventDefault();
+            const item = e.target.closest('.delete-community');
+            const communityId = item.getAttribute('data-community-id');
+            const communityName = item.getAttribute('data-community-name');
+
+            if (confirm(`Tem certeza que deseja excluir a comunidade "${communityName}"? Esta ação não pode ser desfeita.`)) {
+                try {
+                    const response = await fetch(`/comunidade/api/${communityId}/excluir/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showNotification('Comunidade excluída com sucesso!', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/comunidade/';
+                        }, 1000);
+                    } else {
+                        showNotification(data.error || 'Erro ao excluir comunidade', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    showNotification('Erro ao excluir comunidade', 'error');
+                }
+            }
+        }
+    });
 });
+
+// Global function to leave community (for community details page)
+async function leaveCommunity() {
+    const slug = window.location.pathname.split('/')[2]; // Get slug from URL
+
+    if (!slug) {
+        console.error('Slug não encontrado na URL');
+        return;
+    }
+
+    if (!confirm('Tem certeza que deseja sair desta comunidade?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/sair-comunidade/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.getCsrfToken(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ slug: slug })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (window.showNotification) {
+                window.showNotification('Você saiu da comunidade', 'success');
+            }
+            // Redirect to communities page after leaving
+            setTimeout(() => {
+                window.location.href = '/comunidade/';
+            }, 1000);
+        } else {
+            if (window.showNotification) {
+                window.showNotification(data.error || 'Erro ao sair da comunidade', 'error');
+            } else {
+                alert(data.error || 'Erro ao sair da comunidade');
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao sair da comunidade:', error);
+        if (window.showNotification) {
+            window.showNotification('Erro de conexão. Tente novamente.', 'error');
+        } else {
+            alert('Erro de conexão. Tente novamente.');
+        }
+    }
+}
+
+// Event delegation for member menu button clicks
+document.addEventListener('click', function(e) {
+    // Toggle member dropdown menu
+    const menuBtn = e.target.closest('.member-menu-btn');
+    if (menuBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const memberId = menuBtn.dataset.memberId;
+        const menu = document.getElementById(`member-menu-${memberId}`);
+        const allMenus = document.querySelectorAll('.member-dropdown-menu');
+
+        // Close all other menus
+        allMenus.forEach(m => {
+            if (m !== menu) {
+                m.classList.remove('active');
+            }
+        });
+
+        // Toggle current menu
+        menu.classList.toggle('active');
+        return;
+    }
+
+    // Close all member menus when clicking outside
+    if (!e.target.closest('.member-menu-btn') && !e.target.closest('.member-dropdown-menu')) {
+        document.querySelectorAll('.member-dropdown-menu').forEach(menu => {
+            menu.classList.remove('active');
+        });
+    }
+
+    // Handle promote admin button
+    const promoteBtn = e.target.closest('.promote-admin-btn');
+    if (promoteBtn) {
+        e.preventDefault();
+        const memberId = promoteBtn.dataset.memberId;
+        const username = promoteBtn.dataset.memberUsername;
+        promoteToAdmin(memberId, username);
+        return;
+    }
+
+    // Handle kick member button
+    const kickBtn = e.target.closest('.kick-member-btn');
+    if (kickBtn) {
+        e.preventDefault();
+        const memberId = kickBtn.dataset.memberId;
+        const username = kickBtn.dataset.memberUsername;
+        kickMember(memberId, username);
+        return;
+    }
+
+    // Handle leave community button
+    const leaveBtn = e.target.closest('.leave-community-button');
+    if (leaveBtn) {
+        e.preventDefault();
+        leaveCommunity();
+        return;
+    }
+});
+
+// Promote member to admin
+async function promoteToAdmin(memberId, username) {
+    if (!confirm(`Tem certeza que deseja promover ${username} a administrador?`)) {
+        return;
+    }
+
+    const slug = window.location.pathname.split('/')[2];
+
+    try {
+        const response = await fetch(`/comunidade/${slug}/promover-admin/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.getCsrfToken(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ member_id: memberId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (window.showNotification) {
+                window.showNotification(`${username} foi promovido a administrador!`, 'success');
+            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            if (window.showNotification) {
+                window.showNotification(data.error || 'Erro ao promover membro', 'error');
+            } else {
+                alert(data.error || 'Erro ao promover membro');
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao promover membro:', error);
+        if (window.showNotification) {
+            window.showNotification('Erro de conexão. Tente novamente.', 'error');
+        } else {
+            alert('Erro de conexão. Tente novamente.');
+        }
+    }
+}
+
+// Kick member from community
+async function kickMember(memberId, username) {
+    if (!confirm(`Tem certeza que deseja expulsar ${username} da comunidade?`)) {
+        return;
+    }
+
+    const slug = window.location.pathname.split('/')[2];
+
+    try {
+        const response = await fetch(`/comunidade/${slug}/expulsar-membro/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': window.getCsrfToken(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ member_id: memberId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (window.showNotification) {
+                window.showNotification(`${username} foi expulso da comunidade`, 'info');
+            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            if (window.showNotification) {
+                window.showNotification(data.error || 'Erro ao expulsar membro', 'error');
+            } else {
+                alert(data.error || 'Erro ao expulsar membro');
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao expulsar membro:', error);
+        if (window.showNotification) {
+            window.showNotification('Erro de conexão. Tente novamente.', 'error');
+        } else {
+            alert('Erro de conexão. Tente novamente.');
+        }
+    }
+}

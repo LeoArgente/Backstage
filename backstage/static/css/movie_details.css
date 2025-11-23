@@ -689,19 +689,25 @@
 }
 
 .cast-photo-container {
-    width: 160px;
-    height: 213px;
-    overflow: hidden;
-    margin-bottom: 12px;
-    border-radius: 4px;
-    background-color: #2a2a2a;
+  width: 160px;
+  height: 213px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background-color: #2a2a2a;
 }
 
 .cast-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cast-photo:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
 }
 
 .cast-info {
@@ -1502,6 +1508,28 @@
     border-color: var(--red);
 }
 
+/* Lista especial "Assistir Mais Tarde" */
+.list-item-featured {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
+    border-color: rgba(59, 130, 246, 0.5);
+    margin-bottom: 16px;
+    padding: 14px 16px;
+}
+
+.list-item-featured:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(147, 51, 234, 0.25) 100%);
+    border-color: var(--blue);
+}
+
+.list-item-featured .list-item-name {
+    font-size: 16px;
+}
+
+.list-item-icon {
+    font-size: 24px;
+    margin-right: 12px;
+}
+
 .list-item-info {
     flex: 1;
     min-width: 0;
@@ -1622,6 +1650,13 @@
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Aumentar a altura do modal de 'Assistido' */
+    max-height: 95vh !important;
+}
+
+/* Mover o modal de assistido mais para cima */
+#watchedPopupOverlay {
+    padding-top: 20px !important;
 }
 
 .watched-popup .popup-header h3.popup-title {
@@ -1802,5 +1837,5 @@
 
 .watched-popup .popup-content {
     padding: 20px 24px 24px 24px;
-    overflow-y: visible;
+    overflow-y: auto;
 }

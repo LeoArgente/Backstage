@@ -131,8 +131,8 @@ Nesta sprint, o objetivo foi implementar as histórias de usuário restantes do 
 
 ## HISTÓRIA 1:
 Permite que o usuário crie comunidades e interaja com amigos para discutir sobre filmes e séries.
-![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/comunidade1.png)
-![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/comunidade2.png)
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/comunidades1.png)
+![História1](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/comunidades2.png)
 
 ## HISTÓRIA 2:
 Permite que cada usuário tenha um ranking de filmes favoritos em seu perfil, com base em suas avaliações

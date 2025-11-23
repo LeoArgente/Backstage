@@ -432,3 +432,27 @@ class FilmeFavorito(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} - {self.titulo} ({self.nota}⭐)"
+
+
+class SerieFavorita(models.Model):
+    """Modelo para séries favoritas dos usuários com sistema de ranking por estrelas"""
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='series_favoritas')
+    tmdb_id = models.IntegerField(verbose_name="ID da Série (TMDB)")
+    titulo = models.CharField(max_length=255)
+    poster = models.URLField(blank=True, null=True)
+    nota = models.IntegerField(
+        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
+        verbose_name="Nota em estrelas",
+        help_text="Avalie de 1 a 5 estrelas"
+    )
+    adicionado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Série Favorita"
+        verbose_name_plural = "Séries Favoritas"
+        ordering = ['-nota', '-atualizado_em']
+        unique_together = ['usuario', 'tmdb_id']
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.titulo} ({self.nota}⭐)"

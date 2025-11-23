@@ -151,7 +151,12 @@ Permite que o usuário visualize perfis de outros usuários, acessando suas rese
 Permite que o usuário configure listas como privadas, mantendo o controle sobre a visibilidade de suas informações no perfil.
 ![História5](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/privadas1.png)
 
+## HISTÓRIA 6:
+Oferece recomendações personalizadas de filmes com base nos favoritos do usuário, incluindo justificativas e feedback para refinar sugestões futuras.
+![História6](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/recomendados.png)
 
+## Programação em Par
+A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.
 <details>
 
 <summary> 🚀 INTEGRANTES  </summary>

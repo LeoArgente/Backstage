@@ -1,8 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
-name: Build and deploy Python app to Azure Web App - backstage-fds
+name: Build, Test and Deploy to PythonAnywhere
 
 on:
   push:
@@ -11,10 +7,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +24,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-      
+
       - name: Install dependencies
         run: |
           source venv/bin/activate
@@ -40,7 +36,7 @@ jobs:
           source venv/bin/activate
           python manage.py makemigrations --no-input
 
-      - name: Run migrations and run server
+      - name: Run migrations and Cypress tests
         run: |
           source venv/bin/activate
           python manage.py migrate --no-input
@@ -48,48 +44,27 @@ jobs:
           sleep 10
           npx cypress run
 
-      - name: Cleaning testing files
-        run: |
-          rm .env
-          rm cypress.config.js
-          rm package-lock.json
-          rm package.json
-          rm -rf cypress
-          
-
-      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
-
-      - name: Upload artifact for deployment jobs
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: |
-            .
-            !venv/
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-test
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: python-app
+      - uses: actions/checkout@v4
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_640E37F0504448A5BF8E5164554B73F0 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1BA5ADEE81F5492485EF8C22958DE1C7 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F8C7264A98DE4B0FB1EAED9026097C0B }}
+      - name: Deploy to PythonAnywhere
+        env:
+          PYTHONANYWHERE_API_TOKEN: ${{ secrets.PYTHONANYWHERE_API_TOKEN }}
+        run: |
+          # Pull latest code on PythonAnywhere
+          curl -X POST \
+            -H "Authorization: Token $PYTHONANYWHERE_API_TOKEN" \
+            "https://www.pythonanywhere.com/api/v0/user/backstage/consoles/" \
+            -d "executable=bash" \
+            -d "arguments=-c 'cd ~/Backstage && git pull origin prod && source venv/bin/activate && pip install -r requirements.txt && python manage.py migrate --no-input && python manage.py collectstatic --no-input'"
 
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: 'backstage-fds-2025'
-          slot-name: 'Production'
+          # Reload the web app
+          curl -X POST \
+            -H "Authorization: Token $PYTHONANYWHERE_API_TOKEN" \
+            "https://www.pythonanywhere.com/api/v0/user/backstage/webapps/backstage.pythonanywhere.com/reload/"

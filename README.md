@@ -157,11 +157,12 @@ Oferece recomendações personalizadas de filmes com base nos favoritos do usuá
 
 ## Bugtracker
 Uma nova secção foi adicionada ao bugtracker, para o controle de bugs desta entrega.
+
 Open:
-![bugtracker4open](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4open.PNG)
+![bugtracker4open](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4open.png)
 
 Closed:
-![bugtracker4closed](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4closed.PNG)
+![bugtracker4closed](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4closed.png)
 
 ## Programação em Par
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.

@@ -124,13 +124,12 @@ Closed:
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.
 
 
-
-
-
-
-
 </details>
+<details>
+<summary> 📥 ENTREGA 4</summary>
+Nesta sprint, o objetivo foi implementar as histórias de usuário restantes do planejamento, trazendo melhorias e novas funcionalidades ao Backstage. O foco esteve em completar features essenciais que agregam valor à experiência dos usuários e consolidam o desenvolvimento da plataforma.
 
+<details>
 <details>
 <summary> 🚀 INTEGRANTES  </summary>
   

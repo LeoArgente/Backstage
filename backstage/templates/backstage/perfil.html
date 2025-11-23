@@ -272,15 +272,40 @@
               <h2>{% if is_own_profile %}Meus Favoritos{% else %}Favoritos de {{ usuario_perfil.username }}{% endif %}</h2>
               <span class="favoritos-subtitle">Ranking baseado nas avaliações</span>
             </div>
-            {% if is_own_profile %}
-            <button onclick="limparTodosFavoritos()" class="btn-limpar-tudo" id="btnLimparFavoritos" style="display: none;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-              Limpar Tudo
-            </button>
-            {% endif %}
+            <div class="favoritos-actions">
+              <!-- Toggle Filmes/Séries -->
+              <div class="favoritos-toggle">
+                <button class="toggle-btn active" data-tipo="filmes" onclick="toggleFavoritosTipo('filmes')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                    <line x1="7" y1="2" x2="7" y2="22"/>
+                    <line x1="17" y1="2" x2="17" y2="22"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <line x1="2" y1="7" x2="7" y2="7"/>
+                    <line x1="2" y1="17" x2="7" y2="17"/>
+                    <line x1="17" y1="7" x2="22" y2="7"/>
+                    <line x1="17" y1="17" x2="22" y2="17"/>
+                  </svg>
+                  Filmes
+                </button>
+                <button class="toggle-btn" data-tipo="series" onclick="toggleFavoritosTipo('series')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+                    <polyline points="17 2 12 7 7 2"/>
+                  </svg>
+                  Séries
+                </button>
+              </div>
+              {% if is_own_profile %}
+              <button onclick="limparTodosFavoritos()" class="btn-limpar-tudo" id="btnLimparFavoritos" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Limpar Tudo
+              </button>
+              {% endif %}
+            </div>
           </div>
 
           <div id="favoritosContainer" class="favoritos-loading">
@@ -297,11 +322,11 @@
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <h3>Nenhum filme favorito</h3>
+            <h3 id="favoritosEmptyTitle">Nenhum filme favorito</h3>
             {% if is_own_profile %}
-            <p>Comece adicionando seus filmes favoritos com avaliação em estrelas!</p>
+            <p id="favoritosEmptyText">Comece adicionando seus filmes favoritos com avaliação em estrelas!</p>
             {% else %}
-            <p>{{ usuario_perfil.username }} ainda não adicionou nenhum favorito.</p>
+            <p id="favoritosEmptyText">{{ usuario_perfil.username }} ainda não adicionou nenhum favorito.</p>
             {% endif %}
           </div>
         </div>
@@ -385,34 +410,82 @@
   <script>
     const username = "{{ usuario_perfil.username }}";
     let favoritosLoaded = false;
+    let seriesFavoritasLoaded = false;
+    let tipoFavoritosAtual = 'filmes';
 
     // Carregar favoritos quando a tab for clicada
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const tab = this.dataset.tab;
         if (tab === 'favoritos' && !favoritosLoaded) {
-          carregarFavoritos();
+          carregarFavoritos('filmes');
           favoritosLoaded = true;
         }
       });
     });
 
-    function carregarFavoritos() {
+    // Toggle entre filmes e séries favoritas
+    function toggleFavoritosTipo(tipo) {
+      tipoFavoritosAtual = tipo;
+
+      // Atualizar botões
+      document.querySelectorAll('.favoritos-toggle .toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tipo === tipo) {
+          btn.classList.add('active');
+        }
+      });
+
+      // Atualizar textos do empty state
+      const emptyTitle = document.getElementById('favoritosEmptyTitle');
+      const emptyText = document.getElementById('favoritosEmptyText');
+      if (emptyTitle) {
+        emptyTitle.textContent = tipo === 'filmes' ? 'Nenhum filme favorito' : 'Nenhuma série favorita';
+      }
+      if (emptyText) {
+        const isOwnProfile = {{ is_own_profile|yesno:"true,false" }};
+        if (isOwnProfile) {
+          emptyText.textContent = tipo === 'filmes'
+            ? 'Comece adicionando seus filmes favoritos com avaliação em estrelas!'
+            : 'Comece adicionando suas séries favoritas com avaliação em estrelas!';
+        } else {
+          emptyText.textContent = tipo === 'filmes'
+            ? '{{ usuario_perfil.username }} ainda não adicionou nenhum filme favorito.'
+            : '{{ usuario_perfil.username }} ainda não adicionou nenhuma série favorita.';
+        }
+      }
+
+      // Carregar dados do tipo selecionado
+      carregarFavoritos(tipo);
+    }
+
+    function carregarFavoritos(tipo = 'filmes') {
       const loadingEl = document.querySelector('.favoritos-loading');
       const gridEl = document.getElementById('favoritosGrid');
       const emptyEl = document.getElementById('favoritosEmpty');
       const btnLimpar = document.getElementById('btnLimparFavoritos');
 
-      fetch(`/api/favoritos/${username}/`)
+      // Mostrar loading
+      loadingEl.style.display = 'block';
+      gridEl.style.display = 'none';
+      emptyEl.style.display = 'none';
+
+      const endpoint = tipo === 'filmes'
+        ? `/api/favoritos/${username}/`
+        : `/api/series-favoritas/${username}/`;
+
+      fetch(endpoint)
         .then(response => response.json())
         .then(data => {
           loadingEl.style.display = 'none';
 
-          if (data.success && data.favoritos.length > 0) {
+          const favoritos = data.success ? (data.favoritos || data.series_favoritas || []) : [];
+
+          if (favoritos.length > 0) {
             if (btnLimpar) btnLimpar.style.display = 'inline-flex';
-            renderizarFavoritos(data.favoritos);
+            renderizarFavoritos(favoritos, tipo);
           } else {
-            renderizarFavoritos([]);
+            renderizarFavoritos([], tipo);
             if (btnLimpar) btnLimpar.style.display = 'none';
           }
         })
@@ -422,11 +495,14 @@
         });
     }
 
-    function renderizarFavoritos(favoritos) {
-      console.log('renderizarFavoritos chamado com', favoritos.length, 'favoritos');
+    function renderizarFavoritos(favoritos, tipo = 'filmes') {
+      console.log('renderizarFavoritos chamado com', favoritos.length, 'favoritos do tipo', tipo);
       const gridEl = document.getElementById('favoritosGrid');
       const emptyEl = document.getElementById('favoritosEmpty');
       gridEl.innerHTML = '';
+
+      // URL base dependendo do tipo
+      const urlBase = tipo === 'filmes' ? '/filmes/' : '/series/';
 
       // Mostrar/esconder empty state baseado na quantidade de favoritos
       if (favoritos.length === 0) {
@@ -461,7 +537,7 @@
           const estrelas = '★'.repeat(favorito.nota);
 
           const pedestal = document.createElement('a');
-          pedestal.href = `/filmes/${favorito.tmdb_id}/`;
+          pedestal.href = `${urlBase}${favorito.tmdb_id}/`;
           pedestal.className = `podio-pedestal podio-posicao-${posicaoReal}`;
 
           pedestal.innerHTML = `
@@ -469,7 +545,7 @@
             <div class="podio-poster">
               ${favorito.poster ?
                 `<img src="${favorito.poster}" alt="${favorito.titulo}" loading="lazy">` :
-                `<div class="poster-placeholder">🎬</div>`
+                `<div class="poster-placeholder">${tipo === 'filmes' ? '🎬' : '📺'}</div>`
               }
             </div>
             <div class="podio-info">
@@ -496,7 +572,7 @@
           const estrelas = '★'.repeat(favorito.nota);
 
           const item = document.createElement('a');
-          item.href = `/filmes/${favorito.tmdb_id}/`;
+          item.href = `${urlBase}${favorito.tmdb_id}/`;
           item.className = 'favorito-item';
 
           item.innerHTML = `
@@ -504,7 +580,7 @@
             <div class="favorito-item-poster">
               ${favorito.poster ?
                 `<img src="${favorito.poster}" alt="${favorito.titulo}" loading="lazy">` :
-                `<div class="poster-placeholder">🎬</div>`
+                `<div class="poster-placeholder">${tipo === 'filmes' ? '🎬' : '📺'}</div>`
               }
             </div>
             <div class="favorito-item-info">
@@ -631,6 +707,68 @@
       color: #9ca3af;
       font-size: 14px;
       font-weight: 400;
+    }
+
+    .favoritos-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .favoritos-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .favoritos-toggle .toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .favoritos-toggle .toggle-btn:hover {
+      color: #fff;
+    }
+
+    .favoritos-toggle .toggle-btn.active {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .favoritos-toggle .toggle-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .favoritos-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .favoritos-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .favoritos-toggle .toggle-btn {
+        flex: 1;
+        justify-content: center;
+      }
     }
 
     .favoritos-loading {
@@ -1014,5 +1152,7 @@
       }
     }
   </style>
+
+{% include 'backstage/footer_default.html' %}
 </body>
 </html>

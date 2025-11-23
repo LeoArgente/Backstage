@@ -548,9 +548,9 @@ def obter_recomendados(limit=12, usar_cache=True, usuario=None):
                 generos_contagem = {}
                 
                 for filme in filmes_relevantes:
-                    if filme.generos:
+                    if filme.categoria:
                         # Gêneros podem estar como string separada por vírgula
-                        generos_lista = [g.strip() for g in filme.generos.split(',')]
+                        generos_lista = [g.strip() for g in filme.categoria.split(',')]
                         for genero in generos_lista:
                             generos_contagem[genero] = generos_contagem.get(genero, 0) + 1
                 

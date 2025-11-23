@@ -59,12 +59,6 @@
       <div class="page-header-content">
         <h1 class="page-title">{% if is_own_profile %}Minhas Reviews{% else %}Reviews de {{ usuario_perfil.username }}{% endif %}</h1>
         <p class="page-description">Veja todas as reviews e opiniões sobre filmes e séries</p>
-        <a href="{% if is_own_profile %}{% url 'backstage:perfil' %}{% else %}{% url 'backstage:perfil_usuario' username=usuario_perfil.username %}{% endif %}" class="back-link btn btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Voltar para o perfil
-        </a>
       </div>
     </div>
   </div>
@@ -241,37 +235,8 @@
     </section>
   </main>
 
-  <style>
-    .page-header-simple {
-      margin-bottom: 3rem;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: #ffffff !important;
-      text-decoration: none;
-      margin-bottom: 1.5rem;
-      transition: color 0.3s;
-    }
-
-    .back-link:hover {
-      color: #fff;
-    }
-
-    .page-header-simple h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .subtitle {
-      font-size: 1.1rem;
-      color: #888;
-    }
-  </style>
   <script src="{% static 'js/profile_menu.js' %}" defer></script>
-</body>
+
 {% include 'backstage/footer_default.html' %}
+</body>
 </html>

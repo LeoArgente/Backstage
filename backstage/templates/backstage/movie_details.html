@@ -111,31 +111,6 @@
             </span>
           </div>
           
-          <div class="rating-box rotten">
-            <span class="rating-source">Rotten Tomatoes</span>
-            <div class="rating-value">
-              <span class="tomato-icon">🍅</span>
-              {% if ratings_omdb and ratings_omdb.rotten_tomatoes %}
-                <strong>{{ ratings_omdb.rotten_tomatoes }}%</strong>
-              {% else %}
-                <strong>N/A</strong>
-              {% endif %}
-            </div>
-            <span class="rating-count">Tomatometer</span>
-          </div>
-          
-          <div class="rating-box metacritic">
-            <span class="rating-source">Metacritic</span>
-            <div class="rating-value metascore">
-              {% if ratings_omdb and ratings_omdb.metacritic %}
-                <strong>{{ ratings_omdb.metacritic }}</strong>
-              {% else %}
-                <strong>N/A</strong>
-              {% endif %}
-            </div>
-            <span class="rating-count">Metascore</span>
-          </div>
-          
           <div class="rating-box backstage">
             <span class="rating-source">Backstage</span>
             <div class="rating-value">
@@ -493,7 +468,12 @@
                       </span>
                       <span class="review-date">{{ critica.criado_em|timesince }} atrás</span>
                       {% if critica.tem_spoiler %}
-                      <span class="spoiler-badge">⚠️ SPOILER</span>
+                      <span class="spoiler-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+                        </svg>
+                        SPOILER
+                      </span>
                       {% endif %}
                     </div>
                   </div>
@@ -1452,15 +1432,15 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert('Filme adicionado ao diário!');
+        showNotification('Filme adicionado ao diário!');
         hideWatchedPopup();
       } else {
-        alert('Erro: ' + (data.message || 'Não foi possível adicionar o filme'));
+        showNotification('Erro: ' + (data.message || 'Não foi possível adicionar o filme'), 'error');
       }
     })
     .catch(error => {
       console.error('Erro:', error);
-      alert('Erro ao adicionar filme ao diário');
+      showNotification('Erro ao adicionar filme ao diário', 'error');
     });
   }
 
@@ -2063,26 +2043,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function showNotification(message) {
+  function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
+    const bgColor = type === 'error'
+      ? 'linear-gradient(135deg, #dc2626, #b91c1c)'
+      : 'linear-gradient(135deg, #22c55e, #16a34a)';
     notification.style.cssText = `
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      background: ${bgColor};
       color: white;
       padding: 16px 24px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       z-index: 10001;
-      animation: slideIn 0.3s ease;
+      animation: slideInBottom 0.3s ease;
       font-weight: 600;
     `;
     notification.textContent = message;
     document.body.appendChild(notification);
 
+    // Adicionar animação se não existir
+    if (!document.getElementById('notification-animations')) {
+      const style = document.createElement('style');
+      style.id = 'notification-animations';
+      style.textContent = `
+        @keyframes slideInBottom {
+          from { transform: translateY(100px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideOutBottom {
+          from { transform: translateY(0); opacity: 1; }
+          to { transform: translateY(100px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
     setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease';
+      notification.style.animation = 'slideOutBottom 0.3s ease';
       setTimeout(() => notification.remove(), 300);
     }, 3000);
   }
@@ -2098,6 +2098,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% include 'backstage/_mobile_search.html' %}
 {% include 'backstage/_mobile_bottom_nav.html' %}
 {% include 'backstage/_mobile_scripts.html' %}
-</body>
+
 {% include 'backstage/footer_default.html' %}
+</body>
 </html>

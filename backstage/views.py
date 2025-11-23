@@ -896,6 +896,145 @@ def buscar_favoritos_usuario(request, username):
 
 
 @login_required(login_url='backstage:login')
+def buscar_series_favoritas_usuario(request, username):
+    """API para buscar séries favoritas de um usuário (ranking público)"""
+    try:
+        from .models import SerieFavorita
+
+        # Buscar usuário
+        usuario = get_object_or_404(User, username=username)
+
+        # Buscar séries favoritas ordenadas por nota (ranking)
+        series_favoritas = SerieFavorita.objects.filter(usuario=usuario).order_by('-nota', '-atualizado_em')
+
+        series_data = []
+        for serie in series_favoritas:
+            series_data.append({
+                'tmdb_id': serie.tmdb_id,
+                'titulo': serie.titulo,
+                'poster': serie.poster,
+                'nota': serie.nota,
+                'adicionado_em': serie.adicionado_em.strftime('%d/%m/%Y'),
+                'atualizado_em': serie.atualizado_em.strftime('%d/%m/%Y')
+            })
+
+        return JsonResponse({
+            'success': True,
+            'usuario': username,
+            'total': len(series_data),
+            'series_favoritas': series_data
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def adicionar_serie_favorita(request):
+    """API para adicionar uma série aos favoritos"""
+    try:
+        from .models import SerieFavorita
+        import json
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        titulo = data.get('titulo', '')
+        poster = data.get('poster', '')
+        nota = data.get('nota')
+
+        if not tmdb_id or not nota:
+            return JsonResponse({'success': False, 'error': 'tmdb_id e nota são obrigatórios'}, status=400)
+
+        if nota < 1 or nota > 5:
+            return JsonResponse({'success': False, 'error': 'Nota deve ser entre 1 e 5'}, status=400)
+
+        # Criar ou atualizar favorito
+        favorito, created = SerieFavorita.objects.update_or_create(
+            usuario=request.user,
+            tmdb_id=tmdb_id,
+            defaults={
+                'titulo': titulo,
+                'poster': poster,
+                'nota': nota
+            }
+        )
+
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'message': 'Série adicionada aos favoritos!' if created else 'Avaliação atualizada!'
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE"])
+def remover_serie_favorita(request):
+    """API para remover uma série dos favoritos"""
+    try:
+        from .models import SerieFavorita
+        import json
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'tmdb_id é obrigatório'}, status=400)
+
+        deleted, _ = SerieFavorita.objects.filter(
+            usuario=request.user,
+            tmdb_id=tmdb_id
+        ).delete()
+
+        if deleted:
+            return JsonResponse({'success': True, 'message': 'Série removida dos favoritos'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Série não encontrada nos favoritos'}, status=404)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def verificar_serie_favorita(request, tmdb_id):
+    """API para verificar se uma série está nos favoritos do usuário"""
+    try:
+        from .models import SerieFavorita
+
+        favorito = SerieFavorita.objects.filter(
+            usuario=request.user,
+            tmdb_id=tmdb_id
+        ).first()
+
+        if favorito:
+            return JsonResponse({
+                'success': True,
+                'is_favorito': True,
+                'nota': favorito.nota
+            })
+        else:
+            return JsonResponse({
+                'success': True,
+                'is_favorito': False
+            })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
@@ -1587,16 +1726,38 @@ def detalhes_filme(request, tmdb_id):
         })
 
     # Buscar críticas locais com contagem de likes
-    from .models import LikeCritica
+    from .models import LikeCritica, FilmeFavorito, DiarioFilme
     from django.db.models import Avg
-    
+
     criticas = Critica.objects.filter(filme=filme_local).annotate(
         total_likes=Count('likes', distinct=True)
     )
 
-    # Calcular média das notas do Backstage
-    media_backstage = criticas.aggregate(Avg('nota'))['nota__avg']
-    total_avaliacoes = criticas.count()
+    # Calcular média das notas do Backstage (uma nota por usuário)
+    # Prioridade: diário > favoritos > críticas (para evitar duplicatas)
+    notas_por_usuario = {}
+
+    # Notas das críticas
+    for usuario_id, nota in criticas.values_list('usuario_id', 'nota'):
+        if usuario_id not in notas_por_usuario:
+            notas_por_usuario[usuario_id] = nota
+
+    # Notas dos favoritos (sobrescreve críticas)
+    for usuario_id, nota in FilmeFavorito.objects.filter(tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    # Notas do diário (sobrescreve tudo - é a mais recente)
+    for usuario_id, nota in DiarioFilme.objects.filter(filme__tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    todas_notas = list(notas_por_usuario.values())
+
+    if todas_notas:
+        media_backstage = round(sum(todas_notas) / len(todas_notas), 1)
+        total_avaliacoes = len(todas_notas)
+    else:
+        media_backstage = None
+        total_avaliacoes = 0
     
     # Formatar média para 1 casa decimal, ou None se não houver avaliações
     if media_backstage is not None:
@@ -2379,10 +2540,36 @@ def detalhes_serie(request, tmdb_id):
     )
     
     # Buscar críticas locais com contagem de likes
-    from .models import LikeCriticaSerie
+    from .models import LikeCriticaSerie, SerieFavorita, DiarioSerie
     criticas = CriticaSerie.objects.filter(serie=serie_local).annotate(
         total_likes=Count('likes', distinct=True)
     ).order_by('-criado_em')
+
+    # Calcular média das notas do Backstage (uma nota por usuário)
+    # Prioridade: diário > favoritos > críticas (para evitar duplicatas)
+    notas_por_usuario = {}
+
+    # Notas das críticas
+    for usuario_id, nota in criticas.values_list('usuario_id', 'nota'):
+        if usuario_id not in notas_por_usuario:
+            notas_por_usuario[usuario_id] = nota
+
+    # Notas dos favoritos (sobrescreve críticas)
+    for usuario_id, nota in SerieFavorita.objects.filter(tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    # Notas do diário (sobrescreve tudo - é a mais recente)
+    for usuario_id, nota in DiarioSerie.objects.filter(serie__tmdb_id=tmdb_id).values_list('usuario_id', 'nota'):
+        notas_por_usuario[usuario_id] = nota
+
+    todas_notas = list(notas_por_usuario.values())
+
+    if todas_notas:
+        media_backstage = round(sum(todas_notas) / len(todas_notas), 1)
+        total_avaliacoes = len(todas_notas)
+    else:
+        media_backstage = None
+        total_avaliacoes = 0
 
     # Adicionar informação se o usuário atual deu like em cada crítica
     if request.user.is_authenticated:
@@ -2404,6 +2591,8 @@ def detalhes_serie(request, tmdb_id):
         'serie': dados_serie,
         'serie_local': serie_local,
         'criticas': criticas,
+        'media_backstage': media_backstage,
+        'total_avaliacoes': total_avaliacoes,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'temporadas_json': temporadas_json,
         'videos_json': videos_json
@@ -3049,7 +3238,7 @@ def diario_entradas(request):
 def diario_adicionar(request):
     """API para adicionar filme ou série ao diário"""
     from datetime import datetime
-    from .services.tmdb import obter_detalhes_serie_com_cache
+    from .services.tmdb import buscar_detalhes_serie
 
     try:
         data = json.loads(request.body)
@@ -3075,7 +3264,7 @@ def diario_adicionar(request):
             try:
                 serie = Serie.objects.get(tmdb_id=item_id)
             except Serie.DoesNotExist:
-                detalhes = obter_detalhes_serie_com_cache(item_id)
+                detalhes = buscar_detalhes_serie(item_id)
                 if detalhes and isinstance(detalhes, dict):
                     generos = detalhes.get('generos', []) or []
                     generos_str = ', '.join(generos[:3]) if generos else ''
@@ -3145,11 +3334,20 @@ def diario_adicionar(request):
                     if poster_path and poster_path != 'None' and str(poster_path).strip():
                         poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
+                    # Converter data_lancamento para objeto date se for string
+                    data_lanc = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                    data_lanc_obj = None
+                    if data_lanc:
+                        try:
+                            data_lanc_obj = datetime.strptime(data_lanc, '%Y-%m-%d').date()
+                        except (ValueError, TypeError):
+                            data_lanc_obj = None
+
                     filme = Filme.objects.create(
                         tmdb_id=item_id,
                         titulo=detalhes.get('titulo') or detalhes.get('title') or 'Sem título',
                         descricao=detalhes.get('sinopse') or detalhes.get('overview') or '',
-                        data_lancamento=(detalhes.get('data_lancamento') or detalhes.get('release_date')) or None,
+                        data_lancamento=data_lanc_obj,
                         poster=poster_url,
                         categoria=generos_str
                     )
@@ -3167,8 +3365,13 @@ def diario_adicionar(request):
                             poster_path = detalhes.get('poster_path')
                             if poster_path and poster_path != 'None' and str(poster_path).strip():
                                 filme.poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
-                        if not filme.data_lancamento and (detalhes.get('data_lancamento') or detalhes.get('release_date')):
-                            filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                        if not filme.data_lancamento:
+                            data_lanc = detalhes.get('data_lancamento') or detalhes.get('release_date')
+                            if data_lanc:
+                                try:
+                                    filme.data_lancamento = datetime.strptime(data_lanc, '%Y-%m-%d').date()
+                                except (ValueError, TypeError):
+                                    pass
                         filme.save()
                 except Exception as e:
                     print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
@@ -3209,10 +3412,12 @@ def diario_adicionar(request):
             })
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Erro ao adicionar filme: {str(e)}'
-        })
+        }, status=500)
 
 
 @api_login_required

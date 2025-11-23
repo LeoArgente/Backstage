@@ -67,6 +67,12 @@ urlpatterns = [
     path('api/favoritos/remover/', views.remover_favorito, name='remover_favorito'),
     path('api/favoritos/atualizar-nota/', views.atualizar_nota_favorito, name='atualizar_nota_favorito'),
     path('api/favoritos/<str:username>/', views.buscar_favoritos_usuario, name='buscar_favoritos_usuario'),
+
+    # APIs de Séries Favoritas
+    path('api/series-favoritas/adicionar/', views.adicionar_serie_favorita, name='adicionar_serie_favorita'),
+    path('api/series-favoritas/remover/', views.remover_serie_favorita, name='remover_serie_favorita'),
+    path('api/series-favoritas/verificar/<int:tmdb_id>/', views.verificar_serie_favorita, name='verificar_serie_favorita'),
+    path('api/series-favoritas/<str:username>/', views.buscar_series_favoritas_usuario, name='buscar_series_favoritas_usuario'),
     
     # APIs de Chat da Comunidade
     # IMPORTANT: These must come BEFORE slug-based URLs to match correctly

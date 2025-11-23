@@ -39,8 +39,11 @@ Cypress.Commands.add('criarUser', () => {
   cy.get('#password1').type('senha123');
   cy.get('#password2').type('senha123');
   cy.get('button[type="submit"]').click();
+
+  // Aguardar redirecionamento completar
   cy.url().should('not.include', '/login/');
   cy.url().should('not.include', '/registrar/');
+  cy.wait(1000);
 });
 
 // Comando para fazer login
@@ -55,7 +58,10 @@ Cypress.Commands.add('logar', () => {
   cy.get('input[name="username"]').type('TesteCypress');
   cy.get('input[name="password"]').type('senha123');
   cy.get('button[type="submit"]').click();
+
+  // Aguardar redirecionamento completar
   cy.url().should('not.include', '/login/');
+  cy.wait(1000);
 });
 
 // Comando para criticar filme

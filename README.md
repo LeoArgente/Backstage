@@ -164,6 +164,12 @@ Open:
 Closed:
 ![bugtracker4closed](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/bugtracker4closed.png)
 
+## Backlog no Jira
+![backlogfinal](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/backlogfinal.png)
+
+## Quadro no jira
+![quadrofinal](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/quadrofinal.png)
+
 ## Programação em Par
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.
 <details>

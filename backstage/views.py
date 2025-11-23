@@ -32,6 +32,7 @@ from .services.tmdb import (
     buscar_filme_destaque,
     buscar_filmes_populares,
     buscar_filme_por_titulo,
+    buscar_serie_por_titulo,
 )
 #####################
 from django.db.models import Q, Count
@@ -462,131 +463,23 @@ def detalhes_comunidade(request, slug):
         # Adicionar flag para identificar mensagens do usuário logado
         mensagem.is_own = mensagem.usuario == request.user
     
+    # Buscar todas as comunidades que o usuário participa
+    minhas_comunidades = Comunidade.objects.filter(
+        membros=request.user
+    ).order_by('-data_atualizacao')
+
     context = {
         'comunidade': comunidade,
         'meu_papel': meu_papel,
         'membros': membros,
         'mensagens': mensagens_list,
+        'minhas_comunidades': minhas_comunidades,
+        'is_admin': meu_papel == 'admin' if meu_papel else False,
     }
     return render(request, "backstage/community_details.html", context)
 
 
 @login_required(login_url='backstage:login')
-@require_http_methods(["POST"])
-def enviar_mensagem_comunidade(request, slug):
-    """API para enviar mensagem no chat da comunidade"""
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
-    
-    try:
-        comunidade = get_object_or_404(Comunidade, slug=slug)
-        
-        # Verificar se o usuário é membro
-        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
-            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
-        
-        conteudo = request.POST.get('conteudo', '').strip()
-        
-        if not conteudo:
-            return JsonResponse({'success': False, 'error': 'Mensagem vazia'}, status=400)
-        
-        if len(conteudo) > 2000:
-            return JsonResponse({'success': False, 'error': 'Mensagem muito longa (máximo 2000 caracteres)'}, status=400)
-        
-        # Criar a mensagem
-        mensagem = MensagemComunidade.objects.create(
-            comunidade=comunidade,
-            usuario=request.user,
-            conteudo=conteudo
-        )
-        
-        # Buscar foto de perfil
-        foto_perfil_url = None
-        try:
-            if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
-                foto_perfil_url = request.user.profile.foto_perfil.url
-        except:
-            pass
-        
-        return JsonResponse({
-            'success': True,
-            'mensagem': {
-                'id': mensagem.id,
-                'usuario': mensagem.usuario.username,
-                'conteudo': mensagem.conteudo,
-                'criado_em': mensagem.criado_em.strftime('%d/%m %H:%M'),
-                'is_owner': True,
-                'foto_perfil': foto_perfil_url
-            }
-        })
-        
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({
-            'success': False, 
-            'error': f'Erro ao enviar mensagem: {str(e)}'
-        }, status=500)
-
-
-@login_required(login_url='backstage:login')
-def buscar_mensagens_comunidade(request, slug):
-    """API para buscar mensagens do chat"""
-    try:
-        comunidade = get_object_or_404(Comunidade, slug=slug)
-        
-        # Verificar se o usuário é membro
-        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
-            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
-        
-        # Pegar o ID da última mensagem que o cliente tem
-        ultima_mensagem_id = request.GET.get('ultima_mensagem_id', 0)
-        
-        # Buscar mensagens mais recentes
-        mensagens = MensagemComunidade.objects.filter(
-            comunidade=comunidade,
-            id__gt=ultima_mensagem_id
-        ).select_related('usuario', 'usuario__profile').order_by('criado_em')
-        
-        mensagens_data = []
-        for msg in mensagens:
-            foto_perfil_url = None
-            try:
-                if hasattr(msg.usuario, 'profile') and msg.usuario.profile.foto_perfil:
-                    foto_perfil_url = msg.usuario.profile.foto_perfil.url
-            except:
-                pass
-            
-            mensagens_data.append({
-                'id': msg.id,
-                'usuario': msg.usuario.username,
-                'conteudo': msg.conteudo,
-                'criado_em': msg.criado_em.strftime('%d/%m %H:%M'),
-                'is_owner': msg.usuario == request.user,
-                'foto_perfil': foto_perfil_url,
-                'tipo_mensagem': msg.tipo_mensagem,
-                'filme': {
-                    'tmdb_id': msg.filme_tmdb_id,
-                    'titulo': msg.filme_titulo,
-                    'poster': msg.filme_poster,
-                    'trailer': msg.filme_trailer
-                } if msg.tipo_mensagem == 'recomendacao' else None
-            })
-        
-        return JsonResponse({
-            'success': True,
-            'mensagens': mensagens_data
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False, 
-            'error': f'Erro ao buscar mensagens: {str(e)}'
-        }, status=500)
-
-
-@login_required(login_url='backstage:login')
-@login_required
 def buscar_filmes_para_recomendar(request):
     """API para buscar filmes para recomendar"""
     try:
@@ -627,79 +520,220 @@ def buscar_filmes_para_recomendar(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
+def buscar_midia_para_chat(request):
+    """API para buscar filmes e séries para anexar no chat"""
+    try:
+        query = request.GET.get('q', '').strip()
+
+        if not query or len(query) < 2:
+            return JsonResponse({'success': False, 'error': 'Digite pelo menos 2 caracteres'}, status=400)
+
+        resultados = []
+
+        # Buscar filmes via TMDB
+        try:
+            filmes = buscar_filme_por_titulo(query)
+            if filmes:
+                for filme in filmes[:5]:  # Limitar a 5 filmes
+                    poster_url = None
+                    if filme.get('poster_path'):
+                        poster_url = f"https://image.tmdb.org/t/p/w200{filme['poster_path']}"
+
+                    resultados.append({
+                        'tmdb_id': filme.get('tmdb_id'),
+                        'tipo': 'filme',
+                        'titulo': filme.get('titulo'),
+                        'ano': filme.get('ano_lancamento', ''),
+                        'poster': poster_url
+                    })
+        except Exception as e:
+            print(f"Erro ao buscar filmes: {str(e)}")
+
+        # Buscar séries via TMDB
+        try:
+            series = buscar_serie_por_titulo(query)
+            if series:
+                for serie in series[:5]:  # Limitar a 5 séries
+                    poster_url = None
+                    if serie.get('poster_path'):
+                        poster_url = f"https://image.tmdb.org/t/p/w200{serie['poster_path']}"
+
+                    resultados.append({
+                        'tmdb_id': serie.get('tmdb_id'),
+                        'tipo': 'serie',
+                        'titulo': serie.get('titulo'),
+                        'ano': serie.get('ano_lancamento', ''),
+                        'poster': poster_url
+                    })
+        except Exception as e:
+            print(f"Erro ao buscar séries: {str(e)}")
+
+        return JsonResponse({'success': True, 'resultados': resultados})
+
+    except Exception as e:
+        print(f"Erro em buscar_midia_para_chat: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
-@login_required
-@require_http_methods(["POST"])
-def recomendar_filme_comunidade(request, slug):
-    """API para recomendar filme na comunidade"""
+def recomendar_filme_chat(request, comunidade_id):
+    """API para recomendar filme na comunidade (via chat)"""
     try:
-        comunidade = get_object_or_404(Comunidade, slug=slug)
-        
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
         # Verificar se o usuário é membro
         if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
             return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
-        
+
         data = json.loads(request.body)
         tmdb_id = data.get('tmdb_id')
         mensagem_texto = data.get('mensagem', '').strip()
-        
+
         if not tmdb_id:
             return JsonResponse({'success': False, 'error': 'ID do filme não fornecido'}, status=400)
-        
+
         # Buscar detalhes do filme no TMDB
         detalhes = obter_detalhes_com_cache(tmdb_id)
         if not detalhes:
             return JsonResponse({'success': False, 'error': 'Filme não encontrado'}, status=404)
-        
-        # Extrair trailer
-        trailer_url = None
-        if detalhes.get('videos') and detalhes['videos'].get('results'):
-            for video in detalhes['videos']['results']:
-                if video.get('type') == 'Trailer' and video.get('site') == 'YouTube':
-                    trailer_url = f"https://www.youtube.com/watch?v={video['key']}"
-                    break
-        
+
         # Criar mensagem de recomendação
         mensagem = MensagemComunidade.objects.create(
             comunidade=comunidade,
             usuario=request.user,
             tipo_mensagem='recomendacao',
-            conteudo=mensagem_texto if mensagem_texto else '',  # Deixar vazio se não tiver texto
+            conteudo=mensagem_texto if mensagem_texto else '',
             filme_tmdb_id=tmdb_id,
             filme_titulo=detalhes.get('title'),
             filme_poster=f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}" if detalhes.get('poster_path') else None,
-            filme_trailer=trailer_url
         )
-        
-        # Buscar foto de perfil
-        foto_perfil_url = None
-        try:
-            if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
-                foto_perfil_url = request.user.profile.foto_perfil.url
-        except:
-            pass
-        
+
+        # Get user role
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+
+        # Get user's profile photo
+        foto_perfil = None
+        if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+            foto_perfil = request.user.profile.foto_perfil.url
+
         return JsonResponse({
             'success': True,
             'mensagem': {
                 'id': mensagem.id,
-                'usuario': mensagem.usuario.username,
+                'usuario': {
+                    'username': request.user.username,
+                    'foto_perfil': foto_perfil,
+                    'role': membro.role
+                },
                 'conteudo': mensagem.conteudo,
-                'criado_em': mensagem.criado_em.strftime('%d/%m %H:%M'),
-                'is_owner': True,
-                'foto_perfil': foto_perfil_url,
-                'tipo_mensagem': 'recomendacao',
-                'filme': {
-                    'tmdb_id': mensagem.filme_tmdb_id,
-                    'titulo': mensagem.filme_titulo,
-                    'poster': mensagem.filme_poster,
-                    'trailer': mensagem.filme_trailer
-                }
+                'tipo_mensagem': mensagem.tipo_mensagem,
+                'filme_tmdb_id': mensagem.filme_tmdb_id,
+                'filme_titulo': mensagem.filme_titulo,
+                'filme_poster': mensagem.filme_poster,
+                'criado_em': mensagem.criado_em.isoformat(),
             }
         })
-        
+
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def recomendar_serie_chat(request, comunidade_id):
+    """API para recomendar série na comunidade (via chat)"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é membro
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você precisa ser membro da comunidade'}, status=403)
+
+        data = json.loads(request.body)
+        tmdb_id = data.get('tmdb_id')
+        mensagem_texto = data.get('mensagem', '').strip()
+
+        if not tmdb_id:
+            return JsonResponse({'success': False, 'error': 'ID da série não fornecido'}, status=400)
+
+        # Buscar detalhes da série no TMDB
+        detalhes = buscar_detalhes_serie(tmdb_id)
+        if not detalhes:
+            return JsonResponse({'success': False, 'error': 'Série não encontrada'}, status=404)
+
+        # Criar mensagem de recomendação
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            tipo_mensagem='recomendacao',
+            conteudo=mensagem_texto if mensagem_texto else '',
+            filme_tmdb_id=tmdb_id,
+            filme_titulo=detalhes.get('titulo') or detalhes.get('name'),
+            filme_poster=f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}" if detalhes.get('poster_path') else None,
+        )
+
+        # Get user role
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+
+        # Get user's profile photo
+        foto_perfil = None
+        if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+            foto_perfil = request.user.profile.foto_perfil.url
+
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': {
+                    'username': request.user.username,
+                    'foto_perfil': foto_perfil,
+                    'role': membro.role
+                },
+                'conteudo': mensagem.conteudo,
+                'tipo_mensagem': mensagem.tipo_mensagem,
+                'filme_tmdb_id': mensagem.filme_tmdb_id,
+                'filme_titulo': mensagem.filme_titulo,
+                'filme_poster': mensagem.filme_poster,
+                'criado_em': mensagem.criado_em.isoformat(),
+            }
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def limpar_chat_comunidade(request, comunidade_id):
+    """API para limpar todas as mensagens do chat (apenas admin)"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin da comunidade
+        try:
+            membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+            if membro.role != 'admin':
+                return JsonResponse({'success': False, 'error': 'Apenas administradores podem limpar o chat'}, status=403)
+        except MembroComunidade.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Deletar todas as mensagens da comunidade
+        deleted_count = MensagemComunidade.objects.filter(comunidade=comunidade).delete()[0]
+
+        return JsonResponse({
+            'success': True,
+            'mensagens_deletadas': deleted_count
+        })
+
+    except Exception as e:
+        print(f"Erro em limpar_chat_comunidade: {str(e)}")
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
@@ -971,9 +1005,95 @@ def sair_comunidade(request):
             'success': True,
             'message': f'Você saiu da comunidade {comunidade.nome}'
         })
-        
+
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def promover_admin_comunidade(request, slug):
+    """API para promover um membro a administrador"""
+    try:
+        data = json.loads(request.body)
+        member_id = data.get('member_id')
+
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+
+        # Verificar se o usuário atual é admin
+        membro_atual = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario=request.user)
+        if membro_atual.role != 'admin':
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem promover membros'
+            }, status=403)
+
+        # Buscar o membro a ser promovido
+        membro_alvo = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario_id=member_id)
+
+        # Verificar se já é admin
+        if membro_alvo.role == 'admin':
+            return JsonResponse({
+                'success': False,
+                'error': 'Este membro já é administrador'
+            })
+
+        # Promover a admin
+        membro_alvo.role = 'admin'
+        membro_alvo.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{membro_alvo.usuario.username} foi promovido a administrador'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def expulsar_membro_comunidade(request, slug):
+    """API para expulsar um membro da comunidade"""
+    try:
+        data = json.loads(request.body)
+        member_id = data.get('member_id')
+
+        comunidade = get_object_or_404(Comunidade, slug=slug)
+
+        # Verificar se o usuário atual é admin
+        membro_atual = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario=request.user)
+        if membro_atual.role != 'admin':
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem expulsar membros'
+            }, status=403)
+
+        # Buscar o membro a ser expulso
+        membro_alvo = get_object_or_404(MembroComunidade, comunidade=comunidade, usuario_id=member_id)
+
+        # Não pode expulsar o criador
+        if membro_alvo.usuario == comunidade.criador:
+            return JsonResponse({
+                'success': False,
+                'error': 'Não é possível expulsar o criador da comunidade'
+            })
+
+        # Não pode se autoexpulsar
+        if membro_alvo.usuario == request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Você não pode se expulsar. Use a opção "Sair" para deixar a comunidade'
+            })
+
+        username = membro_alvo.usuario.username
+        membro_alvo.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{username} foi expulso da comunidade'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
@@ -999,6 +1119,111 @@ def deletar_comunidade(request):
             'message': f'Comunidade "{nome_comunidade}" deletada com sucesso.'
         })
         
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def api_comunidade_detalhes(request, comunidade_id):
+    """API para buscar detalhes de uma comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin
+        membro = MembroComunidade.objects.filter(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        ).first()
+
+        if not membro:
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem acessar estes dados'
+            }, status=403)
+
+        return JsonResponse({
+            'success': True,
+            'id': comunidade.id,
+            'nome': comunidade.nome,
+            'descricao': comunidade.descricao,
+            'foto_perfil': comunidade.foto_perfil.url if comunidade.foto_perfil else None,
+            'slug': comunidade.slug
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def api_editar_comunidade(request, comunidade_id):
+    """API para editar uma comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin
+        membro = MembroComunidade.objects.filter(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        ).first()
+
+        if not membro:
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem editar a comunidade'
+            }, status=403)
+
+        # Atualizar dados
+        nome = request.POST.get('name', '').strip()
+        descricao = request.POST.get('description', '').strip()
+        foto_perfil = request.FILES.get('foto_perfil')
+
+        if nome:
+            comunidade.nome = nome
+        if descricao:
+            comunidade.descricao = descricao
+        if foto_perfil:
+            comunidade.foto_perfil = foto_perfil
+
+        comunidade.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Comunidade atualizada com sucesso!'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["DELETE"])
+def api_excluir_comunidade(request, comunidade_id):
+    """API para excluir uma comunidade"""
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verificar se o usuário é admin
+        membro = MembroComunidade.objects.filter(
+            comunidade=comunidade,
+            usuario=request.user,
+            role='admin'
+        ).first()
+
+        if not membro:
+            return JsonResponse({
+                'success': False,
+                'error': 'Apenas administradores podem excluir a comunidade'
+            }, status=403)
+
+        nome_comunidade = comunidade.nome
+        comunidade.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Comunidade "{nome_comunidade}" excluída com sucesso!'
+        })
+
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -3676,3 +3901,179 @@ def limpar_listas(request):
             'success': False,
             'message': f'Erro ao remover listas: {str(e)}'
         }, status=500)
+
+
+# ========================================
+# COMMUNITY CHAT - NEW IMPLEMENTATION
+# ========================================
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def obter_mensagens_comunidade(request, comunidade_id):
+    """
+    API endpoint to get all messages from a community
+    """
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verify user is member
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Get messages
+        mensagens = MensagemComunidade.objects.filter(comunidade=comunidade).select_related('usuario', 'usuario__profile').order_by('criado_em')
+
+        # Get user's role
+        user_roles = {}
+        membros = MembroComunidade.objects.filter(comunidade=comunidade).select_related('usuario')
+        for membro in membros:
+            user_roles[membro.usuario.id] = membro.role
+
+        # Serialize messages
+        mensagens_data = []
+        for msg in mensagens:
+            foto_perfil = None
+            if hasattr(msg.usuario, 'profile') and msg.usuario.profile.foto_perfil:
+                foto_perfil = msg.usuario.profile.foto_perfil.url
+
+            mensagens_data.append({
+                'id': msg.id,
+                'usuario': {
+                    'username': msg.usuario.username,
+                    'foto_perfil': foto_perfil,
+                    'role': user_roles.get(msg.usuario.id, 'member')
+                },
+                'conteudo': msg.conteudo,
+                'tipo_mensagem': msg.tipo_mensagem,
+                'filme_tmdb_id': msg.filme_tmdb_id,
+                'filme_titulo': msg.filme_titulo,
+                'filme_poster': msg.filme_poster,
+                'criado_em': msg.criado_em.isoformat(),
+                'editado': msg.editado
+            })
+
+        return JsonResponse({'success': True, 'mensagens': mensagens_data})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["GET"])
+def obter_mensagens_novas(request, comunidade_id):
+    """
+    API endpoint to get new messages after a specific message ID (for polling)
+    """
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verify user is member
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Get after_id parameter
+        after_id = request.GET.get('after', 0)
+
+        # Get new messages
+        mensagens = MensagemComunidade.objects.filter(
+            comunidade=comunidade,
+            id__gt=after_id
+        ).select_related('usuario', 'usuario__profile').order_by('criado_em')
+
+        # Get user's role
+        user_roles = {}
+        if mensagens.exists():
+            user_ids = mensagens.values_list('usuario_id', flat=True).distinct()
+            membros = MembroComunidade.objects.filter(comunidade=comunidade, usuario_id__in=user_ids).select_related('usuario')
+            for membro in membros:
+                user_roles[membro.usuario.id] = membro.role
+
+        # Serialize messages
+        mensagens_data = []
+        for msg in mensagens:
+            foto_perfil = None
+            if hasattr(msg.usuario, 'profile') and msg.usuario.profile.foto_perfil:
+                foto_perfil = msg.usuario.profile.foto_perfil.url
+
+            mensagens_data.append({
+                'id': msg.id,
+                'usuario': {
+                    'username': msg.usuario.username,
+                    'foto_perfil': foto_perfil,
+                    'role': user_roles.get(msg.usuario.id, 'member')
+                },
+                'conteudo': msg.conteudo,
+                'tipo_mensagem': msg.tipo_mensagem,
+                'filme_tmdb_id': msg.filme_tmdb_id,
+                'filme_titulo': msg.filme_titulo,
+                'filme_poster': msg.filme_poster,
+                'criado_em': msg.criado_em.isoformat(),
+                'editado': msg.editado
+            })
+
+        return JsonResponse({'success': True, 'mensagens': mensagens_data})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url='backstage:login')
+@require_http_methods(["POST"])
+def enviar_mensagem_chat(request, comunidade_id):
+    """
+    API endpoint to send a new message
+    """
+    try:
+        comunidade = get_object_or_404(Comunidade, id=comunidade_id)
+
+        # Verify user is member
+        if not MembroComunidade.objects.filter(comunidade=comunidade, usuario=request.user).exists():
+            return JsonResponse({'success': False, 'error': 'Você não é membro desta comunidade'}, status=403)
+
+        # Get data from request
+        data = json.loads(request.body)
+        conteudo = data.get('conteudo', '').strip()
+
+        if not conteudo:
+            return JsonResponse({'success': False, 'error': 'Mensagem vazia'}, status=400)
+
+        # Create message
+        mensagem = MensagemComunidade.objects.create(
+            comunidade=comunidade,
+            usuario=request.user,
+            conteudo=conteudo,
+            tipo_mensagem='texto'
+        )
+
+        # Get user's role
+        membro = MembroComunidade.objects.get(comunidade=comunidade, usuario=request.user)
+
+        # Get user's profile photo
+        foto_perfil = None
+        if hasattr(request.user, 'profile') and request.user.profile.foto_perfil:
+            foto_perfil = request.user.profile.foto_perfil.url
+
+        # Return created message
+        return JsonResponse({
+            'success': True,
+            'mensagem': {
+                'id': mensagem.id,
+                'usuario': {
+                    'username': request.user.username,
+                    'foto_perfil': foto_perfil,
+                    'role': membro.role
+                },
+                'conteudo': mensagem.conteudo,
+                'tipo_mensagem': mensagem.tipo_mensagem,
+                'filme_tmdb_id': mensagem.filme_tmdb_id,
+                'filme_titulo': mensagem.filme_titulo,
+                'filme_poster': mensagem.filme_poster,
+                'criado_em': mensagem.criado_em.isoformat(),
+                'editado': mensagem.editado
+            }
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

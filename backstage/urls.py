@@ -7,7 +7,10 @@ urlpatterns = [
     path('', views.index, name='index'),
     #path('login/', RedirectView.as_view(pattern_name='backstage:login', permanent=False)),
     path('login/', views.pagina_login, name='login'),
+    # === COMUNIDADES ===
     path('comunidade/', views.comunidade, name='comunidade'),
+    path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
+    path('convite/<str:codigo>/', views.entrar_por_convite, name='entrar_por_convite'),
     path('filmes/', views.filmes, name='filmes'),
     path('movies/', views.movies, name='movies'),
     path('lists/', views.lists, name='lists'),
@@ -27,7 +30,17 @@ urlpatterns = [
     path('api/filmes/', views.filmes_api, name='filmes_api'),
     path('api/series/', views.series_api, name='series_api'),
     path('api/listas/', views.lists_api, name='lists_api'),
+    # APIs de Comunidades (CRUD)
     path('api/comunidades/', views.comunidade_api, name='comunidade_api'),
+    path('criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
+    path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
+    path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
+    path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
+    path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
+    path('comunidade/api/<int:comunidade_id>/', views.api_comunidade_detalhes, name='api_comunidade_detalhes'),
+    path('comunidade/api/<int:comunidade_id>/editar/', views.api_editar_comunidade, name='api_editar_comunidade'),
+    path('comunidade/api/<int:comunidade_id>/excluir/', views.api_excluir_comunidade, name='api_excluir_comunidade'),
+    path('comunidade/buscar-filmes/', views.buscar_filmes_para_recomendar, name='buscar_filmes_para_recomendar'),
     path('api/filme/<int:tmdb_id>/videos/', views.filme_videos, name='filme_videos'),
     path('api/criar-lista/', views.criar_lista, name='criar_lista'),
     path('api/buscar-listas/', views.buscar_listas_usuario, name='buscar_listas_usuario'),
@@ -49,33 +62,28 @@ urlpatterns = [
     # API de sugestões de busca
     path('api/sugestoes/', views.buscar_sugestoes, name='buscar_sugestoes'),
     
-    # URLs para comunidades
-    path('minhas-comunidades/', views.minhas_comunidades, name='minhas_comunidades'),
-    path('convite/<str:codigo>/', views.entrar_por_convite, name='entrar_por_convite'),
-    
-    # APIs para comunidades
-    path('criar-comunidade/', views.criar_comunidade, name='criar_comunidade'),
-    path('entrar-comunidade/', views.entrar_comunidade, name='entrar_comunidade'),
-    path('sair-comunidade/', views.sair_comunidade, name='sair_comunidade'),
-    path('deletar-comunidade/', views.deletar_comunidade, name='deletar_comunidade'),
-    path('convidar-amigo/', views.convidar_amigo, name='convidar_amigo'),
-    
-    # API de busca de filmes (DEVE VIR ANTES das URLs com <slug>)
-    path('comunidade/buscar-filmes/', views.buscar_filmes_para_recomendar, name='buscar_filmes_para_recomendar'),
-    
     # APIs de Filmes Favoritos
     path('api/favoritos/adicionar/', views.adicionar_favorito, name='adicionar_favorito'),
     path('api/favoritos/remover/', views.remover_favorito, name='remover_favorito'),
     path('api/favoritos/atualizar-nota/', views.atualizar_nota_favorito, name='atualizar_nota_favorito'),
     path('api/favoritos/<str:username>/', views.buscar_favoritos_usuario, name='buscar_favoritos_usuario'),
     
-    # URLs de comunidade específica
-    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
-    
     # APIs de Chat da Comunidade
-    path('comunidade/<slug:slug>/enviar-mensagem/', views.enviar_mensagem_comunidade, name='enviar_mensagem_comunidade'),
-    path('comunidade/<slug:slug>/buscar-mensagens/', views.buscar_mensagens_comunidade, name='buscar_mensagens_comunidade'),
-    path('comunidade/<slug:slug>/recomendar-filme/', views.recomendar_filme_comunidade, name='recomendar_filme_comunidade'),
+    # IMPORTANT: These must come BEFORE slug-based URLs to match correctly
+    path('comunidade/<int:comunidade_id>/mensagens/', views.obter_mensagens_comunidade, name='obter_mensagens_comunidade'),
+    path('comunidade/<int:comunidade_id>/mensagens/novas/', views.obter_mensagens_novas, name='obter_mensagens_novas'),
+    path('comunidade/<int:comunidade_id>/enviar-mensagem/', views.enviar_mensagem_chat, name='enviar_mensagem_chat'),
+    path('comunidade/<int:comunidade_id>/recomendar-filme/', views.recomendar_filme_chat, name='recomendar_filme_chat'),
+    path('comunidade/<int:comunidade_id>/recomendar-serie/', views.recomendar_serie_chat, name='recomendar_serie_chat'),
+    path('comunidade/<int:comunidade_id>/limpar-chat/', views.limpar_chat_comunidade, name='limpar_chat_comunidade'),
+    path('api/buscar-midia/', views.buscar_midia_para_chat, name='buscar_midia_chat'),
+
+    # APIs de Gestão de Membros (slug-based)
+    path('comunidade/<slug:slug>/promover-admin/', views.promover_admin_comunidade, name='promover_admin_comunidade'),
+    path('comunidade/<slug:slug>/expulsar-membro/', views.expulsar_membro_comunidade, name='expulsar_membro_comunidade'),
+
+    # Comunidade específica (slug-based URL - must come AFTER int-based URLs)
+    path('comunidade/<slug:slug>/', views.detalhes_comunidade, name='detalhes_comunidade'),
     
     # URLs do menu do usuário
     path('perfil/', views.perfil, name='perfil'),

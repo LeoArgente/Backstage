@@ -172,8 +172,10 @@ Closed:
 
 ## Programação em Par
 A implementação das histórias foi feita por meio da programação em par. Neste [relatório](https://docs.google.com/document/d/1HIxRn-m3WkP-25n1E8wzRNDGOBeI7m8e7uyD_I04urM/edit?usp=sharing), você pode encontrar mais sobre esse processo.
-<details>
 
+</details>
+
+<details>
 <summary> 🚀 INTEGRANTES  </summary>
   
 - Henrique Antunes Calado 
@@ -189,4 +191,4 @@ A implementação das histórias foi feita por meio da programação em par. Nes
 - Rafael Pimentel Borba
 
 - Victor Martins Tomaz de Melo
-  </details>
+</details>

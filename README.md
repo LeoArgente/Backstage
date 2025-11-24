@@ -155,6 +155,13 @@ Permite que o usuário configure listas como privadas, mantendo o controle sobre
 Oferece recomendações personalizadas de filmes com base nos favoritos do usuário, incluindo justificativas e feedback para refinar sugestões futuras.
 ![História6](https://raw.githubusercontent.com/marilializ/Backstage/main/imagens/recomendados.png)
 
+## Screencasts
+Nessa entrega, realizamos os screencasts de CI/CD com build e deployment automatizado, Testes de Sistema (E2E) Automatizados e do deployment das novas histórias.
+
+[CI/CD](https://youtu.be/WAdzYJRQ9G8)
+[E2E](https://youtu.be/UEeR2U37Qbc)
+[Deployment](https://youtu.be/Wtp1D-ChZOQ)
+
 ## Bugtracker
 Uma nova secção foi adicionada ao bugtracker, para o controle de bugs desta entrega.
 

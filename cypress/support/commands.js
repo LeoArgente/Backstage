@@ -33,14 +33,21 @@ Cypress.Commands.add('criarUser', () => {
       win.prompt = () => '';
     }
   });
-  cy.get('.signup-link').click();
-  cy.get('#username').type('TesteCypress');
-  cy.get('#email').type('testeCypress@gmail.com');
-  cy.get('#password1').type('senha123');
-  cy.get('#password2').type('senha123');
-  cy.get('button[type="submit"]').click();
+
+  cy.wait(500);
+  cy.get('.signup-link').should('be.visible').click();
+  cy.wait(500);
+
+  cy.get('#username').should('be.visible').clear().type('TesteCypress');
+  cy.get('#email').should('be.visible').clear().type('testeCypress@gmail.com');
+  cy.get('#password1').should('be.visible').clear().type('senha123');
+  cy.get('#password2').should('be.visible').clear().type('senha123');
+  cy.get('button[type="submit"]').should('be.visible').click();
+
+  // Aguardar redirecionamento completar
   cy.url().should('not.include', '/login/');
   cy.url().should('not.include', '/registrar/');
+  cy.wait(1000);
 });
 
 // Comando para fazer login
@@ -52,10 +59,15 @@ Cypress.Commands.add('logar', () => {
       win.prompt = () => '';
     }
   });
-  cy.get('input[name="username"]').type('TesteCypress');
-  cy.get('input[name="password"]').type('senha123');
-  cy.get('button[type="submit"]').click();
+
+  cy.wait(500);
+  cy.get('input[name="username"]').should('be.visible').clear().type('TesteCypress');
+  cy.get('input[name="password"]').should('be.visible').clear().type('senha123');
+  cy.get('button[type="submit"]').should('be.visible').click();
+
+  // Aguardar redirecionamento completar
   cy.url().should('not.include', '/login/');
+  cy.wait(1000);
 });
 
 // Comando para criticar filme

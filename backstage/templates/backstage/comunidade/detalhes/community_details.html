@@ -9,16 +9,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}?v=1.0">
-  <link rel="stylesheet" href="{% static 'css/community.css' %}?v=1.2">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
+  <link rel="stylesheet" href="{% static 'css/comunidade.css' %}?v=1.2">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}?v=1.0">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=1.0">
-  <link rel="stylesheet" href="{% static 'css/community-details.css' %}?v=1.0">
+  <link rel="stylesheet" href="{% static 'css/comunidade-detalhes.css' %}?v=1.0">
 
 </head>
 <body class="community-page">
   {% csrf_token %}
-  {% include 'backstage/_mobile_header.html' %}
+  {% include 'backstage/partials/_mobile_header.html' %}
   
   <header class="site-header">
     <div class="container">
@@ -47,8 +47,8 @@
             <input type="hidden" name="tipo" value="titulo" />
           </form>
 
-          {% include 'backstage/_notifications.html' %}
-          {% include 'backstage/_user_dropdown.html' %}
+          {% include 'backstage/partials/_notifications.html' %}
+          {% include 'backstage/partials/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
@@ -88,7 +88,7 @@
       <!-- Chat Container -->
       <div class="chat-container">
         {% if meu_papel %}
-          {% include 'backstage/community_chat.html' with comunidade=comunidade is_admin=is_admin %}
+          {% include 'backstage/comunidade/detalhes/community_chat.html' with comunidade=comunidade is_admin=is_admin %}
         {% else %}
           <div class="community-chat">
             <div class="chat-header">
@@ -239,10 +239,10 @@
   </div>
 
 
-  <script src="{% static 'js/profile_menu.js' %}"></script>
-  <script src="{% static 'js/community.js' %}?v=1.0"></script>
+  <script src="{% static 'js/perfil-menu.js' %}"></script>
+  <script src="{% static 'js/comunidade.js' %}?v=1.0"></script>
 
-  {% include 'backstage/footer_default.html' %}
-  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/partials/footer_default.html' %}
+  {% include 'backstage/partials/_mobile_bottom_nav.html' %}
 </body>
 </html>

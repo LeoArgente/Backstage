@@ -12,7 +12,9 @@
       "Bash(sed -i '1628,1632d' movie_details.html)",
       "Bash(py --version)",
       "Bash(python.exe --version)",
-      "Bash(/c/Users/leona/AppData/Local/Programs/Python/Launcher/py.exe --version)"
+      "Bash(/c/Users/leona/AppData/Local/Programs/Python/Launcher/py.exe --version)",
+      "Bash(TDIR=\"backstage/templates/backstage\")",
+      "Bash(mkdir -p \"$TDIR/home\" \"$TDIR/auth\" \"$TDIR/filmes/detalhes\" \"$TDIR/series/detalhes\" \"$TDIR/listas/detalhes\" \"$TDIR/comunidade/detalhes\" \"$TDIR/perfil\" \"$TDIR/configuracoes\" \"$TDIR/busca\" \"$TDIR/partials\")"
     ]
   }
 }

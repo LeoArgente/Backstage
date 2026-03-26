@@ -1,21 +1,22 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>  
+<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Filmes - Backstage</title>
+  <title>Séries - Backstage</title>
   <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/series.css' %}?v=1.2">
+  <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
-  {% include 'backstage/_mobile_header.html' %}
+  {% include 'backstage/partials/_mobile_header.html' %}
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -27,8 +28,8 @@
 
         <div class="nav-menu">
           <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
-          <a href="{% url 'backstage:movies' %}" class="nav-link active">Filmes</a>
-          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link active">Séries</a>
           <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
           <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
         </div>
@@ -39,14 +40,14 @@
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-                <input type="search" name="q" class="search-input" placeholder="Buscar filmes..." autocomplete="off" />
-                <input type="hidden" name="tipo" value="titulo" />
-                <div class="search-suggestions"></div>
-              </form>
+            <input type="search" name="q" class="search-input" placeholder="Buscar séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
 
-          {% include 'backstage/_notifications.html' %}
+          {% include 'backstage/partials/_notifications.html' %}
 
-          {% include 'backstage/_user_dropdown.html' %}
+          {% include 'backstage/partials/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
@@ -55,66 +56,67 @@
   <div class="page-header">
     <div class="container">
       <div class="page-header-content">
-        <h1 class="page-title">Filmes</h1>
-        <p class="page-description">Descubra os melhores filmes, desde clássicos atemporais até os lançamentos mais recentes</p>
+        <h1 class="page-title">Séries</h1>
+        <p class="page-description">Explore as melhores séries de TV, desde clássicos consagrados até os lançamentos mais recentes</p>
       </div>
     </div>
   </div>
 
+  <!-- Main Content -->
   <main class="container">
     <section class="filters-section">
       <div class="filters-header">
         <div class="filter-tabs">
-          <button class="filter-tab active" data-filter="all">Todos</button>
-          <button class="filter-tab" data-filter="action">Ação</button>
-          <button class="filter-tab" data-filter="adventure">Aventura</button>
-          <button class="filter-tab" data-filter="comedy">Comédia</button>
+          <button class="filter-tab active" data-filter="all">Todas</button>
           <button class="filter-tab" data-filter="drama">Drama</button>
-          <button class="filter-tab" data-filter="scifi">Ficção Científica</button>
+          <button class="filter-tab" data-filter="comedy">Comédia</button>
           <button class="filter-tab" data-filter="thriller">Thriller</button>
+          <button class="filter-tab" data-filter="scifi">Ficção Científica</button>
+          <button class="filter-tab" data-filter="crime">Crime</button>
+          <button class="filter-tab" data-filter="mystery">Mistério</button>
         </div>
         
         <div class="filter-controls">
-          <select class="filter-select" id="sort-movies">
+          <select class="filter-select" id="sort-series">
             <option value="popular">Mais populares</option>
-            <option value="rating">Melhor avaliados</option>
+            <option value="rating">Melhor avaliadas</option>
             <option value="recent">Lançamentos</option>
             <option value="alphabetical">Alfabético</option>
           </select>
           
-        
+         
         </div>
       </div>
     </section>
 
-    <section class="movies-grid-section">
-      <div class="movies-grid" id="movies-grid">
-        {% for filme in filmes %}
-        <div class="movie-card" onclick="window.location.href='{% url 'backstage:detalhes_filme' tmdb_id=filme.tmdb_id %}'">
+    <section class="series-grid-section">
+      <div class="series-grid" id="series-grid">
+        {% for serie in series %}
+        <div class="movie-card" onclick="window.location.href='{% url 'backstage:detalhes_serie' serie.tmdb_id %}'" style="cursor: pointer;">
           <div class="movie-card-poster">
-            <img src="{{ tmdb_image_base }}w500{{ filme.poster_path }}" alt="{{ filme.titulo }}" />
+            <img src="{{ tmdb_image_base }}w500{{ serie.poster_path }}" alt="{{ serie.titulo }}" />
             <div class="movie-card-overlay">
               <div class="movie-card-rating">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
-                {{ filme.nota_tmdb|floatformat:1 }}
+                {{ serie.nota_tmdb|floatformat:1 }}
               </div>
             </div>
           </div>
           <div class="movie-card-info">
-            <h3 class="movie-card-title">{{ filme.titulo }}</h3>
-            <span class="movie-card-year">{{ filme.ano_lancamento }}</span>
+            <h3 class="movie-card-title">{{ serie.titulo }}</h3>
+            <span class="movie-card-year">{{ serie.ano_lancamento }}</span>
           </div>
         </div>
         {% empty %}
-        <p>Nenhum filme encontrado.</p>
+        <p>Nenhuma série encontrada.</p>
         {% endfor %}
       </div>
       
       <div class="load-more-section">
         <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
-          Carregar mais filmes
+          Carregar mais séries
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 5v14M5 12h14"/>
           </svg>
@@ -123,16 +125,17 @@
     </section>
   </main>
 
-  {% include 'backstage/_mobile_search.html' %}
-  {% include 'backstage/_mobile_bottom_nav.html' %}
-  {% include 'backstage/_mobile_scripts.html' %}
+  {% include 'backstage/partials/_mobile_search.html' %}
+  {% include 'backstage/partials/_mobile_bottom_nav.html' %}
+  {% include 'backstage/partials/_mobile_scripts.html' %}
 
-  <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
-  <script src="{% static 'js/movies.js' %}?v=3.0" defer></script>
-  <script src="{% static 'js/search-suggestions.js' %}" defer></script>
-  <script src="{% static 'js/profile_menu.js' %}" defer></script>
-  <script src="{% static 'js/notifications.js' %}" defer></script>
+  <script src="{% static 'js/main.js' %}" defer></script>
+  <script src="{% static 'js/series.js' %}?v=1.1" defer></script>
+  <script src="{% static 'js/perfil-menu.js' %}" defer></script>
+  <script src="{% static 'js/filter-popup.js' %}" defer></script>
+  <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>
+  <script src="{% static 'js/notificacoes.js' %}" defer></script>
 
-{% include 'backstage/footer_default.html' %}
+{% include 'backstage/partials/footer_default.html' %}
 </body>
 </html>

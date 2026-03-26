@@ -174,8 +174,8 @@ def pagina_login(request):
         if user is not None:
             login(request, user)
             return redirect('backstage:index')  # usa namespace do app
-        return render(request, 'backstage/login.html', {'erro': 'Usuário ou senha inválidos'})
-    return render(request, 'backstage/login.html')
+        return render(request, 'backstage/auth/login.html', {'erro': 'Usuário ou senha inválidos'})
+    return render(request, 'backstage/auth/login.html')
 
 def index(request):
     # Buscar atividades dos amigos (críticas recentes)
@@ -242,7 +242,7 @@ def index(request):
         'atividades_amigos': atividades_amigos,
         'filmes_recomendados': filmes_recomendados_json,
     }
-    return render(request, 'backstage/index.html', context)
+    return render(request, 'backstage/home/index.html', context)
 
 def sair(request):
     logout(request)
@@ -300,7 +300,7 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
                         'errors': errors
                     })
                 else:
-                    return render(request, 'backstage/registrar.html', {
+                    return render(request, 'backstage/auth/registrar.html', {
                         'errors': errors,
                         'username': username,
                         'email': email
@@ -334,11 +334,11 @@ def registrar(request): #suporta tanto forms tradicional quanto AJAX
                     'errors': {'general': 'Erro interno do servidor'}
                 })
             else:
-                return render(request, 'backstage/registrar.html', {
+                return render(request, 'backstage/auth/registrar.html', {
                     'errors': {'general': 'Erro ao criar conta. Tente novamente.'}
                 })
 
-    return render(request, 'backstage/registrar.html')
+    return render(request, 'backstage/auth/registrar.html')
 
 # chamadas das urls das páginas #################################################################################################
 # front nononha e liz + back leo e lou
@@ -369,7 +369,7 @@ def comunidade(request):
         'minhas_comunidades': minhas_comunidades,
         'comunidades_publicas': comunidades_publicas,
     }
-    return render(request, "backstage/community.html", context)
+    return render(request, "backstage/comunidade/community.html", context)
 
 
 def comunidade_api(request):
@@ -429,7 +429,7 @@ def minhas_comunidades(request):
     context = {
         'comunidades': comunidades,
     }
-    return render(request, "backstage/minhas_comunidades.html", context)
+    return render(request, "backstage/comunidade/minhas_comunidades.html", context)
 
 @login_required(login_url='backstage:login')
 def detalhes_comunidade(request, slug):
@@ -479,7 +479,7 @@ def detalhes_comunidade(request, slug):
         'minhas_comunidades': minhas_comunidades,
         'is_admin': meu_papel == 'admin' if meu_papel else False,
     }
-    return render(request, "backstage/community_details.html", context)
+    return render(request, "backstage/comunidade/detalhes/community_details.html", context)
 
 
 @login_required(login_url='backstage:login')
@@ -1549,7 +1549,7 @@ def entrar_por_convite(request, codigo):
         return JsonResponse({'success': False, 'error': str(e)})
 
 def filmes(request):
-    return render(request, "backstage/movie_details.html")
+    return render(request, "backstage/filmes/detalhes/movie_details.html")
 
 # back leo e lou ########################
 @login_required(login_url='backstage:login')
@@ -1574,7 +1574,7 @@ def lists(request):
         'minhas_listas': minhas_listas,
         'listas_publicas': listas_publicas,
     }
-    return render(request, "backstage/lists.html", context)
+    return render(request, "backstage/listas/lists.html", context)
 
 def lists_api(request):
     """API endpoint para carregar listas com paginação"""
@@ -1678,7 +1678,7 @@ def movies(request):
         'genero_atual': genero,
         'ordenacao_atual': ordenacao
     }
-    return render(request, "backstage/movies.html", context)
+    return render(request, "backstage/filmes/movies.html", context)
 
 def noticias(request):
     return render(request, "backstage/noticias.html")
@@ -1733,7 +1733,7 @@ def series(request):
         'genero_atual': genero,
         'ordenacao_atual': ordenacao
     }
-    return render(request, "backstage/series.html", context)
+    return render(request, "backstage/series/series.html", context)
 
 def series_api(request):
     """API endpoint para carregar séries com paginação"""
@@ -1907,7 +1907,7 @@ def detalhes_filme(request, tmdb_id):
         'cast_data_json': json.dumps(elenco_principal),
         'ratings_omdb': ratings_omdb
     }
-    return render(request, "backstage/movie_details.html", context)
+    return render(request, "backstage/filmes/detalhes/movie_details.html", context)
 
 def buscar(request):
     from .services.tmdb import (
@@ -1985,7 +1985,7 @@ def buscar(request):
         'generos': generos,
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL
     }
-    return render(request, "backstage/busca_resultado.html", context)
+    return render(request, "backstage/busca/busca_resultado.html", context)
 
 def busca_ajax(request):
     """API endpoint para busca em tempo real"""
@@ -2702,7 +2702,7 @@ def detalhes_serie(request, tmdb_id):
         'videos_json': videos_json
     }
 
-    return render(request, "backstage/series_details.html", context)
+    return render(request, "backstage/series/detalhes/series_details.html", context)
 
 @login_required(login_url='backstage:login')
 def salvar_critica_serie(request):
@@ -2937,7 +2937,7 @@ def perfil(request, username=None):
         'sao_amigos': sao_amigos,
     }
     
-    return render(request, 'backstage/perfil.html', context)
+    return render(request, 'backstage/perfil/perfil.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -2951,7 +2951,7 @@ def meu_diario(request):
         'criticas_series': criticas_series,
     }
     
-    return render(request, 'backstage/meu_diario.html', context)
+    return render(request, 'backstage/perfil/meu_diario.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -3009,7 +3009,7 @@ def reviews(request, username=None):
         'is_own_profile': is_own_profile,
     }
     
-    return render(request, 'backstage/reviews.html', context)
+    return render(request, 'backstage/perfil/reviews.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -3036,7 +3036,7 @@ def watchlist(request):
         'listas_data': listas_data,
     }
     
-    return render(request, 'backstage/watchlist.html', context)
+    return render(request, 'backstage/listas/watchlist.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -3062,7 +3062,7 @@ def lista_detalhes(request, lista_id):
         'itens': itens,
     }
     
-    return render(request, 'backstage/lista_detalhes.html', context)
+    return render(request, 'backstage/listas/detalhes/lista_detalhes.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -3085,7 +3085,7 @@ def favoritos(request):
         'series_favoritas': series_favoritas,
     }
     
-    return render(request, 'backstage/favoritos.html', context)
+    return render(request, 'backstage/perfil/favoritos.html', context)
 
 
 @login_required(login_url='backstage:login')
@@ -3163,12 +3163,12 @@ def configuracoes(request):
         'user': request.user,
         'profile': profile,
     }
-    return render(request, 'backstage/configuracoes.html', context)
+    return render(request, 'backstage/configuracoes/configuracoes.html', context)
 
 
 def ajuda(request):
     """Página de ajuda"""
-    return render(request, 'backstage/ajuda.html')
+    return render(request, 'backstage/configuracoes/ajuda.html')
 
 
 @login_required(login_url='backstage:login')
@@ -3210,7 +3210,7 @@ def amigos(request):
         'solicitacoes_pendentes_count': solicitacoes_recebidas.count(),
     }
     
-    return render(request, 'backstage/amigos.html', context)
+    return render(request, 'backstage/perfil/amigos.html', context)
 
 
 
@@ -3263,7 +3263,7 @@ def diary(request):
         'rating_counts': dict(rating_counts),
     }
     
-    return render(request, 'backstage/diary.html', context)
+    return render(request, 'backstage/perfil/diary.html', context)
 
 
 @api_login_required

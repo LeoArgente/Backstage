@@ -9,15 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}?v=1.0">
-  <link rel="stylesheet" href="{% static 'css/community.css' %}?v=1.2">
-  <link rel="stylesheet" href="{% static 'css/movies.css' %}?v=1.0">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
+  <link rel="stylesheet" href="{% static 'css/comunidade.css' %}?v=1.2">
+  <link rel="stylesheet" href="{% static 'css/filmes.css' %}?v=1.0">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}?v=1.0">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}?v=1.0">
 </head>
 <body>
   {% csrf_token %}
-  {% include 'backstage/_mobile_header.html' %}
+  {% include 'backstage/partials/_mobile_header.html' %}
   <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
@@ -46,9 +46,9 @@
             <div class="search-suggestions"></div>
           </form>
 
-          {% include 'backstage/_notifications.html' %}
+          {% include 'backstage/partials/_notifications.html' %}
 
-          {% include 'backstage/_user_dropdown.html' %}
+          {% include 'backstage/partials/_user_dropdown.html' %}
         </div>
       </nav>
     </div>
@@ -358,9 +358,9 @@
     </div>
   </div>
 
-  {% include 'backstage/_mobile_search.html' %}
-  {% include 'backstage/_mobile_bottom_nav.html' %}
-  {% include 'backstage/_mobile_scripts.html' %}
+  {% include 'backstage/partials/_mobile_search.html' %}
+  {% include 'backstage/partials/_mobile_bottom_nav.html' %}
+  {% include 'backstage/partials/_mobile_scripts.html' %}
 
   <style>
     .photo-upload-container {
@@ -459,12 +459,12 @@
   </script>
 
   <script src="{% static 'js/main.js' %}" defer></script>
-  <script src="{% static 'js/community.js' %}?v=1.1" defer></script>
+  <script src="{% static 'js/comunidade.js' %}?v=1.1" defer></script>
   <script src="{% static 'js/filter-popup.js' %}" defer></script>
-  <script src="{% static 'js/search-suggestions.js' %}" defer></script>
-  <script src="{% static 'js/profile_menu.js' %}"></script>
-  <script src="{% static 'js/notifications.js' %}" defer></script>
+  <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>
+  <script src="{% static 'js/perfil-menu.js' %}"></script>
+  <script src="{% static 'js/notificacoes.js' %}" defer></script>
 
-  {% include 'backstage/footer_default.html' %}
+  {% include 'backstage/partials/footer_default.html' %}
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 // ===== Series Details JavaScript =====
 
 // Configuration

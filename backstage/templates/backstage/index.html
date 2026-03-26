@@ -1,17 +1,23 @@
-{% extends "backstage/base.html" %}
 {% load static %}
-
-{% block title %}Backstage{% endblock %}
-
-{% block nav_inicio %}active{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/movies.css' %}">
-<link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
-<link rel="stylesheet" href="{% static 'css/intro.css' %}">
-{% endblock %}
-
-{% block body_start %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/movie_details.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <link rel="stylesheet" href="{% static 'css/intro.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
   <!-- Video Intro Overlay -->
   <div class="intro-overlay">
     <div class="intro-video-container">
@@ -28,9 +34,44 @@
       </button>
     </div>
   </div>
-{% endblock %}
 
-{% block content %}
+  {% include 'backstage/_mobile_header.html' %}
+    <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+        <a class="brand" href="{% url 'backstage:index' %}">
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
+        </a>
+
+        <div class="nav-menu">
+          <a href="{% url 'backstage:index' %}" class="nav-link active">Início</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
+        </div>
+
+        <div class="nav-actions">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
+
+          {% include 'backstage/_notifications.html' %}
+
+          {% include 'backstage/_user_dropdown.html' %}
+        </div>
+      </nav>
+    </div>
+  </header>
+
 <!-- Hero Section -->
   <section class="hero">
     <!-- Desktop backdrop with dual layers for smooth crossfade -->
@@ -223,7 +264,7 @@
               <img src="https://ui-avatars.com/api/?name={{ atividade.usuario.username }}&background=random&size=48" class="activity-avatar" alt="{{ atividade.usuario.username }}">
               <div class="activity-content">
                 <p>
-                  <strong>{{ atividade.usuario.username }}</strong> avaliou
+                  <strong>{{ atividade.usuario.username }}</strong> avaliou 
                   {% if atividade.tipo == 'filme' %}
                     <a href="{% url 'backstage:detalhes_filme' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
                   {% else %}
@@ -297,11 +338,17 @@
       </div>
     </div>
   </div>
-{% endblock %}
 
-{% block extra_js %}
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
+
     <script src="{% static 'js/intro.js' %}"></script>
-
+    <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
+    <script src="{% static 'js/profile_menu.js' %}" defer></script>
+    <script src="{% static 'js/search-suggestions.js' %}" defer></script>
+    <script src="{% static 'js/notifications.js' %}" defer></script>
+    
     <script>
     // Sistema de Lista no Hero
     document.addEventListener('DOMContentLoaded', function() {
@@ -330,21 +377,21 @@
           // Prevenir comportamento padrão e propagação
           event.preventDefault();
           event.stopPropagation();
-
+          
           const heroTitle = document.querySelector('.hero-title');
           if (heroTitle) {
             const movieId = heroTitle.dataset.movieId;
             console.log('Movie ID do hero:', movieId);
-
+            
             if (movieId) {
               try {
                 // Buscar vídeos do filme
                 const url = `/api/filme/${movieId}/videos/`;
                 console.log('Buscando trailer em:', url);
-
+                
                 const response = await fetch(url);
                 console.log('Response status:', response.status);
-
+                
                 if (!response.ok) {
                   const errorText = await response.text();
                   console.error('Erro na resposta:', errorText);
@@ -354,10 +401,10 @@
 
                 const data = await response.json();
                 console.log('Dados recebidos:', data);
-
+                
                 if (data.success && data.videos && data.videos.length > 0) {
                   // Procurar por trailer no YouTube
-                  const trailer = data.videos.find(video =>
+                  const trailer = data.videos.find(video => 
                     video.type === 'Trailer' && video.site === 'YouTube'
                   ) || data.videos[0];
 
@@ -465,9 +512,9 @@
           // Separar "Assistir Mais Tarde" das outras listas
           const assistirMaisTarde = data.listas.find(l => l.nome === "Assistir Mais Tarde");
           const outrasListas = data.listas.filter(l => l.nome !== "Assistir Mais Tarde");
-
+          
           let html = '';
-
+          
           // Adicionar "Assistir Mais Tarde" primeiro com estilo especial
           if (assistirMaisTarde) {
             html += `
@@ -482,7 +529,7 @@
               </div>
             `;
           }
-
+          
           // Adicionar outras listas
           html += outrasListas.map(lista => `
             <div class="list-item">
@@ -495,7 +542,7 @@
               </button>
             </div>
           `).join('');
-
+          
           containerEl.innerHTML = html;
           containerEl.style.display = 'block';
         } else {
@@ -568,5 +615,122 @@
         hideListPopup();
       }
     });
+
+    // ========================================
+    // RECOMENDAÇÕES PERSONALIZADAS
+    // ========================================
+
+    function getFullImageUrl(path) {
+      if (!path) return 'https://via.placeholder.com/500x750/1a1f2e/ffffff?text=No+Image';
+      const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+      return `${IMAGE_BASE_URL}${path}`;
+    }
+
+    function createMovieCard(movie) {
+      const posterUrl = getFullImageUrl(movie.poster_path);
+
+      // Converter nota da escala 10 para escala 5 com 1 casa decimal
+      const notaEscala10 = movie.nota || 0;
+      const notaEscala5 = (notaEscala10 / 2).toFixed(1);
+
+      return `
+        <div class="movie-card" data-id="${movie.tmdb_id}" onclick="window.location.href='/filmes/${movie.tmdb_id}/'">
+          <div class="movie-card-poster">
+            <img src="${posterUrl}" alt="${movie.titulo}" loading="lazy" />
+            <div class="movie-card-overlay">
+              <span class="movie-card-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                ${notaEscala5}
+              </span>
+            </div>
+          </div>
+          <div class="movie-card-info">
+            <h4 class="movie-card-title">${movie.titulo}</h4>
+            <span class="movie-card-year">${movie.ano}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderizarRecomendacoes(filmes) {
+      const container = document.getElementById('recommended-movies');
+      if (!container) return;
+
+      if (!filmes || filmes.length === 0) {
+        container.innerHTML = '<div class="empty-message">Adicione filmes aos favoritos para receber recomendações personalizadas!</div>';
+        return;
+      }
+
+      container.innerHTML = filmes.map(movie => createMovieCard(movie)).join('');
+    }
+
+    function carregarRecomendacoes() {
+      const refreshBtn = document.querySelector('.refresh-btn');
+      const container = document.getElementById('recommended-movies');
+
+      if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.style.opacity = '0.5';
+      }
+
+      // Adicionar efeito de fade out
+      if (container) {
+        container.style.transition = 'opacity 0.3s ease';
+        container.style.opacity = '0.3';
+      }
+
+      // Usar timestamp para forçar novas recomendações a cada clique
+      const timestamp = new Date().getTime();
+      fetch(`/api/recomendacoes/?refresh=${timestamp}`)
+        .then(response => {
+          if (response.status === 401) {
+            // Usuário não autenticado
+            return null;
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data && data.success) {
+            renderizarRecomendacoes(data.filmes);
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao carregar recomendações:', error);
+        })
+        .finally(() => {
+          if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.style.opacity = '1';
+          }
+          if (container) {
+            container.style.opacity = '1';
+          }
+        });
+    }
+
+    // Carregar recomendações imediatamente
+    (function() {
+      try {
+        const filmesRecomendados = JSON.parse('{{ filmes_recomendados|escapejs }}');
+        if (filmesRecomendados && filmesRecomendados.length > 0) {
+          renderizarRecomendacoes(filmesRecomendados);
+        }
+      } catch (e) {
+        console.error('Erro ao parsear recomendações:', e);
+      }
+    })();
+
+    // Configurar botão atualizar
+    document.addEventListener('DOMContentLoaded', function() {
+      const refreshBtn = document.querySelector('.refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', carregarRecomendacoes);
+      }
+    });
     </script>
-{% endblock %}
+
+{% include 'backstage/footer_default.html' %}
+</body>
+</html>    

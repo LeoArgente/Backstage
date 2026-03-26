@@ -1,15 +1,57 @@
-{% extends "backstage/base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Filmes - Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/movies.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+</head>
+<body>
+  {% include 'backstage/_mobile_header.html' %}
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+                <a class="brand" href="{% url 'backstage:index' %}">
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
+        </a>
 
-{% block title %}Filmes - Backstage{% endblock %}
+        <div class="nav-menu">
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link active">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
+        </div>
 
-{% block nav_filmes %}active{% endblock %}
+        <div class="nav-actions">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+                <input type="search" name="q" class="search-input" placeholder="Buscar filmes..." autocomplete="off" />
+                <input type="hidden" name="tipo" value="titulo" />
+                <div class="search-suggestions"></div>
+              </form>
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/movies.css' %}">
-{% endblock %}
+          {% include 'backstage/_notifications.html' %}
 
-{% block content %}
+          {% include 'backstage/_user_dropdown.html' %}
+        </div>
+      </nav>
+    </div>
+  </header>
+
   <div class="page-header">
     <div class="container">
       <div class="page-header-content">
@@ -31,7 +73,7 @@
           <button class="filter-tab" data-filter="scifi">Ficção Científica</button>
           <button class="filter-tab" data-filter="thriller">Thriller</button>
         </div>
-
+        
         <div class="filter-controls">
           <select class="filter-select" id="sort-movies">
             <option value="popular">Mais populares</option>
@@ -39,15 +81,8 @@
             <option value="recent">Lançamentos</option>
             <option value="alphabetical">Alfabético</option>
           </select>
-
-          <button class="view-toggle" id="view-toggle" aria-label="Alternar visualização">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="3" y="3" width="7" height="7"/>
-              <rect x="14" y="3" width="7" height="7"/>
-              <rect x="3" y="14" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/>
-            </svg>
-          </button>
+          
+        
         </div>
       </div>
     </section>
@@ -76,7 +111,7 @@
         <p>Nenhum filme encontrado.</p>
         {% endfor %}
       </div>
-
+      
       <div class="load-more-section">
         <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
           Carregar mais filmes
@@ -87,8 +122,17 @@
       </div>
     </section>
   </main>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/movies.js' %}?v=3.0" defer></script>
-{% endblock %}
+  {% include 'backstage/_mobile_search.html' %}
+  {% include 'backstage/_mobile_bottom_nav.html' %}
+  {% include 'backstage/_mobile_scripts.html' %}
+
+  <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
+  <script src="{% static 'js/movies.js' %}?v=3.0" defer></script>
+  <script src="{% static 'js/search-suggestions.js' %}" defer></script>
+  <script src="{% static 'js/profile_menu.js' %}" defer></script>
+  <script src="{% static 'js/notifications.js' %}" defer></script>
+
+{% include 'backstage/footer_default.html' %}
+</body>
+</html>

@@ -1,3 +1,14 @@
+// Função para detectar tipo de página pela URL
+function detectarTipoPagina() {
+  const path = window.location.pathname;
+  if (path.includes('/filmes') || path.includes('/movies')) {
+    return 'filme';
+  } else if (path.includes('/series')) {
+    return 'serie';
+  }
+  return 'all'; // Default: buscar tudo
+}
+
 // Sistema de sugestões de busca em tempo real
 document.addEventListener('DOMContentLoaded', function() {
   const searchInputs = document.querySelectorAll('.search-input');
@@ -14,25 +25,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let timeoutId = null;
     
+    // Detectar tipo de página baseado na URL ou atributo data
+    const tipoFiltro = searchInput.dataset.tipo || detectarTipoPagina();
+
     // Buscar sugestões enquanto digita
     searchInput.addEventListener('input', function() {
       const query = this.value.trim();
-      
+
       // Limpar timeout anterior
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      
+
       // Se a busca tiver menos de 2 caracteres, esconder sugestões
       if (query.length < 2) {
         suggestionsContainer.innerHTML = '';
         suggestionsContainer.style.display = 'none';
         return;
       }
-      
+
       // Aguardar 300ms antes de fazer a requisição (debounce)
       timeoutId = setTimeout(() => {
-        fetch(`/api/sugestoes/?q=${encodeURIComponent(query)}`)
+        const url = `/api/sugestoes/?q=${encodeURIComponent(query)}&tipo=${tipoFiltro}`;
+        fetch(url)
           .then(response => response.json())
           .then(data => {
             mostrarSugestoes(data.sugestoes, suggestionsContainer);

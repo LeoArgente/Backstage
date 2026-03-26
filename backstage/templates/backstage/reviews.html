@@ -1,29 +1,64 @@
-{% extends "backstage/base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% if is_own_profile %}Minhas Reviews{% else %}Reviews de {{ usuario_perfil.username }}{% endif %} - Backstage</title>
+  <link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/community.css' %}">
+  <link rel="stylesheet" href="{% static 'css/perfil.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+</head>
+<body>
+  {% include 'backstage/_mobile_header.html' %}
 
-{% block title %}{% if is_own_profile %}Minhas Reviews{% else %}Reviews de {{ usuario_perfil.username }}{% endif %} - Backstage{% endblock %}
+  <!-- Header Desktop -->
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-primary">
+        <a class="brand" href="{% url 'backstage:index' %}">
+            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+                 alt="Backstage Logo"
+                 width="250">
+        </a>
 
+        <div class="nav-menu">
+          <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
+          <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
+          <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
+          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
+        </div>
 
+        <div class="nav-actions">
+          <form method="get" action="{% url 'backstage:buscar' %}" class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes, séries..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+          </form>
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/community.css' %}">
-<link rel="stylesheet" href="{% static 'css/perfil.css' %}">
-<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
-{% endblock %}
+          {% include 'backstage/_notifications.html' %}
 
-{% block content %}
+          {% include 'backstage/_user_dropdown.html' %}
+        </div>
+      </nav>
+    </div>
+  </header>
 
   <div class="page-header page-header-reviews">
     <div class="container">
       <div class="page-header-content">
         <h1 class="page-title">{% if is_own_profile %}Minhas Reviews{% else %}Reviews de {{ usuario_perfil.username }}{% endif %}</h1>
         <p class="page-description">Veja todas as reviews e opiniões sobre filmes e séries</p>
-        <a href="{% if is_own_profile %}{% url 'backstage:perfil' %}{% else %}{% url 'backstage:perfil_usuario' username=usuario_perfil.username %}{% endif %}" class="back-link btn btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Voltar para o perfil
-        </a>
       </div>
     </div>
   </div>
@@ -200,7 +235,8 @@
     </section>
   </main>
 
-  <!-- Footer -->
-  
+  <script src="{% static 'js/profile_menu.js' %}" defer></script>
 
-{% endblock %}
+{% include 'backstage/footer_default.html' %}
+</body>
+</html>

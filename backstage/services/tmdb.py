@@ -1,10 +1,13 @@
 import json
+import logging
 import requests
 import random
 from urllib import request, parse
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from ..models import FilmeCache
+
+logger = logging.getLogger(__name__)
 
 def _get(endpoint, params=None, max_retries=3, timeout=10):
     """
@@ -37,11 +40,11 @@ def _get(endpoint, params=None, max_retries=3, timeout=10):
             if attempt < max_retries - 1:
                 import time
                 wait_time = (attempt + 1) * 0.5  # Espera progressiva: 0.5s, 1s, 1.5s
-                print(f"Tentativa {attempt + 1}/{max_retries} falhou para {endpoint}. Tentando novamente em {wait_time}s...")
+                logger.warning(f"Tentativa {attempt + 1}/{max_retries} falhou para {endpoint}. Tentando novamente em {wait_time}s...")
                 time.sleep(wait_time)
             else:
                 # Última tentativa falhou
-                print(f"Todas as {max_retries} tentativas falharam para {endpoint}: {str(e)}")
+                logger.error(f"Todas as {max_retries} tentativas falharam para {endpoint}: {str(e)}")
 
     # Se chegou aqui, todas as tentativas falharam
     raise Exception(f"Falha ao buscar dados da API TMDb após {max_retries} tentativas: {str(last_error)}")
@@ -182,10 +185,10 @@ def buscar_filme_destaque():
         else:
             filme['nota_escala_5'] = 4.0  # Valor padrão
         
-        print(f"DEBUG - Filme destaque: {filme['titulo']}")
-        print(f"DEBUG - TMDB ID: {filme['tmdb_id']}")
-        print(f"DEBUG - Backdrop: {filme.get('backdrop_path')}")
-        print(f"DEBUG - Poster: {filme.get('poster_path')}")
+        logger.debug(f"Filme destaque: {filme['titulo']}")
+        logger.debug(f"TMDB ID: {filme['tmdb_id']}")
+        logger.debug(f"Backdrop: {filme.get('backdrop_path')}")
+        logger.debug(f"Poster: {filme.get('poster_path')}")
         
         return filme
     return None
@@ -371,7 +374,7 @@ def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str 
     try:
         payload = montar_payload_agregado(id_tmdb, region=region)
     except Exception as e:
-        print(f"[ERRO] Falha ao buscar detalhes do filme {id_tmdb}: {e}")
+        logger.error(f"Falha ao buscar detalhes do filme {id_tmdb}: {e}")
         return None
 
     if fc:
@@ -385,7 +388,7 @@ def obter_detalhes_com_cache(id_tmdb: int, ttl_minutos: int = 1440, region: str 
         except IntegrityError:
             # Outra requisição já criou o cache - buscar e retornar
             # Isso acontece quando múltiplas requisições chegam simultaneamente
-            print(f"[INFO] Cache para filme {id_tmdb} já existe (criado por outra requisição)")
+            logger.info(f"Cache para filme {id_tmdb} já existe (criado por outra requisição)")
             try:
                 fc = FilmeCache.objects.get(id_tmdb=id_tmdb)
                 return fc.payload
@@ -617,7 +620,7 @@ def obter_goats(limit=20, usar_cache=True):
                 break
 
         except Exception as e:
-            print(f"Erro ao buscar página {page} de GOATS: {e}")
+            logger.error(f"Erro ao buscar página {page} de GOATS: {e}")
             continue
 
     # Ordenar por nota (decrescente) e depois por número de votos
@@ -736,7 +739,7 @@ def obter_classicos(limit=12, usar_cache=True):
                 break
 
         except Exception as e:
-            print(f"Erro ao buscar página {page} de clássicos: {e}")
+            logger.error(f"Erro ao buscar página {page} de clássicos: {e}")
             continue
 
     # Ordenar por nota e depois por ano (mais antigos primeiro em caso de empate)
@@ -915,5 +918,5 @@ def obter_videos_filme(tmdb_id):
         
         return videos
     except Exception as e:
-        print(f"Erro ao buscar vídeos do filme {tmdb_id}: {str(e)}")
+        logger.error(f"Erro ao buscar vídeos do filme {tmdb_id}: {str(e)}")
         return []

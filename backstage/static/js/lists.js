@@ -83,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Erro:', error);
                 alert('Erro ao editar lista');
             });
         });
@@ -167,7 +166,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Erro:', error);
             alert('Erro ao criar lista');
         });
     });
@@ -212,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Erro:', error);
             alert('Erro ao editar lista');
         });
     });
@@ -330,7 +327,6 @@ window.editList = function(listId) {
         }
     })
     .catch(error => {
-        console.error('Erro:', error);
         alert('Erro ao carregar lista para edição');
     });
 }
@@ -366,7 +362,6 @@ window.deleteList = function(listId, listName) {
             }
         })
         .catch(error => {
-            console.error('Erro:', error);
             alert('Erro ao deletar lista');
         });
     }
@@ -451,7 +446,6 @@ window.viewList = function(listId) {
         }
     })
     .catch(error => {
-        console.error('Erro:', error);
         alert('Erro ao visualizar lista');
     });
 }
@@ -522,7 +516,6 @@ window.removeItemFromList = function(listId, tmdbId, tipo) {
             }
         })
         .catch(error => {
-            console.error('Erro:', error);
             alert('Erro ao remover item da lista');
         });
     }

@@ -1,9 +1,7 @@
-{% extends 'base.html' %}
+{% extends "backstage/base.html" %}
 {% load static %}
 
-{% block head_extra %}
-<link rel="icon" type="image/png" href="{% static 'images/Icone_Backstage.png' %}">
-{% endblock %}
+{% block title %}Adicionar Crítica - Backstage{% endblock %}
 
 {% block content %}
 <h2>Adicionar crítica para "{{ filme.titulo }}"</h2>
@@ -25,7 +23,6 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
 <style>
 /* Container de estrelas */
 .estrelas {
@@ -78,7 +75,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/profile_menu.js' %}"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const container = document.querySelector(".estrelas");

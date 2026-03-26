@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const messages = document.getElementById('signup-messages');
 
     if (!modal || !form || !submitBtn || !messages) {
-        console.error('Elementos do modal não encontrados');
         return;
     }
 
@@ -240,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(err => {
-            console.error('Erro:', err);
             showMessage('Erro de conexão. Tente novamente.');
         })
         .finally(() => {

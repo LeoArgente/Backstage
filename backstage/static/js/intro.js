@@ -47,14 +47,12 @@
   function shouldShowIntro() {
     // Não mostrar em mobile
     if (isMobileDevice()) {
-      console.log('[Intro] Mobile detectado - pulando intro');
       return false;
     }
 
     // Verificar se já foi mostrado
     const introShown = localStorage.getItem(INTRO_STORAGE_KEY);
     if (introShown === 'true') {
-      console.log('[Intro] Já foi exibido anteriormente - pulando');
       return false;
     }
 
@@ -67,9 +65,7 @@
   function markIntroAsShown() {
     try {
       localStorage.setItem(INTRO_STORAGE_KEY, 'true');
-      console.log('[Intro] Marcado como exibido');
     } catch (e) {
-      console.error('[Intro] Erro ao salvar no localStorage:', e);
     }
   }
 
@@ -80,7 +76,6 @@
     const overlay = document.querySelector('.intro-overlay');
     if (!overlay) return;
 
-    console.log('[Intro] Ocultando overlay...');
 
     // Adicionar classe hidden para fade out
     overlay.classList.add('hidden');
@@ -92,7 +87,6 @@
     setTimeout(() => {
       if (overlay && overlay.parentNode) {
         overlay.parentNode.removeChild(overlay);
-        console.log('[Intro] Overlay removido do DOM');
       }
     }, FADE_OUT_DURATION);
 
@@ -104,7 +98,6 @@
    * Pula o intro imediatamente
    */
   function skipIntro() {
-    console.log('[Intro] Pulando intro...');
     const video = document.querySelector('.intro-video');
     if (video) {
       video.pause();
@@ -130,13 +123,11 @@
       return;
     }
 
-    console.log('[Intro] Inicializando vídeo de intro...');
 
     const video = document.querySelector('.intro-video');
     const skipBtn = document.querySelector('.intro-skip-btn');
 
     if (!overlay || !video) {
-      console.error('[Intro] Elementos não encontrados');
       return;
     }
 
@@ -160,14 +151,12 @@
 
     // Timeout para preload (se demorar muito, pula)
     const preloadTimeout = setTimeout(() => {
-      console.warn('[Intro] Timeout de preload - pulando intro');
       skipIntro();
     }, PRELOAD_TIMEOUT);
 
     // Quando o vídeo estiver pronto para tocar
     video.addEventListener('canplay', function onCanPlay() {
       clearTimeout(preloadTimeout);
-      console.log('[Intro] Vídeo pronto - iniciando reprodução');
 
       // Tentar tocar o vídeo
       const playPromise = video.play();
@@ -175,10 +164,8 @@
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('[Intro] Reprodução iniciada com sucesso');
           })
           .catch(error => {
-            console.error('[Intro] Erro ao reproduzir:', error);
             skipIntro();
           });
       }
@@ -189,13 +176,11 @@
 
     // Quando o vídeo terminar
     video.addEventListener('ended', function() {
-      console.log('[Intro] Vídeo finalizado');
       hideIntro();
     });
 
     // Tratamento de erros
     video.addEventListener('error', function(e) {
-      console.error('[Intro] Erro ao carregar vídeo:', e);
       skipIntro();
     });
 
@@ -213,7 +198,6 @@
   // Expor função para debug (pode ser útil durante desenvolvimento)
   window.resetIntro = function() {
     localStorage.removeItem(INTRO_STORAGE_KEY);
-    console.log('[Intro] Reset realizado - recarregue a página para ver o intro novamente');
   };
 
 })();

@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.toggle('active');
 
         // Handle action logic here
-        console.log(`${action} action triggered`);
         return;
       }
 

@@ -59,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Erro:', error);
                 exibirErro('Erro ao carregar notificações');
             });
     }
@@ -197,7 +196,6 @@ function aceitarSolicitacao(solicitacaoId, remetenteId) {
         }
     })
     .catch(error => {
-        console.error('Erro:', error);
         mostrarMensagem('Erro ao aceitar solicitação', 'error');
     });
 }
@@ -253,7 +251,6 @@ function rejeitarSolicitacao(solicitacaoId) {
         }
     })
     .catch(error => {
-        console.error('Erro:', error);
         mostrarMensagem('Erro ao recusar solicitação', 'error');
     });
 }

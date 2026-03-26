@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -37,22 +38,24 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from rapidfuzz import fuzz
 
+logger = logging.getLogger(__name__)
+
 def barra_buscar(request):
     query = request.GET.get("q", "").strip()
     resultados = []
 
     if query:
         candidatos = Filme.objects.filter(
-            Q(title__icontains=query) |
-            Q(cast__icontains=query) |
-            Q(genre__icontains=query)
+            Q(titulo__icontains=query) |
+            Q(elenco__icontains=query) |
+            Q(categoria__icontains=query)
         )
 
         resultados = []
         for filme in candidatos:
-            score_title = fuzz.partial_ratio(query.lower(), filme.title.lower())
-            score_cast = fuzz.partial_ratio(query.lower(), filme.cast.lower())
-            score_genre = fuzz.partial_ratio(query.lower(), filme.genre.lower())
+            score_title = fuzz.partial_ratio(query.lower(), filme.titulo.lower())
+            score_cast = fuzz.partial_ratio(query.lower(), (filme.elenco or '').lower())
+            score_genre = fuzz.partial_ratio(query.lower(), (filme.categoria or '').lower())
             score = max(score_title, score_cast, score_genre)
             resultados.append((filme, score))
 
@@ -456,10 +459,9 @@ def enviar_mensagem_comunidade(request, slug):
         })
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Erro ao enviar mensagem: {str(e)}", exc_info=True)
         return JsonResponse({
-            'success': False, 
+            'success': False,
             'error': f'Erro ao enviar mensagem: {str(e)}'
         }, status=500)
 
@@ -521,7 +523,6 @@ def buscar_mensagens_comunidade(request, slug):
 
 
 @login_required(login_url='backstage:login')
-@login_required
 def buscar_filmes_para_recomendar(request):
     """API para buscar filmes para recomendar"""
     try:
@@ -554,17 +555,11 @@ def buscar_filmes_para_recomendar(request):
         return JsonResponse({'success': True, 'filmes': filmes_data})
         
     except Exception as e:
-        print(f"Erro em buscar_filmes_para_recomendar: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    except Exception as e:
+        logger.error(f"Erro em buscar_filmes_para_recomendar: {str(e)}", exc_info=True)
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required(login_url='backstage:login')
-@require_http_methods(["POST"])
-@login_required
 @require_http_methods(["POST"])
 def recomendar_filme_comunidade(request, slug):
     """API para recomendar filme na comunidade"""
@@ -635,13 +630,10 @@ def recomendar_filme_comunidade(request, slug):
         })
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Erro ao recomendar filme: {str(e)}", exc_info=True)
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@login_required(login_url='backstage:login')
-@require_http_methods(["POST"])
 @login_required(login_url='backstage:login')
 @require_http_methods(["POST"])
 def criar_comunidade(request):
@@ -682,10 +674,9 @@ def criar_comunidade(request):
         })
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()  # Para debug no console do servidor
+        logger.error(f"Erro ao criar comunidade: {str(e)}", exc_info=True)
         return JsonResponse({
-            'success': False, 
+            'success': False,
             'error': f'Erro ao criar comunidade: {str(e)}'
         }, status=500)
 
@@ -916,7 +907,7 @@ def movies(request):
             page=page
         )
     except Exception as e:
-        print(f"Erro ao buscar filmes: {e}")
+        logger.error(f"Erro ao buscar filmes: {e}")
         filmes = []
 
     context = {
@@ -971,7 +962,7 @@ def series(request):
             page=page
         )
     except Exception as e:
-        print(f"Erro ao buscar séries: {e}")
+        logger.error(f"Erro ao buscar séries: {e}")
         series_list = []
 
     context = {
@@ -1043,13 +1034,13 @@ def detalhes_filme(request, tmdb_id):
     elenco_principal = dados_filme.get('elenco_principal', []) or []
 
     # Log de depuração
-    print(f"[DEBUG] TMDb ID: {tmdb_id}")
-    print(f"[DEBUG] Equipe encontrada: {len(equipe)} membros")
-    print(f"[DEBUG] Elenco encontrado: {len(elenco_principal)} membros")
+    logger.debug(f"[DEBUG] TMDb ID: {tmdb_id}")
+    logger.debug(f"[DEBUG] Equipe encontrada: {len(equipe)} membros")
+    logger.debug(f"[DEBUG] Elenco encontrado: {len(elenco_principal)} membros")
     if equipe:
-        print(f"[DEBUG] Exemplo de membro da equipe: {equipe[0]}")
+        logger.debug(f"[DEBUG] Exemplo de membro da equipe: {equipe[0]}")
     if elenco_principal:
-        print(f"[DEBUG] Exemplo de membro do elenco: {elenco_principal[0]}")
+        logger.debug(f"[DEBUG] Exemplo de membro do elenco: {elenco_principal[0]}")
 
     context = {
         'filme': dados_filme,
@@ -1123,7 +1114,7 @@ def buscar(request):
                 resultados_filmes = buscar_filme_por_titulo(query)
                 
         except Exception as e:
-            print(f"Erro na busca: {e}")
+            logger.error(f"Erro na busca: {e}")
             resultados_filmes = []
             resultados_pessoas = []
 
@@ -1239,18 +1230,16 @@ def filme_videos(request, tmdb_id):
     try:
         from .services.tmdb import obter_videos_filme
         
-        print(f"[DEBUG] Buscando vídeos para filme TMDb ID: {tmdb_id}")
+        logger.debug(f"Buscando vídeos para filme TMDb ID: {tmdb_id}")
         videos = obter_videos_filme(tmdb_id)
-        print(f"[DEBUG] Vídeos encontrados: {len(videos)}")
+        logger.debug(f"Vídeos encontrados: {len(videos)}")
         
         return JsonResponse({
             'success': True,
             'videos': videos
         })
     except Exception as e:
-        print(f"[ERROR] Erro ao buscar vídeos: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Erro ao buscar vídeos: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
             'error': str(e),
@@ -1309,9 +1298,7 @@ def filmes_api(request):
             'page': page
         })
     except Exception as e:
-        print(f"[ERROR] Erro ao buscar filmes na API: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Erro ao buscar filmes na API: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
             'error': str(e),
@@ -1418,7 +1405,7 @@ def buscar_ou_criar_lista_watch_later(request):
 def verificar_filme_watch_later(request, tmdb_id):
     """Verifica se um filme está na lista 'Assistir Mais Tarde' do usuário"""
     try:
-        print(f"[DEBUG] Verificando filme {tmdb_id} para usuário {request.user.username}")
+        logger.debug(f"Verificando filme {tmdb_id} para usuário {request.user.username}")
 
         # Busca a lista "Assistir Mais Tarde" do usuário
         lista = Lista.objects.filter(
@@ -1426,10 +1413,10 @@ def verificar_filme_watch_later(request, tmdb_id):
             nome='Assistir Mais Tarde'
         ).first()
 
-        print(f"[DEBUG] Lista encontrada: {lista}")
+        logger.debug(f"Lista encontrada: {lista}")
 
         if not lista:
-            print(f"[DEBUG] Lista 'Assistir Mais Tarde' não existe para o usuário")
+            logger.debug(f"Lista 'Assistir Mais Tarde' não existe para o usuário")
             return JsonResponse({
                 'success': True,
                 'adicionado': False
@@ -1442,7 +1429,7 @@ def verificar_filme_watch_later(request, tmdb_id):
             filme__tmdb_id=tmdb_id
         ).exists()
 
-        print(f"[DEBUG] Item existe na lista? {item_existe}")
+        logger.debug(f"Item existe na lista? {item_existe}")
 
         return JsonResponse({
             'success': True,
@@ -1450,7 +1437,7 @@ def verificar_filme_watch_later(request, tmdb_id):
             'lista_id': lista.id
         })
     except Exception as e:
-        print(f"[DEBUG] Erro: {str(e)}")
+        logger.error(f"Erro: {str(e)}")
         return JsonResponse({'success': False, 'message': str(e)})
 
 @api_login_required
@@ -1882,11 +1869,11 @@ def buscar_temporada_api(request, tmdb_id, numero_temporada):
 def buscar_sugestoes(request):
     """API para sugestões de busca em tempo real"""
     query = request.GET.get('q', '').strip()
-    print(f"\n=== BUSCAR_SUGESTOES ===")
-    print(f"Query recebida: '{query}'")
+    logger.debug(f"=== BUSCAR_SUGESTOES ===")
+    logger.debug(f"Query recebida: '{query}'")
     
     if not query or len(query) < 2:
-        print("Query muito curta, retornando vazio")
+        logger.debug("Query muito curta, retornando vazio")
         return JsonResponse({'sugestoes': []})
     
     try:
@@ -1901,11 +1888,11 @@ def buscar_sugestoes(request):
             'query': query,
             'page': 1
         }
-        print(f"Buscando filmes na TMDb: {url_filmes}")
+        logger.debug(f"Buscando filmes na TMDb: {url_filmes}")
         response_filmes = requests.get(url_filmes, params=params_filmes, timeout=5)
-        print(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
+        logger.debug(f"Status da resposta TMDb (filmes): {response_filmes.status_code}")
         filmes = response_filmes.json().get('results', [])[:5]  # Limitar a 5 resultados
-        print(f"Filmes encontrados: {len(filmes)}")
+        logger.debug(f"Filmes encontrados: {len(filmes)}")
         
         # Buscar séries
         url_series = f"https://api.themoviedb.org/3/search/tv"
@@ -1934,7 +1921,7 @@ def buscar_sugestoes(request):
                 'url': f"/filmes/{filme.get('id')}/"
             }
             sugestoes.append(filme_data)
-            print(f"  - Filme: {filme_data['titulo']} ({filme_data['ano']})")
+            logger.debug(f"  - Filme: {filme_data['titulo']} ({filme_data['ano']})")
         
         # Adicionar séries
         for serie in series:
@@ -1949,15 +1936,15 @@ def buscar_sugestoes(request):
                 'url': f"/series/{serie.get('id')}/"
             }
             sugestoes.append(serie_data)
-            print(f"  - Série: {serie_data['titulo']} ({serie_data['ano']})")
-        
-        print(f"Total de sugestões retornadas: {len(sugestoes)}")
-        print("=== FIM BUSCAR_SUGESTOES ===\n")
+            logger.debug(f"  - Série: {serie_data['titulo']} ({serie_data['ano']})")
+
+        logger.debug(f"Total de sugestões retornadas: {len(sugestoes)}")
+        logger.debug("=== FIM BUSCAR_SUGESTOES ===")
         return JsonResponse({'sugestoes': sugestoes})
         
     except Exception as e:
-        print(f"❌ ERRO em buscar_sugestoes: {e}")
-        print("=== FIM BUSCAR_SUGESTOES (ERRO) ===\n")
+        logger.error(f"ERRO em buscar_sugestoes: {e}")
+        logger.debug("=== FIM BUSCAR_SUGESTOES (ERRO) ===")
         return JsonResponse({'sugestoes': [], 'erro': str(e)})
 
 
@@ -2049,8 +2036,8 @@ def perfil(request, username=None):
 @login_required(login_url='backstage:login')
 def meu_diario(request):
     """Página do diário do usuário com atividades recentes"""
-    criticas_recentes = Critica.objects.filter(usuario=request.user).order_by('-data_criacao')[:20]
-    criticas_series = CriticaSerie.objects.filter(usuario=request.user).order_by('-data_criacao')[:20]
+    criticas_recentes = Critica.objects.filter(usuario=request.user).order_by('-criado_em')[:20]
+    criticas_series = CriticaSerie.objects.filter(usuario=request.user).order_by('-criado_em')[:20]
     
     context = {
         'criticas_recentes': criticas_recentes,
@@ -2278,7 +2265,6 @@ def ajuda(request):
 
 
 @login_required(login_url='backstage:login')
-@login_required(login_url='backstage:login')
 def amigos(request):
     """Página de amigos"""
     usuario = request.user
@@ -2382,7 +2368,7 @@ def diario_entradas(request):
     ano = request.GET.get('ano')
     mes = request.GET.get('mes')
     
-    print(f"\n=== DIÁRIO ENTRADAS - Usuário: {usuario.username} ===")
+    logger.debug(f"=== DIÁRIO ENTRADAS - Usuário: {usuario.username} ===")
     
     # Filtrar entradas
     entradas = DiarioFilme.objects.filter(usuario=usuario).select_related('filme')
@@ -2393,21 +2379,21 @@ def diario_entradas(request):
             data_assistido__month=int(mes)
         )
     
-    print(f"Total de entradas encontradas: {entradas.count()}")
+    logger.debug(f"Total de entradas encontradas: {entradas.count()}")
     
     # Preparar dados
     entradas_data = []
     for entrada in entradas:
         filme = entrada.filme
-        print(f"\nProcessando entrada ID {entrada.id}:")
-        print(f"  - Filme ID: {filme.id}")
-        print(f"  - TMDb ID: {filme.tmdb_id}")
-        print(f"  - Título atual: '{filme.titulo}'")
-        print(f"  - Poster: {filme.poster}")
+        logger.debug(f"Processando entrada ID {entrada.id}:")
+        logger.debug(f"  - Filme ID: {filme.id}")
+        logger.debug(f"  - TMDb ID: {filme.tmdb_id}")
+        logger.debug(f"  - Título atual: '{filme.titulo}'")
+        logger.debug(f"  - Poster: {filme.poster}")
         
         # Se o filme não tem título, buscar do TMDb (usando nosso payload normalizado)
         if not filme.titulo and filme.tmdb_id:
-            print(f"  ⚠️  Filme sem título, buscando do TMDb...")
+            logger.debug(f"  Filme sem título, buscando do TMDb...")
             try:
                 detalhes = obter_detalhes_com_cache(filme.tmdb_id)
                 if detalhes and isinstance(detalhes, dict):
@@ -2419,12 +2405,12 @@ def diario_entradas(request):
                     if detalhes.get('data_lancamento') or detalhes.get('release_date'):
                         filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()
-                    print(f"  ✓ Filme atualizado: {filme.titulo}")
+                    logger.debug(f"  Filme atualizado: {filme.titulo}")
             except Exception as e:
-                print(f"  ✗ Erro ao buscar detalhes: {e}")
+                logger.error(f"  Erro ao buscar detalhes: {e}")
         
         titulo_final = filme.titulo or 'Sem título'
-        print(f"  → Título final: '{titulo_final}'")
+        logger.debug(f"  Título final: '{titulo_final}'")
         
         entradas_data.append({
             'id': entrada.id,
@@ -2438,7 +2424,7 @@ def diario_entradas(request):
             'assistido_com': entrada.assistido_com or '',
         })
     
-    print(f"\n✓ Retornando {len(entradas_data)} entradas")
+    logger.debug(f"Retornando {len(entradas_data)} entradas")
     return JsonResponse({'success': True, 'entradas': entradas_data})
 
 
@@ -2498,7 +2484,7 @@ def diario_adicionar(request):
                         filme.data_lancamento = detalhes.get('data_lancamento') or detalhes.get('release_date')
                     filme.save()
             except Exception as e:
-                print(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
+                logger.error(f"[diario_adicionar] Falha ao completar dados do filme {filme.tmdb_id}: {e}")
         
         if not filme:
             return JsonResponse({

@@ -250,3 +250,22 @@
     padding: 1rem;
   }
 }
+
+/* ===== Sistema de Likes ===== */
+.like-btn {
+  transition: all 0.3s ease;
+}
+
+.like-btn.liked {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.like-btn:hover {
+  transform: scale(1.05);
+}
+
+.like-count {
+  margin-left: 4px;
+}

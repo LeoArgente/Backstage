@@ -90,7 +90,7 @@ function loadDiaryEntries() {
         renderCalendar();
       }
     })
-    .catch(error => console.error('Erro ao carregar diário:', error));
+    .catch(() => {});
 }
 
 // Render calendar
@@ -255,39 +255,27 @@ function closeAddMovieModal() {
 
 // Search movies
 function searchMovies(query) {
-  console.log('=== INÍCIO DA BUSCA ===');
-  console.log('Query:', query);
-  console.log('URL da API:', `/api/sugestoes/?q=${encodeURIComponent(query)}`);
   
   const resultsContainer = document.getElementById('movieSearchResults');
-  console.log('Container encontrado?', !!resultsContainer);
   
   if (!resultsContainer) {
-    console.error('❌ Elemento #movieSearchResults NÃO ENCONTRADO no DOM!');
     return;
   }
   
   fetch(`/api/sugestoes/?q=${encodeURIComponent(query)}`)
     .then(response => {
-      console.log('Status da resposta:', response.status);
-      console.log('Response OK?', response.ok);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
-      console.log('✅ Dados recebidos:', data);
-      console.log('Número de sugestões:', data.sugestoes ? data.sugestoes.length : 0);
       
       if (data.sugestoes && data.sugestoes.length > 0) {
-        console.log('Primeira sugestão:', data.sugestoes[0]);
         
         const filmes = data.sugestoes.filter(s => s.tipo === 'filme');
-        console.log(`Filmes após filtro (tipo='filme'): ${filmes.length}`);
         
         if (filmes.length > 0) {
-          console.log('Gerando HTML para', filmes.length, 'filmes');
           
           resultsContainer.innerHTML = filmes.map(filme => {
             const filmeJson = JSON.stringify(filme).replace(/'/g, "&#39;");
@@ -302,32 +290,23 @@ function searchMovies(query) {
             `;
           }).join('');
           
-          console.log('HTML gerado, adicionando classe active');
           resultsContainer.classList.add('active');
-          console.log('Classes do container:', resultsContainer.className);
         } else {
-          console.log('⚠️ Nenhum filme após filtrar tipo="filme"');
           resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme encontrado</p>';
           resultsContainer.classList.add('active');
         }
       } else {
-        console.log('⚠️ Nenhuma sugestão retornada pela API');
         resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-muted);">Nenhum filme encontrado</p>';
         resultsContainer.classList.add('active');
       }
       
-      console.log('=== FIM DA BUSCA (SUCESSO) ===');
     })
     .catch(error => {
-      console.error('❌ ERRO ao buscar filmes:', error);
-      console.error('Tipo do erro:', error.name);
-      console.error('Mensagem:', error.message);
       
       if (resultsContainer) {
         resultsContainer.innerHTML = `<p style="padding: 1rem; text-align: center; color: var(--red);">Erro: ${error.message}</p>`;
         resultsContainer.classList.add('active');
       }
-      console.log('=== FIM DA BUSCA (ERRO) ===');
     });
 }
 
@@ -394,7 +373,6 @@ function saveMovieToDiary() {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
     showNotification('Erro ao adicionar filme', 'error');
   });
 }
@@ -403,7 +381,6 @@ function saveMovieToDiary() {
 function filterDiaryEntries(filterType, filterValue) {
   // This would typically make an API call to filter entries
   // For now, we'll just reload to keep it simple
-  console.log('Filtering by', filterType, filterValue);
   // In a real implementation, you'd filter the displayed entries
 }
 
@@ -446,7 +423,6 @@ async function deleteDiaryEntry(entryId, movieTitle) {
       showNotification(data.message || 'Erro ao remover filme', 'error');
     }
   } catch (error) {
-    console.error('Erro:', error);
     showNotification('Erro ao remover filme do diário', 'error');
   }
 }

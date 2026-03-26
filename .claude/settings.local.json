@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:/Users/leona/OneDrive/Documentos/github backstage/Backstage/.env\":*)",
+      "Bash(cd:*)",
+      "Bash(node -c backstage/static/js/main.js)",
+      "Bash(node -c backstage/static/js/movies.js)",
+      "Bash(node -c backstage/static/js/series.js)",
+      "Bash(node -c backstage/static/js/movie_details.js)",
+      "Bash(node -c backstage/static/js/series_details.js)",
+      "Bash(sed -i '663,667d' movie_details.html)",
+      "Bash(sed -i '1628,1632d' movie_details.html)",
+      "Bash(py --version)",
+      "Bash(python.exe --version)",
+      "Bash(/c/Users/leona/AppData/Local/Programs/Python/Launcher/py.exe --version)"
+    ]
+  }
+}

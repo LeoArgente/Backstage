@@ -76,7 +76,6 @@ async function fetchMoviesData() {
     throw new Error('API returned error');
 
   } catch (error) {
-    console.error('Error fetching movies:', error);
     // Return empty data on error
     return {
       heroMovies: [],
@@ -198,7 +197,6 @@ async function initHomepage() {
     // Set featured movie with TOP 5 - must be after API data is loaded
     await setFeaturedMoviesCarousel();
   } catch (error) {
-    console.error('Erro ao inicializar página:', error);
   }
 }
 
@@ -797,13 +795,10 @@ function initSearch() {
           const response = await fetch(`/busca-ajax/?q=${encodeURIComponent(searchTerm)}`);
           if (response.ok) {
             const data = await response.json();
-            console.log('Resultados da busca:', data.results);
-
-            // Exibir resultados (implementação futura)
+                  // Exibir resultados (implementação futura)
             // Por enquanto, redireciona para página de busca completa
           }
         } catch (error) {
-          console.error('Erro na busca:', error);
         }
       } else if (searchTerm.length === 0) {
         // Reset to GOATS movies

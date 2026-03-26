@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
             mostrarSugestoes(data.sugestoes, suggestionsContainer);
           })
           .catch(error => {
-            console.error('Erro ao buscar sugestões:', error);
           });
       }, 300);
     });

@@ -96,7 +96,6 @@ function buscarUsuarios() {
       }
     })
     .catch(error => {
-      console.error('Erro ao buscar usuários:', error);
       resultsContainer.innerHTML = `
         <div style="text-align: center; padding: 2rem; grid-column: 1 / -1; color: #ff3b5c;">
           <p>Erro ao buscar usuários. Tente novamente.</p>
@@ -181,14 +180,12 @@ function enviarSolicitacao(userId, button) {
     }
   })
   .catch(error => {
-    console.error('Erro:', error);
     showNotification('Erro ao enviar solicitação', 'error');
   });
 }
 
 // Aceitar Solicitação
 function aceitarSolicitacao(requestId) {
-  console.log('🔵 Aceitando solicitação ID:', requestId);
   fetch('/api/aceitar-solicitacao/', {
     method: 'POST',
     headers: {
@@ -199,7 +196,6 @@ function aceitarSolicitacao(requestId) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação aceita!', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -208,14 +204,12 @@ function aceitarSolicitacao(requestId) {
     }
   })
   .catch(error => {
-    console.error('💥 Erro:', error);
     showNotification('Erro ao aceitar solicitação', 'error');
   });
 }
 
 // Aceitar Solicitação por ID de Usuário
 function aceitarSolicitacaoPorUsuario(userId) {
-  console.log('🟢 Aceitando solicitação do usuário ID:', userId);
   fetch('/api/aceitar-solicitacao/', {
     method: 'POST',
     headers: {
@@ -226,7 +220,6 @@ function aceitarSolicitacaoPorUsuario(userId) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação aceita!', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -235,7 +228,6 @@ function aceitarSolicitacaoPorUsuario(userId) {
     }
   })
   .catch(error => {
-    console.error('💥 Erro:', error);
     showNotification('Erro ao aceitar solicitação', 'error');
   });
 }
@@ -246,7 +238,6 @@ function rejeitarSolicitacao(requestId) {
     return;
   }
 
-  console.log('🔴 Rejeitando solicitação ID:', requestId);
   fetch('/api/rejeitar-solicitacao/', {
     method: 'POST',
     headers: {
@@ -257,7 +248,6 @@ function rejeitarSolicitacao(requestId) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação rejeitada', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -266,7 +256,6 @@ function rejeitarSolicitacao(requestId) {
     }
   })
   .catch(error => {
-    console.error('💥 Erro:', error);
     showNotification('Erro ao rejeitar solicitação', 'error');
   });
 }
@@ -277,7 +266,6 @@ function cancelarSolicitacao(requestId) {
     return;
   }
 
-  console.log('🟡 Cancelando solicitação ID:', requestId);
   fetch('/api/cancelar-solicitacao/', {
     method: 'POST',
     headers: {
@@ -288,7 +276,6 @@ function cancelarSolicitacao(requestId) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Solicitação cancelada', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -297,7 +284,6 @@ function cancelarSolicitacao(requestId) {
     }
   })
   .catch(error => {
-    console.error('💥 Erro:', error);
     showNotification('Erro ao cancelar solicitação', 'error');
   });
 }
@@ -308,7 +294,6 @@ function removerAmigo(userId, username) {
     return;
   }
 
-  console.log('🔴 Removendo amigo ID:', userId);
   fetch('/api/remover-amigo/', {
     method: 'POST',
     headers: {
@@ -319,7 +304,6 @@ function removerAmigo(userId, username) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log('📦 Resposta:', data);
     if (data.success) {
       showNotification('Amigo removido', 'success');
       setTimeout(() => location.reload(), 1000);
@@ -328,7 +312,6 @@ function removerAmigo(userId, username) {
     }
   })
   .catch(error => {
-    console.error('💥 Erro:', error);
     showNotification('Erro ao remover amigo', 'error');
   });
 }
@@ -355,7 +338,6 @@ function getCookie(name) {
     }
   }
   
-  console.log(`🔑 CSRF Token (${name}):`, cookieValue ? '✅ Encontrado' : '❌ NÃO encontrado');
   return cookieValue;
 }
 

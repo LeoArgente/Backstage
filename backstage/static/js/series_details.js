@@ -78,7 +78,6 @@ async function loadSeasons() {
       </div>
     `).join('');
   } catch (error) {
-    console.error('Erro ao carregar temporadas:', error);
     seasonsList.innerHTML = '<div class="season-loading">Erro ao carregar temporadas.</div>';
   }
 }
@@ -136,7 +135,6 @@ async function toggleSeason(seasonNumber) {
       episodesList.innerHTML = '<div class="season-loading">Erro ao carregar episódios</div>';
     }
   } catch (error) {
-    console.error('Erro ao carregar temporada:', error);
     episodesList.innerHTML = '<div class="season-loading">Erro ao carregar episódios</div>';
   }
 }
@@ -245,7 +243,6 @@ function initializeTrailerButton() {
           alert('Trailer não disponível para esta série.');
         }
       } catch (error) {
-        console.error('Erro ao buscar trailer:', error);
         alert('Erro ao buscar trailer.');
       }
     });

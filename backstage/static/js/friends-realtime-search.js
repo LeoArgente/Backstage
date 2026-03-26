@@ -5,33 +5,23 @@
 
 class FriendsRealtimeSearch {
     constructor() {
-        console.log('🔍 Iniciando FriendsRealtimeSearch...');
         this.searchInput = document.getElementById('search-input-realtime');
         this.resultsContainer = document.getElementById('search-results-realtime');
         this.loadingSpinner = document.getElementById('search-loading');
         this.searchTimeout = null;
         this.currentQuery = '';
-        
-        console.log('📝 Elementos encontrados:', {
-            searchInput: !!this.searchInput,
-            resultsContainer: !!this.resultsContainer,
-            loadingSpinner: !!this.loadingSpinner
-        });
-        
+
         this.init();
     }
     
     init() {
         if (!this.searchInput) {
-            console.error('❌ search-input-realtime não encontrado!');
             return;
         }
         
-        console.log('✅ FriendsRealtimeSearch inicializado com sucesso');
         
         // Event listener com debounce
         this.searchInput.addEventListener('input', (e) => {
-            console.log('📝 Input detectado:', e.target.value);
             this.handleSearch(e.target.value);
         });
         
@@ -69,10 +59,8 @@ class FriendsRealtimeSearch {
     }
     
     async buscarUsuarios(query) {
-        console.log('🔎 Buscando usuários com query:', query);
         try {
             const url = `/api/buscar-usuarios-realtime/?q=${encodeURIComponent(query)}`;
-            console.log('📡 URL da requisição:', url);
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -82,19 +70,14 @@ class FriendsRealtimeSearch {
                 }
             });
             
-            console.log('📥 Resposta recebida:', response.status, response.statusText);
             const data = await response.json();
-            console.log('📦 Dados recebidos:', data);
             
             if (data.success) {
-                console.log('✅ Busca bem-sucedida, usuários encontrados:', data.usuarios.length);
                 this.renderResults(data.usuarios);
             } else {
-                console.error('❌ Erro na busca:', data.message);
                 this.showError(data.message || 'Erro ao buscar usuários');
             }
         } catch (error) {
-            console.error('💥 Erro na requisição:', error);
             this.showError('Erro ao buscar usuários');
         } finally {
             this.hideLoading();
@@ -228,7 +211,6 @@ class FriendsRealtimeSearch {
                 this.showNotification(data.message || 'Erro ao enviar solicitação', 'error');
             }
         } catch (error) {
-            console.error('Erro:', error);
             button.disabled = false;
             button.innerHTML = originalHtml;
             this.showNotification('Erro ao enviar solicitação', 'error');
@@ -275,7 +257,6 @@ class FriendsRealtimeSearch {
                 this.showNotification(data.message || 'Erro ao aceitar solicitação', 'error');
             }
         } catch (error) {
-            console.error('Erro:', error);
             button.disabled = false;
             button.innerHTML = originalHtml;
             this.showNotification('Erro ao aceitar solicitação', 'error');
@@ -357,6 +338,5 @@ class FriendsRealtimeSearch {
 
 // Inicializar quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM carregado, iniciando FriendsRealtimeSearch...');
     new FriendsRealtimeSearch();
 });

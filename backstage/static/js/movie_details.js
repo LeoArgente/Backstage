@@ -21,10 +21,8 @@ function getCurrentMovieId() {
 
 function getCurrentMovieTMDbId() {
   const tmdbId = getCurrentMovieId();
-  console.log('TMDb ID from URL:', tmdbId);
 
   if (!tmdbId) {
-    console.error('No TMDb ID found in URL');
     return null;
   }
 
@@ -35,9 +33,6 @@ function getCurrentMovieTMDbId() {
 document.addEventListener('DOMContentLoaded', async () => {
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
-
-  // Initialize news dropdown
-  initNewsDropdown();
 
   // Load movie data directly from TMDb API using URL
   await loadMovieData();
@@ -120,7 +115,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function showRatingFeedback(rating) {
-    console.log(`Avaliação: ${rating} estrelas`);
   }
 
   // Initialize with default color
@@ -132,7 +126,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Add a small delay to ensure all elements are rendered
   setTimeout(() => {
     if (document.querySelector('.crew-grid').innerHTML.trim() === '') {
-      console.warn('Crew section appears empty, forcing reload...');
       loadMovieData();
     }
   }, 2000);
@@ -143,7 +136,6 @@ async function loadMovieData() {
   const tmdbMovieId = getCurrentMovieTMDbId();
 
   if (!tmdbMovieId) {
-    console.error('No TMDb ID found, cannot load movie data');
     showErrorState();
     return;
   }
@@ -156,10 +148,6 @@ async function loadMovieData() {
     const crewData = window.movieCrewData || [];
     const castData = window.movieCastData || [];
 
-    console.log('Movie details page loaded via Django backend');
-    console.log('TMDb ID:', tmdbMovieId);
-    console.log('Crew data loaded:', crewData.length, 'members');
-    console.log('Cast data loaded:', castData.length, 'members');
 
     // Criar estrutura de creditsData
     currentMovieCredits = {
@@ -169,24 +157,17 @@ async function loadMovieData() {
 
     // Carregar seções se houver dados
     if (crewData && crewData.length > 0) {
-      console.log('Loading crew section...');
       loadOverviewCrewSection(currentMovieCredits);
-    } else {
-      console.warn('No crew data available');
     }
 
     if (castData && castData.length > 0) {
-      console.log('Loading cast overview...');
       loadOverviewCast();
-    } else {
-      console.warn('No cast data available');
     }
 
     // Hide loading states
     hideLoadingState();
 
   } catch (error) {
-    console.error('Error loading movie data:', error);
     showErrorState();
   }
 }
@@ -239,23 +220,18 @@ function showErrorState() {
 
 // ===== Load Overview Crew Section (Only Key Roles) =====
 function loadOverviewCrewSection(creditsData) {
-  console.log('loadCrewSection called with:', creditsData);
 
   const crewGrid = document.querySelector('.crew-grid');
-  console.log('crewGrid element found:', !!crewGrid);
 
   if (!crewGrid) {
-    console.error('crew-grid element not found');
     return;
   }
 
   if (!creditsData || !creditsData.crew) {
-    console.error('No credits data or crew data available:', creditsData);
     crewGrid.innerHTML = '<div class="error-message">Dados da equipe não disponíveis</div>';
     return;
   }
 
-  console.log('Total crew members:', creditsData.crew.length);
 
   // Define key roles for overview (only most important)
   const keyRoles = ['Director', 'Writer', 'Screenplay', 'Producer', 'Executive Producer'];
@@ -265,10 +241,8 @@ function loadOverviewCrewSection(creditsData) {
 
   const importantCrew = creditsData.crew.filter(member => jobHierarchy.includes(member.job));
 
-  console.log('Important crew members found:', importantCrew.length, importantCrew);
 
   if (importantCrew.length === 0) {
-    console.warn('No important crew members found');
     crewGrid.innerHTML = '<div class="info-message">Informações da equipe em carregamento...</div>';
     return;
   }
@@ -305,7 +279,6 @@ function loadOverviewCrewSection(creditsData) {
     return aPriority - bPriority;
   });
 
-  console.log('Unique crew members (sorted by hierarchy):', uniqueCrew.map(member => `${member.name} - ${member.job}`));
 
   // Job translations with hierarchy
   const jobTranslations = {
@@ -350,7 +323,6 @@ function loadOverviewCrewSection(creditsData) {
     `;
   }).join('');
 
-  console.log('Generated overview crew HTML:', crewHTML);
   crewGrid.innerHTML = crewHTML;
 
   // Add CSS for crew section styling if not already present
@@ -401,24 +373,20 @@ function loadOverviewCrewSection(creditsData) {
     document.head.appendChild(style);
   }
 
-  console.log('Overview crew section updated successfully');
 }
 
 // ===== Load Full Crew Section with All Roles =====
 function loadFullCrewSection(creditsData) {
   const crewGridFull = document.querySelector('.crew-grid-full');
   if (!crewGridFull) {
-    console.error('crew-grid-full element not found');
     return;
   }
 
   if (!creditsData || !creditsData.crew) {
-    console.error('No credits data or crew data available for full crew');
     crewGridFull.innerHTML = '<div class="error-message">Dados da equipe não disponíveis</div>';
     return;
   }
 
-  console.log('Loading full crew section with', creditsData.crew.length, 'total crew members');
 
   // Define complete job hierarchy for full crew section
   const fullJobHierarchy = [
@@ -591,7 +559,6 @@ function loadFullCrewSection(creditsData) {
     document.head.appendChild(style);
   }
 
-  console.log('Full crew section updated with', uniqueCrew.length, 'crew members');
 }
 
 // ===== Load Overview Cast (shows first 4 members) =====
@@ -716,7 +683,6 @@ async function loadMediaContent(mediaType) {
 
     mediaGrid.innerHTML = content;
   } catch (error) {
-    console.error('Error loading media content:', error);
     mediaGrid.innerHTML = '<div class="error-message">Erro ao carregar mídia.</div>';
   }
 }
@@ -903,12 +869,10 @@ function toggleLike(button) {
         button.classList.remove('liked');
       }
     } else {
-      console.error('Erro ao processar like:', data.message);
       alert('Erro ao processar like. Tente novamente.');
     }
   })
   .catch(error => {
-    console.error('Erro na requisição:', error);
     alert('Erro ao processar like. Tente novamente.');
   });
 }
@@ -932,18 +896,15 @@ function getCookie(name) {
 // Media item interactions
 document.addEventListener('click', (e) => {
   if (e.target.closest('.media-expand')) {
-    // Handle media expansion
-    console.log('Expanding media item...');
+    // Handle media expansion (future implementation)
   }
-  
+
   if (e.target.closest('.play-button')) {
-    // Handle video play
-    console.log('Playing video...');
+    // Handle video play (future implementation)
   }
-  
+
   if (e.target.closest('.media-download')) {
-    // Handle download
-    console.log('Downloading media...');
+    // Handle download (future implementation)
   }
 });
 
@@ -964,81 +925,16 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ===== News Dropdown Functionality =====
-function initNewsDropdown() {
-  const newsDropdownContent = document.querySelector('.news-dropdown-content');
-  
-  if (!newsDropdownContent) return;
-  
-  // Sample news data
-  const newsData = [
-    {
-      id: 1,
-      title: 'Christopher Nolan anuncia novo filme épico de ficção científica para 2025',
-      category: 'Cinema',
-      date: 'Há 2 horas',
-      image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200&h=150&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Marvel revela primeira imagem do novo Quarteto Fantástico',
-      category: 'Marvel',
-      date: 'Há 4 horas',
-      image: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=200&h=150&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Oscar 2024: Confira a lista completa de indicados',
-      category: 'Premiação',
-      date: 'Há 6 horas',
-      image: 'https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=200&h=150&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Netflix anuncia segunda temporada de série mais vista de 2024',
-      category: 'Streaming',
-      date: 'Há 8 horas',
-      image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=200&h=150&fit=crop'
-    },
-    {
-      id: 5,
-      title: 'Duna 3 já está em desenvolvimento, confirma diretor',
-      category: 'Cinema',
-      date: 'Há 12 horas',
-      image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&h=150&fit=crop'
-    }
-  ];
-  
-  // Populate dropdown
-  newsDropdownContent.innerHTML = newsData.map(news => `
-    <a href="noticias.html#${news.id}" class="news-dropdown-item">
-      <img src="${news.image}" alt="${news.title}" class="news-thumbnail" />
-      <div class="news-item-content">
-        <h4 class="news-item-title">${news.title}</h4>
-        <div class="news-item-meta">
-          <span class="news-category">${news.category}</span>
-          <span>${news.date}</span>
-        </div>
-      </div>
-    </a>
-  `).join('');
-}
-
 // ===== Trailer Button Functionality =====
 function initializeTrailerButton() {
-  console.log('[TRAILER] Inicializando botão de trailer...');
   const trailerBtn = document.querySelector('.trailer-btn');
-  console.log('[TRAILER] Botão encontrado:', trailerBtn);
   
   if (trailerBtn) {
-    console.log('[TRAILER] Adicionando evento de clique ao botão');
     trailerBtn.addEventListener('click', async (event) => {
-      console.log('[TRAILER] Botão clicado!');
       event.preventDefault();
       event.stopPropagation();
       
       const movieId = getCurrentMovieTMDbId();
-      console.log('[TRAILER] Movie ID:', movieId);
       
       if (!movieId) {
         alert('ID do filme não encontrado.');
@@ -1047,10 +943,8 @@ function initializeTrailerButton() {
       
       try {
         const url = `/api/filme/${movieId}/videos/`;
-        console.log('[TRAILER] Buscando trailer em:', url);
         
         const response = await fetch(url);
-        console.log('[TRAILER] Response status:', response.status);
         
         if (!response.ok) {
           alert('Não foi possível carregar o trailer.');
@@ -1058,7 +952,6 @@ function initializeTrailerButton() {
         }
         
         const data = await response.json();
-        console.log('[TRAILER] Dados recebidos:', data);
         
         if (data.success && data.videos && data.videos.length > 0) {
           // Procurar por trailer no YouTube
@@ -1066,10 +959,8 @@ function initializeTrailerButton() {
             video.type === 'Trailer' && video.site === 'YouTube'
           ) || data.videos[0];
           
-          console.log('[TRAILER] Trailer encontrado:', trailer);
           
           if (trailer && trailer.key) {
-            console.log('[TRAILER] Abrindo YouTube:', trailer.key);
             window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
           } else {
             alert('Trailer não disponível para este filme.');
@@ -1078,12 +969,10 @@ function initializeTrailerButton() {
           alert('Trailer não disponível para este filme.');
         }
       } catch (error) {
-        console.error('[TRAILER] Erro ao buscar trailer:', error);
         alert('Erro ao buscar trailer.');
       }
     });
   } else {
-    console.warn('[TRAILER] Botão de trailer não encontrado no DOM');
   }
 }
 

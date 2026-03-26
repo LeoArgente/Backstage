@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function getCsrfToken() {
         const token = document.querySelector('[name=csrfmiddlewaretoken]');
         if (!token) {
-            console.warn('CSRF token não encontrado! Verificando cookies...');
             // Fallback: tentar pegar do cookie
             const cookieValue = document.cookie
                 .split('; ')
@@ -80,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.textContent = originalText;
                 }
             } catch (error) {
-                console.error('Erro:', error);
                 showNotification('Erro de conexão. Tente novamente.', 'error');
                 button.disabled = false;
                 button.textContent = originalText;
@@ -172,9 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Criando...';
             
-            console.log('Enviando requisição para criar comunidade...');
-            console.log('Nome:', nome);
-            console.log('Descrição:', descricao);
             
             try {
                 const response = await fetch('/criar-comunidade/', {
@@ -185,9 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 
-                console.log('Status da resposta:', response.status);
                 const data = await response.json();
-                console.log('Dados recebidos:', data);
                 
                 if (data.success) {
                     showNotification('Comunidade criada com sucesso!', 'success');
@@ -200,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     showNotification(data.error || 'Erro ao criar comunidade', 'error');
                 }
             } catch (error) {
-                console.error('Erro ao criar comunidade:', error);
                 showNotification('Erro de conexão. Tente novamente.', 'error');
             } finally {
                 submitBtn.disabled = false;
@@ -541,7 +533,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
             } catch (error) {
-                console.error('Erro ao criar comunidade:', error);
                 if (window.showNotification) {
                     window.showNotification('Erro de conexão. Tente novamente.', 'error');
                 } else {
@@ -739,7 +730,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
             } catch (error) {
-                console.error('Erro ao criar post:', error);
                 if (window.showNotification) {
                     window.showNotification('Erro de conexão. Tente novamente.', 'error');
                 } else {

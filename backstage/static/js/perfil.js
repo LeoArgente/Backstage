@@ -3,7 +3,6 @@
 // ========================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎬 Perfil JS carregado');
 
     // ========================================
     // TAB SWITCHING
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     selectedTab.classList.add('active');
                 }
 
-                console.log(`✓ Tab switched to: ${tabId}`);
             });
         });
     }
@@ -46,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
     reviewCards.forEach(card => {
         card.addEventListener('click', function() {
             // Pode adicionar funcionalidade de modal para review completa
-            console.log('Review card clicked');
         });
     });
 
@@ -59,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
     listCards.forEach(card => {
         card.addEventListener('click', function() {
             // Pode adicionar navegação para detalhes da lista
-            console.log('List card clicked');
         });
     });
 
@@ -226,10 +222,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function copyProfileURL() {
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            console.log('✓ URL do perfil copiada!');
             // Pode mostrar toast notification
         }).catch(err => {
-            console.error('Erro ao copiar URL:', err);
         });
     }
 
@@ -268,12 +262,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
 
     function filterReviews(criteria) {
-        console.log('Filtering reviews by:', criteria);
         // Implementar filtro de reviews
     }
 
     function searchContent(query) {
-        console.log('Searching for:', query);
         // Implementar busca no perfil
     }
 
@@ -282,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
 
     function exportProfileData() {
-        console.log('Exporting profile data...');
         // Implementar exportação de dados do perfil
     }
 
@@ -297,9 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: 'Confira meu perfil no Backstage!',
                 url: window.location.href
             }).then(() => {
-                console.log('✓ Perfil compartilhado!');
             }).catch(err => {
-                console.log('Erro ao compartilhar:', err);
             });
         } else {
             copyProfileURL();
@@ -308,25 +297,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.shareProfile = shareProfile;
 
-    // ========================================
-    // DEBUG INFO
-    // ========================================
-
-    console.log('📊 Stats:', {
-        'Total Tabs': tabButtons.length,
-        'Total Reviews': reviewCards.length,
-        'Total Lists': listCards.length
-    });
-
-    // ========================================
-    // PERFORMANCE MONITORING
-    // ========================================
-
-    if (window.performance && window.performance.timing) {
-        window.addEventListener('load', function() {
-            const timing = window.performance.timing;
-            const loadTime = timing.loadEventEnd - timing.navigationStart;
-            console.log(`⚡ Página carregada em ${loadTime}ms`);
-        });
-    }
 });

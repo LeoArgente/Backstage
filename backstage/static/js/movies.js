@@ -48,9 +48,6 @@ function toggleView() {
 
 // ===== Event Listeners =====
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize news dropdown
-  initNewsDropdown();
-
   // View toggle
   if (viewToggle) {
     viewToggle.addEventListener('click', toggleView);
@@ -76,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.toggle('active');
 
         // Handle action logic here (could be connected to backend in future)
-        console.log(`${action} action triggered`);
         return;
       }
 
@@ -88,66 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-// ===== News Dropdown Functionality =====
-function initNewsDropdown() {
-  const newsDropdownContent = document.querySelector('.news-dropdown-content');
-
-  if (!newsDropdownContent) return;
-
-  // Sample news data
-  const newsData = [
-    {
-      id: 1,
-      title: 'Christopher Nolan anuncia novo filme épico de ficção científica para 2025',
-      category: 'Cinema',
-      date: 'Há 2 horas',
-      image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200&h=150&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Marvel revela primeira imagem do novo Quarteto Fantástico',
-      category: 'Marvel',
-      date: 'Há 4 horas',
-      image: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=200&h=150&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Oscar 2024: Confira a lista completa de indicados',
-      category: 'Premiação',
-      date: 'Há 6 horas',
-      image: 'https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=200&h=150&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Netflix anuncia segunda temporada de série mais vista de 2024',
-      category: 'Streaming',
-      date: 'Há 8 horas',
-      image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=200&h=150&fit=crop'
-    },
-    {
-      id: 5,
-      title: 'Duna 3 já está em desenvolvimento, confirma diretor',
-      category: 'Cinema',
-      date: 'Há 12 horas',
-      image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&h=150&fit=crop'
-    }
-  ];
-
-  // Populate dropdown
-  newsDropdownContent.innerHTML = newsData.map(news => `
-    <a href="noticias.html#${news.id}" class="news-dropdown-item">
-      <img src="${news.image}" alt="${news.title}" class="news-thumbnail" />
-      <div class="news-item-content">
-        <h4 class="news-item-title">${news.title}</h4>
-        <div class="news-item-meta">
-          <span class="news-category">${news.category}</span>
-          <span>${news.date}</span>
-        </div>
-      </div>
-    </a>
-  `).join('');
-}
 
 
 // ===== Search Functionality =====
@@ -224,7 +160,6 @@ async function performSearch(query, resultsContainer) {
       resultsContainer.style.display = 'block';
     }
   } catch (error) {
-    console.error('Erro na busca:', error);
     resultsContainer.style.display = 'none';
   }
 }
@@ -351,12 +286,8 @@ async function loadMoreMovies() {
     
     // Build API URL
     const apiUrl = `/api/filmes/?page=${currentPage}&genre=${genre}&sort=${sort}`;
-    console.log('[LOAD MORE] Fetching:', apiUrl);
-    
     const response = await fetch(apiUrl);
     const data = await response.json();
-    
-    console.log('[LOAD MORE] Response:', data);
     
     if (data.success && data.filmes && data.filmes.length > 0) {
       // Add movies to grid
@@ -371,7 +302,6 @@ async function loadMoreMovies() {
       loadMoreBtn.style.display = 'none';
     }
   } catch (error) {
-    console.error('[LOAD MORE] Erro ao carregar filmes:', error);
     alert('Erro ao carregar mais filmes. Tente novamente.');
     currentPage--; // Revert page increment
   } finally {

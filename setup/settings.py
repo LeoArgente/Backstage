@@ -16,7 +16,7 @@ if NOT_PROD:
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = True
     # SECURITY WARNING: keep the secret key used in production secret!
-    SECRET_KEY = 'django-insecure-p4()2l%g!!s)t^$c3327!d@h*2rh2xrfab(xtj5(q)zu7b-_ru'
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-p4()2l%g!!s)t^$c3327!d@h*2rh2xrfab(xtj5(q)zu7b-_ru')
     ALLOWED_HOSTS = ['*']
     CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
     DATABASES = {
@@ -153,7 +153,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ===== Configurações TMDb API =====
 # Chave pública do TMDb compartilhada entre desenvolvedores
 # Todas as chamadas à API devem ser feitas pelo backend Django
-TMDB_API_KEY = "e2bf84876d17e898ef5fc63655cd5040"
+TMDB_API_KEY = os.environ.get('TMDB_API_KEY', '')
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"
 TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/original/"

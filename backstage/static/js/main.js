@@ -440,10 +440,6 @@ async function setFeaturedMoviesCarousel() {
     }
   }
 
-  // Pause on hover, resume on leave
-  heroSection.addEventListener('mouseenter', stopRotation);
-  heroSection.addEventListener('mouseleave', startRotation);
-
   // Pause when tab is hidden, resume when visible
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -468,57 +464,9 @@ async function setFeaturedMoviesCarousel() {
   // Start automatic rotation
   startRotation();
   
-  // Add cursor pointer and styling to hero section to indicate it's clickable
   heroSection.style.cursor = 'pointer';
-  heroSection.style.userSelect = 'none'; // Prevent text selection
-  
-  // Add a subtle overlay to indicate clickability
-  if (!heroSection.querySelector('.hero-click-overlay')) {
-    const clickOverlay = document.createElement('div');
-    clickOverlay.className = 'hero-click-overlay';
-    clickOverlay.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, 
-        rgba(37, 99, 235, 0.03) 0%, 
-        rgba(220, 38, 38, 0.03) 100%
-      );
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      pointer-events: none;
-      z-index: 1;
-    `;
-    heroSection.appendChild(clickOverlay);
-  }
-  
-  // Pause rotation on hover (sem animação de expansão)
-  heroSection.addEventListener('mouseenter', () => {
-    if (featuredRotationInterval) {
-      clearInterval(featuredRotationInterval);
-      featuredRotationInterval = null;
-    }
 
-    // Show click overlay apenas
-    const overlay = heroSection.querySelector('.hero-click-overlay');
-    if (overlay) {
-      overlay.style.opacity = '1';
-    }
-  });
-  
-  heroSection.addEventListener('mouseleave', () => {
-    startRotation();
-    
-    // Hide click overlay
-    const overlay = heroSection.querySelector('.hero-click-overlay');
-    if (overlay) {
-      overlay.style.opacity = '0';
-    }
-  });
-  
-  // Add click functionality to hero section to go to movie details
+  // Click on hero to go to movie details
   heroSection.addEventListener('click', (e) => {
     // Ignore clicks on indicators
     if (e.target.closest('.hero-indicators')) {

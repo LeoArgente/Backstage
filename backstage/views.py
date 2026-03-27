@@ -2468,11 +2468,38 @@ def visualizar_lista(request, lista_id):
         itens_filmes = lista.itens.all().order_by('posicao')
         filmes_data = []
         for item in itens_filmes:
+            filme = item.filme
+            poster_url = filme.poster or ''
+            ano = ''
+
+            # Backfill poster/data if missing
+            if not poster_url and filme.tmdb_id:
+                try:
+                    detalhes = obter_detalhes_com_cache(filme.tmdb_id)
+                    if detalhes and isinstance(detalhes, dict):
+                        if detalhes.get('poster_path'):
+                            poster_url = f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}"
+                            filme.poster = poster_url
+                        if detalhes.get('data_lancamento') and not filme.data_lancamento:
+                            filme.data_lancamento = detalhes['data_lancamento']
+                        if not filme.titulo or filme.titulo.startswith('Filme TMDB'):
+                            filme.titulo = detalhes.get('titulo') or detalhes.get('title') or filme.titulo
+                        filme.save()
+                except Exception:
+                    pass
+
+            if filme.data_lancamento:
+                try:
+                    ano = str(filme.data_lancamento.year)
+                except AttributeError:
+                    ano = str(filme.data_lancamento)[:4]
+
             filmes_data.append({
                 'tipo': 'filme',
-                'tmdb_id': item.filme.tmdb_id,
-                'titulo': item.filme.titulo,
-                'descricao': item.filme.descricao,
+                'tmdb_id': filme.tmdb_id,
+                'titulo': filme.titulo,
+                'poster': poster_url,
+                'ano': ano,
                 'adicionado_em': item.adicionado_em.strftime('%d/%m/%Y'),
                 'posicao': item.posicao
             })
@@ -2481,11 +2508,39 @@ def visualizar_lista(request, lista_id):
         itens_series = lista.itens_serie.all().order_by('posicao')
         series_data = []
         for item in itens_series:
+            serie = item.serie
+            poster_url = serie.poster or ''
+            ano = ''
+
+            # Backfill poster/data if missing
+            if not poster_url and serie.tmdb_id:
+                try:
+                    from backstage.services.tmdb import buscar_detalhes_serie
+                    detalhes = buscar_detalhes_serie(serie.tmdb_id)
+                    if detalhes and isinstance(detalhes, dict):
+                        if detalhes.get('poster_path'):
+                            poster_url = f"https://image.tmdb.org/t/p/w500{detalhes['poster_path']}"
+                            serie.poster = poster_url
+                        if detalhes.get('data_primeira_exibicao') and not serie.data_primeira_exibicao:
+                            serie.data_primeira_exibicao = detalhes['data_primeira_exibicao']
+                        if not serie.titulo or serie.titulo.startswith('Série TMDB'):
+                            serie.titulo = detalhes.get('titulo') or serie.titulo
+                        serie.save()
+                except Exception:
+                    pass
+
+            if serie.data_primeira_exibicao:
+                try:
+                    ano = str(serie.data_primeira_exibicao.year)
+                except AttributeError:
+                    ano = str(serie.data_primeira_exibicao)[:4]
+
             series_data.append({
                 'tipo': 'serie',
-                'tmdb_id': item.serie.tmdb_id,
-                'titulo': item.serie.titulo,
-                'descricao': item.serie.descricao,
+                'tmdb_id': serie.tmdb_id,
+                'titulo': serie.titulo,
+                'poster': poster_url,
+                'ano': ano,
                 'adicionado_em': item.adicionado_em.strftime('%d/%m/%Y'),
                 'posicao': item.posicao
             })

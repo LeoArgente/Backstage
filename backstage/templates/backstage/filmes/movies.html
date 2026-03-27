@@ -1,7 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>  
+<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Filmes - Backstage</title>
@@ -10,20 +10,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
 <body>
   {% include 'backstage/partials/_mobile_header.html' %}
-  <header class="site-header">
+  <header class="site-header scrolled">
     <div class="container">
       <nav class="nav-primary">
-                <a class="brand" href="{% url 'backstage:index' %}">
-            <img src="{% static 'images/Backstage.svg' %}"
-                 alt="Backstage Logo"
-                 width="250">
+        <a class="brand" href="{% url 'backstage:index' %}">
+          <img src="{% static 'images/Backstage.svg' %}" alt="Backstage Logo">
         </a>
 
         <div class="nav-menu">
@@ -40,13 +38,12 @@
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-                <input type="search" name="q" class="search-input" placeholder="Buscar filmes..." autocomplete="off" />
-                <input type="hidden" name="tipo" value="titulo" />
-                <div class="search-suggestions"></div>
-              </form>
+            <input type="search" name="q" class="search-input" placeholder="Buscar filmes..." autocomplete="off" />
+            <input type="hidden" name="tipo" value="titulo" />
+            <div class="search-suggestions"></div>
+          </form>
 
           {% include 'backstage/partials/_notifications.html' %}
-
           {% include 'backstage/partials/_user_dropdown.html' %}
         </div>
       </nav>
@@ -74,7 +71,7 @@
           <button class="filter-tab" data-filter="scifi">Ficção Científica</button>
           <button class="filter-tab" data-filter="thriller">Thriller</button>
         </div>
-        
+
         <div class="filter-controls">
           <select class="filter-select" id="sort-movies">
             <option value="popular">Mais populares</option>
@@ -82,8 +79,6 @@
             <option value="recent">Lançamentos</option>
             <option value="alphabetical">Alfabético</option>
           </select>
-          
-        
         </div>
       </div>
     </section>
@@ -92,34 +87,28 @@
       <div class="movies-grid" id="movies-grid">
         {% for filme in filmes %}
         <div class="movie-card" onclick="window.location.href='{% url 'backstage:detalhes_filme' tmdb_id=filme.tmdb_id %}'">
-          <div class="movie-card-poster">
-            <img src="{{ tmdb_image_base }}w500{{ filme.poster_path }}" alt="{{ filme.titulo }}" />
-            <div class="movie-card-overlay">
-              <div class="movie-card-rating">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <div class="movie-poster">
+            <img src="{{ tmdb_image_base }}w500{{ filme.poster_path }}" alt="{{ filme.titulo }}" loading="lazy" />
+            <div class="movie-overlay">
+              <span class="movie-rating">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
                 {{ filme.nota_tmdb|floatformat:1 }}
+              </span>
+              <div class="movie-bottom">
+                <span class="movie-year">{{ filme.ano_lancamento }}</span>
               </div>
             </div>
-          </div>
-          <div class="movie-card-info">
-            <h3 class="movie-card-title">{{ filme.titulo }}</h3>
-            <span class="movie-card-year">{{ filme.ano_lancamento }}</span>
           </div>
         </div>
         {% empty %}
         <p>Nenhum filme encontrado.</p>
         {% endfor %}
       </div>
-      
+
       <div class="load-more-section">
-        <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
-          Carregar mais filmes
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-        </button>
+        <button class="load-more-btn" id="load-more">Carregar mais</button>
       </div>
     </section>
   </main>

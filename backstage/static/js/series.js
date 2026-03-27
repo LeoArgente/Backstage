@@ -113,101 +113,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Load More Series Function =====
 async function loadMoreSeries() {
-  if (isLoading) return;
-  
+  if (isLoading || !loadMoreBtn) return;
+
   isLoading = true;
   currentPage++;
-  
-  // Update button state
+
   loadMoreBtn.disabled = true;
-  loadMoreBtn.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="loading-spinner">
-      <circle cx="12" cy="12" r="10"/>
-    </svg>
-    Carregando...
-  `;
-  
+  loadMoreBtn.textContent = 'Carregando...';
+
   try {
-    // Get current filters
     const urlParams = new URLSearchParams(window.location.search);
     const genre = urlParams.get('genre') || 'all';
     const sort = urlParams.get('sort') || 'popular';
-    
-    // Build API URL
-    const apiUrl = `/api/series/?page=${currentPage}&genre=${genre}&sort=${sort}`;
-    console.log('[LOAD MORE] Fetching:', apiUrl);
-    
-    const response = await fetch(apiUrl);
+
+    const response = await fetch(`/api/series/?page=${currentPage}&genre=${genre}&sort=${sort}`);
     const data = await response.json();
-    
-    console.log('[LOAD MORE] Response:', data);
-    
+
     if (data.success && data.series && data.series.length > 0) {
-      // Add series to grid
       appendSeriesToGrid(data.series);
-      
-      // Check if there are more series to load
+
       if (!data.has_more) {
         loadMoreBtn.style.display = 'none';
-      } else {
-        // Reset button
-        loadMoreBtn.disabled = false;
-        loadMoreBtn.innerHTML = `
-          Carregar mais séries
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-        `;
       }
     } else {
-      // No more series
       loadMoreBtn.style.display = 'none';
     }
   } catch (error) {
-    console.error('[LOAD MORE] Erro ao carregar séries:', error);
-    alert('Erro ao carregar mais séries. Tente novamente.');
-    currentPage--; // Revert page increment
-    
-    // Reset button
-    loadMoreBtn.disabled = false;
-    loadMoreBtn.innerHTML = `
-      Carregar mais séries
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
-    `;
+    currentPage--;
+    loadMoreBtn.textContent = 'Erro, tente novamente';
+    setTimeout(() => {
+      loadMoreBtn.textContent = 'Carregar mais';
+    }, 2000);
   } finally {
     isLoading = false;
+    if (loadMoreBtn.style.display !== 'none') {
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = 'Carregar mais';
+    }
   }
 }
 
 function appendSeriesToGrid(series) {
   const tmdbImageBase = 'https://image.tmdb.org/t/p/';
-  
+
   series.forEach(serie => {
     const serieCard = document.createElement('div');
     serieCard.className = 'movie-card';
     serieCard.onclick = () => window.location.href = `/series/${serie.tmdb_id}/`;
-    serieCard.style.cursor = 'pointer';
-    
+
+    const nota = parseFloat(serie.nota_tmdb || 0).toFixed(1);
+    const ano = serie.ano_lancamento || '';
+
     serieCard.innerHTML = `
-      <div class="movie-card-poster">
-        <img src="${tmdbImageBase}w500${serie.poster_path}" alt="${serie.titulo}" />
-        <div class="movie-card-overlay">
-          <div class="movie-card-rating">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <div class="movie-poster">
+        <img src="${tmdbImageBase}w500${serie.poster_path}" alt="${serie.titulo}" loading="lazy" />
+        <div class="movie-overlay">
+          <span class="movie-rating">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            ${parseFloat(serie.nota_tmdb || 0).toFixed(1)}
+            ${nota}
+          </span>
+          <div class="movie-bottom">
+            <span class="movie-year">${ano}</span>
           </div>
         </div>
       </div>
-      <div class="movie-card-info">
-        <h3 class="movie-card-title">${serie.titulo}</h3>
-        <span class="movie-card-year">${serie.ano_lancamento || ''}</span>
-      </div>
     `;
-    
+
     seriesGrid.appendChild(serieCard);
   });
 }

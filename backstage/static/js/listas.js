@@ -1,3 +1,32 @@
+function buildListCard(item, tipo) {
+    const posterUrl = item.poster || '';
+    const detailsUrl = `/${tipo}/${item.tmdb_id}/`;
+    const ano = item.ano || '';
+
+    if (!posterUrl) {
+        return `
+            <div class="movie-card" onclick="window.location.href='${detailsUrl}'" style="cursor:pointer">
+              <div class="movie-poster" style="background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center">
+                <span style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;padding:16px">${item.titulo}</span>
+              </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="movie-card" onclick="window.location.href='${detailsUrl}'" style="cursor:pointer">
+          <div class="movie-poster">
+            <img src="${posterUrl}" alt="${item.titulo}" loading="lazy" />
+            <div class="movie-overlay">
+              <div class="movie-bottom">
+                <span class="movie-year">${ano}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+    `;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const createListBtn = document.getElementById('create-list-btn');
@@ -405,39 +434,23 @@ window.viewList = function(listId) {
             document.getElementById('series-tab').innerHTML = `Séries (${series.length})`;
 
             // Populate movies grid
-            const moviesGrid = document.getElementById('movies-grid');
+            const moviesGrid = document.getElementById('view-movies-grid');
             if (filmes.length === 0) {
                 moviesGrid.innerHTML = '<p class="empty-message">Nenhum filme nesta lista.</p>';
             } else {
-                moviesGrid.innerHTML = filmes.map(item => {
-                    const detailsUrl = `/filmes/${item.tmdb_id}/`;
-                    return `
-                        <a href="${detailsUrl}" class="movie-item">
-                            <div class="movie-info">
-                                <h4 class="movie-title">${item.titulo}</h4>
-                                <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
-                            </div>
-                        </a>
-                    `;
-                }).join('');
+                moviesGrid.innerHTML = '<div class="movies-grid">' + filmes.map(item => {
+                    return buildListCard(item, 'filmes');
+                }).join('') + '</div>';
             }
 
             // Populate series grid
-            const seriesGrid = document.getElementById('series-grid');
+            const seriesGrid = document.getElementById('view-series-grid');
             if (series.length === 0) {
                 seriesGrid.innerHTML = '<p class="empty-message">Nenhuma série nesta lista.</p>';
             } else {
-                seriesGrid.innerHTML = series.map(item => {
-                    const detailsUrl = `/series/${item.tmdb_id}/`;
-                    return `
-                        <a href="${detailsUrl}" class="movie-item">
-                            <div class="movie-info">
-                                <h4 class="movie-title">${item.titulo}</h4>
-                                <p class="movie-added">Adicionado em ${item.adicionado_em}</p>
-                            </div>
-                        </a>
-                    `;
-                }).join('');
+                seriesGrid.innerHTML = '<div class="movies-grid">' + series.map(item => {
+                    return buildListCard(item, 'series');
+                }).join('') + '</div>';
             }
 
             document.getElementById('view-list-modal').classList.add('active');

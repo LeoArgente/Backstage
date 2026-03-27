@@ -2,7 +2,7 @@
 /* Importa os estilos base do movie_details e adiciona customiza��es para s�ries */
 
 /* Reaproveita todos os estilos de movie_details.css */
-@import url('movie_details.css');
+/* filme-detalhes.css is loaded directly via HTML link tag */
 
 /* ===== Estilos espec�ficos para S�ries ===== */
 

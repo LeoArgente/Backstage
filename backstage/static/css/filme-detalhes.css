@@ -1927,16 +1927,3 @@
   stroke: currentColor;
 }
 
-/* Seta do dropdown */
-.user-dropdown::before {
-  content: '';
-  position: absolute;
-  top: -6px;
-  right: 12px;
-  width: 12px;
-  height: 12px;
-  background: rgba(17, 24, 39, 0.98);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  transform: rotate(45deg);
-}

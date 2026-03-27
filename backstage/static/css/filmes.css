@@ -151,8 +151,6 @@
 }
 
 .movie-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
   border-color: var(--border-hover);
 }
 
@@ -168,11 +166,9 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  transition: transform var(--transition-slow);
 }
 
 .movie-card:hover .movie-poster img {
-  transform: scale(1.05);
 }
 
 .movie-overlay {
@@ -240,7 +236,6 @@
 .action-btn:hover {
   background: rgba(255,255,255,0.2);
   border-color: rgba(255,255,255,0.4);
-  transform: scale(1.1);
 }
 
 .action-btn.active {
@@ -430,7 +425,6 @@
 
 .social-link:hover {
   color: white;
-  transform: translateY(-2px);
 }
 
 .footer-bottom {

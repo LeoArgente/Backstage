@@ -107,9 +107,7 @@ body.community-page {
 
 .community-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  transform: translateX(3px);
   border-color: rgba(220, 38, 38, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .community-item.active {
@@ -121,7 +119,6 @@ body.community-page {
 
 .community-item.active:hover {
   background: rgba(220, 38, 38, 0.15);
-  transform: translateX(2px);
 }
 
 .community-item-icon {
@@ -136,7 +133,6 @@ body.community-page {
 
 .community-item:hover .community-item-icon {
   border-color: rgba(220, 38, 38, 0.3);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
 }
 
 .community-item-placeholder {
@@ -157,8 +153,6 @@ body.community-page {
 }
 
 .community-item:hover .community-item-placeholder {
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-  transform: scale(1.05);
 }
 
 .community-item-info {
@@ -364,9 +358,7 @@ body.community-page {
 
 .member-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  transform: translateX(3px);
   border-color: rgba(220, 38, 38, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .member-avatar {
@@ -382,8 +374,6 @@ body.community-page {
 
 .member-item:hover .member-avatar {
   border-color: rgba(220, 38, 38, 0.4);
-  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.2);
-  transform: scale(1.05);
 }
 
 .member-avatar-placeholder {
@@ -404,8 +394,6 @@ body.community-page {
 }
 
 .member-item:hover .member-avatar-placeholder {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  transform: scale(1.05);
 }
 
 .member-info {
@@ -448,7 +436,6 @@ body.community-page {
 
 .member-item:hover .member-badge.admin {
   background: rgba(220, 38, 38, 0.18);
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
 }
 
 .member-badge.mod {
@@ -460,7 +447,6 @@ body.community-page {
 
 .member-item:hover .member-badge.mod {
   background: rgba(59, 130, 246, 0.18);
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
 }
 
 /* Member Item Container with Dropdown */
@@ -592,13 +578,9 @@ body.community-page {
 .leave-community-button:hover {
   background: #b91c1c;
   border-color: #991b1b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .leave-community-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
 }
 
 .leave-community-button svg {
@@ -721,7 +703,6 @@ body.community-page {
 .movie-result-item:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(220, 38, 38, 0.3);
-  transform: translateX(4px);
 }
 
 .movie-result-poster {

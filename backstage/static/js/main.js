@@ -407,35 +407,55 @@ async function setFeaturedMoviesCarousel() {
     });
   });
   
-  // Function to update active indicator
+  // Function to update active indicator with animation restart
   function updateIndicators(activeIndex) {
     const indicators = document.querySelectorAll('.hero-indicator');
     indicators.forEach((indicator, index) => {
+      indicator.classList.remove('active');
+      // Force animation restart by removing and re-adding
+      void indicator.offsetWidth;
       if (index === activeIndex) {
         indicator.classList.add('active');
-      } else {
-        indicator.classList.remove('active');
       }
     });
   }
-  
+
+  const ROTATION_DURATION = 6000; // 6 seconds per slide
+  let rotationTimer = null;
+
   // Function to start automatic rotation
   function startRotation() {
-    // IMPORTANT: Always clear existing interval first to prevent multiple intervals
-    if (featuredRotationInterval) {
-      clearInterval(featuredRotationInterval);
-      featuredRotationInterval = null;
-    }
-
-    featuredRotationInterval = setInterval(() => {
+    stopRotation();
+    rotationTimer = setTimeout(function advance() {
       currentFeaturedIndex = (currentFeaturedIndex + 1) % top5Movies.length;
       updateFeaturedMovie(currentFeaturedIndex);
-    }, 7000); // Rotate every 7 seconds
+      rotationTimer = setTimeout(advance, ROTATION_DURATION);
+    }, ROTATION_DURATION);
   }
-  
+
+  function stopRotation() {
+    if (rotationTimer) {
+      clearTimeout(rotationTimer);
+      rotationTimer = null;
+    }
+  }
+
+  // Pause on hover, resume on leave
+  heroSection.addEventListener('mouseenter', stopRotation);
+  heroSection.addEventListener('mouseleave', startRotation);
+
+  // Pause when tab is hidden, resume when visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopRotation();
+    } else {
+      startRotation();
+    }
+  });
+
   // Initialize with first movie immediately to avoid flash
   updateFeaturedMovie(0);
-  
+
   // Hide loading content and show hero
   setTimeout(() => {
     const heroContent = heroSection.querySelector('.hero-content');
@@ -444,7 +464,7 @@ async function setFeaturedMoviesCarousel() {
       heroContent.style.transform = 'translateY(0)';
     }
   }, 100);
-  
+
   // Start automatic rotation
   startRotation();
   
@@ -613,11 +633,10 @@ function createMovieCard(movie) {
             </svg>
             ${notaEscala5}
           </span>
+          <div class="movie-card-bottom">
+            <span class="movie-card-year">${movie.ano}</span>
+          </div>
         </div>
-      </div>
-      <div class="movie-card-info">
-        <h4 class="movie-card-title">${movie.titulo}</h4>
-        <span class="movie-card-year">${movie.ano}</span>
       </div>
     </div>
   `;

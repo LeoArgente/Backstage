@@ -53,8 +53,6 @@ body::before {
 }
 
 .login-container:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
 }
 
 /* Header */
@@ -168,12 +166,10 @@ body::before {
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 15px 35px rgba(220, 38, 38, 0.4);
+  background: #b91c1c;
 }
 
 .btn-primary:active {
-  transform: translateY(0);
 }
 
 .btn-secondary {

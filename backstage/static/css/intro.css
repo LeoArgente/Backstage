@@ -68,23 +68,18 @@
 .intro-skip-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .intro-skip-btn:active {
-  transform: translateY(0);
 }
 
 /* Ícone da seta */
 .intro-skip-btn svg {
   width: 16px;
   height: 16px;
-  transition: transform 0.3s ease;
 }
 
 .intro-skip-btn:hover svg {
-  transform: translateX(3px);
 }
 
 /* Loading spinner (caso o vídeo demore) */

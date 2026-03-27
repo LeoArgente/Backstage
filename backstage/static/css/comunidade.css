@@ -51,8 +51,7 @@
 }
 
 .community-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  background: #1f2537;
 }
 
 .community-icon {
@@ -77,7 +76,6 @@
 
 .community-card:hover .community-icon-img {
   border-color: var(--accent);
-  transform: scale(1.05);
 }
 
 .community-content {
@@ -157,7 +155,6 @@
 .btn-join:hover {
   background: var(--accent);
   color: white;
-  transform: scale(1.02);
 }
 
 .btn-join.joined {
@@ -595,7 +592,6 @@
 
 .post-card:hover {
   border-color: var(--border-hover);
-  box-shadow: var(--shadow-sm);
 }
 
 .post-header {
@@ -789,7 +785,6 @@
 }
 
 .load-more-btn:hover:not(:disabled) svg {
-  transform: translateX(2px);
 }
 
 .load-more-btn:disabled {
@@ -933,7 +928,6 @@
 
 .modal-close:hover {
   color: var(--red);
-  transform: scale(1.1);
 }
 
 .modal-close svg {
@@ -1195,7 +1189,6 @@
 
 .social-link:hover {
   color: white;
-  transform: translateY(-2px);
 }
 
 .footer-bottom {
@@ -1394,8 +1387,7 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+  background: #b91c1c;
 }
 
 .btn-secondary {

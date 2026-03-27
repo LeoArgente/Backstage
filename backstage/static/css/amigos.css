@@ -140,8 +140,6 @@
 
 .friend-card:hover {
   border-color: #dc2626;
-  box-shadow: 0 8px 30px rgba(220, 38, 38, 0.15);
-  transform: translateY(-5px);
 }
 
 .friend-avatar {
@@ -348,8 +346,6 @@
 
 .btn-primary:hover {
   background: #b91c1c;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
 }
 
 /* Search Friends Box */
@@ -393,8 +389,6 @@
 
 .btn-search:hover {
   background: #b91c1c;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
 }
 
 .btn-search svg {
@@ -646,8 +640,6 @@
 
 .btn-add:hover:not(:disabled) {
   background: #b91c1c;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
 .btn-accept {
@@ -657,8 +649,6 @@
 
 .btn-accept:hover:not(:disabled) {
   background: #059669;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .btn-pending {
@@ -676,8 +666,6 @@
 
 .btn-view-profile:hover {
   background: rgba(220, 38, 38, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
 .btn-result:disabled {

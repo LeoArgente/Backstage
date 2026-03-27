@@ -182,8 +182,6 @@
 .series-card:nth-child(12) { animation-delay: 0.6s; }
 
 .series-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
   border-color: var(--border-hover);
 }
 
@@ -199,11 +197,9 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  transition: transform var(--transition-slow);
 }
 
 .series-card:hover .series-poster img {
-  transform: scale(1.05);
 }
 
 .series-overlay {
@@ -270,7 +266,6 @@
 .action-btn:hover {
   background: rgba(255,255,255,0.2);
   border-color: rgba(255,255,255,0.4);
-  transform: scale(1.1);
 }
 
 .action-btn.active {
@@ -361,11 +356,9 @@
 }
 
 .load-more-btn svg {
-  transition: transform var(--transition-base);
 }
 
 .load-more-btn:not(:disabled):hover svg {
-  transform: translateX(2px);
 }
 
 .load-more-btn:disabled {
@@ -486,7 +479,6 @@
 
 .social-link:hover {
   color: white;
-  transform: translateY(-2px);
 }
 
 .footer-bottom {

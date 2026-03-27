@@ -52,7 +52,6 @@
   }
 
   .mobile-user-avatar:active {
-    transform: scale(0.95);
     border-color: var(--red, #dc2626);
   }
 
@@ -75,7 +74,6 @@
   }
 
   .mobile-login-link:active {
-    transform: scale(0.95);
     background: rgba(255, 255, 255, 0.1);
   }
 
@@ -245,7 +243,6 @@
   }
 
   .mobile-search-btn:active {
-    transform: scale(0.95);
     opacity: 0.7;
   }
 
@@ -336,7 +333,6 @@
   }
 
   .mobile-search-submit:active {
-    transform: scale(0.95);
     background: #b91c1c;
   }
 
@@ -392,7 +388,6 @@
   }
 
   .bottom-nav-item:active {
-    transform: scale(0.95);
   }
 
   .bottom-nav-item.active {
@@ -453,42 +448,49 @@
     padding: 24px 16px;
   }
 
-  /* Hero actions - stack buttons on mobile */
   .hero-actions {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
-    position: relative;
-    z-index: 15; /* Above indicators */
-    margin-bottom: 60px; /* Space for indicators below */
+    margin-bottom: 48px;
   }
 
-  .hero-actions .btn {
+  .hero-actions .btn,
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
     width: 100%;
     justify-content: center;
   }
 
-  /* Reposition hero indicators on mobile - below buttons */
   .hero-indicators {
     bottom: 16px !important;
-    z-index: 10;
+    right: 50% !important;
+    transform: translateX(50%);
   }
 
   .hero-indicator {
-    width: 32px;
-    height: 3px;
+    width: 20px;
+    height: 2px;
   }
 
-  /* Hero title - reduce size on mobile */
+  .hero-indicator.active {
+    width: 32px;
+  }
+
   .hero-title {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     line-height: 1.2;
   }
 
-  /* Hero meta - adjust spacing */
   .hero-meta {
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .hero-badge {
+    font-size: 10px;
+    padding: 5px 12px;
   }
 
   /* Adjust container padding for mobile */

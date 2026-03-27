@@ -1,0 +1,52 @@
+{% load static %}
+<!-- Hero Section -->
+  <section class="hero">
+    <!-- Desktop backdrop with dual layers for smooth crossfade -->
+    <div class="hero-backdrop-desktop">
+      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
+      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
+      <div class="hero-gradient"></div>
+    </div>
+
+    <!-- Mobile backdrop with dual layers for smooth crossfade -->
+    <div class="hero-backdrop-mobile">
+      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
+      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
+      <div class="hero-gradient"></div>
+    </div>
+
+    <!-- Hero content -->
+    <div class="container hero-content">
+      <div class="hero-info">
+        <span class="hero-badge">Carregando...</span>
+        <h1 class="hero-title">Carregando os filmes em alta...</h1>
+        <div class="hero-meta">
+          <span class="hero-year">2024</span>
+          <span class="hero-duration">120 min</span>
+          <span class="hero-rating">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            4.5
+          </span>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Assistir Trailer
+          </button>
+          <button class="btn btn-secondary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Adicionar à Lista
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation indicators (will be populated by JS) -->
+    <div class="hero-indicators"></div>
+  </section>

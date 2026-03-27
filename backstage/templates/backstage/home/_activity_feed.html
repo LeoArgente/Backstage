@@ -1,0 +1,49 @@
+{% load static %}
+    <!-- Activity Feed -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Atividade dos amigos
+        </h2>
+      </div>
+      <div class="activity-feed">
+        {% if user.is_authenticated %}
+          {% if atividades_amigos %}
+            {% for atividade in atividades_amigos %}
+            <div class="activity-item">
+              <img src="https://ui-avatars.com/api/?name={{ atividade.usuario.username }}&background=random&size=48" class="activity-avatar" alt="{{ atividade.usuario.username }}">
+              <div class="activity-content">
+                <p>
+                  <strong>{{ atividade.usuario.username }}</strong> avaliou
+                  {% if atividade.tipo == 'filme' %}
+                    <a href="{% url 'backstage:detalhes_filme' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
+                  {% else %}
+                    <a href="{% url 'backstage:detalhes_serie' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
+                  {% endif %}
+                  com
+                  <span class="rating-stars">{% for i in "12345" %}{% if forloop.counter <= atividade.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
+                </p>
+                <span class="activity-time">{{ atividade.data|timesince }} atrás</span>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="activity-empty">
+              <p>Nenhuma atividade dos seus amigos ainda.</p>
+              <a href="{% url 'backstage:amigos' %}#buscar" class="btn-primary">Adicionar Amigos</a>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="activity-empty">
+            <p>Faça login para ver as atividades dos seus amigos!</p>
+            <a href="{% url 'backstage:login' %}" class="btn-primary">Fazer Login</a>
+          </div>
+        {% endif %}
+      </div>
+    </section>

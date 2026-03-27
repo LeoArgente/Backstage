@@ -132,22 +132,22 @@
   background: #dc2626;
   color: #ffffff;
   border: 2px solid #dc2626;
-  transition: transform 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .profile-actions .btn-primary:hover {
-  transform: scale(1.05);
+  background: #b91c1c;
 }
 
 .profile-actions .btn-secondary {
   background: transparent;
   color: #ffffff;
   border: 2px solid #ffffff;
-  transition: transform 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .profile-actions .btn-secondary:hover {
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ========================================
@@ -261,7 +261,6 @@
 .btn-limpar-tudo:hover {
   background: rgba(220, 38, 38, 0.2);
   border-color: #dc2626;
-  transform: translateY(-2px);
 }
 
 .btn-limpar-tudo svg {
@@ -291,8 +290,6 @@
 
 .review-card:hover {
   border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transform: translateY(-2px);
 }
 
 .review-poster {
@@ -535,8 +532,6 @@
 
 .list-card:hover {
   border-color: #dc2626;
-  box-shadow: 0 8px 30px rgba(220, 38, 38, 0.3);
-  transform: translateY(-2px);
 }
 
 .list-header {

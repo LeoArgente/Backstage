@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.0">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
-  <link rel="stylesheet" href="{% static 'css/filme-detalhes.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
   <link rel="stylesheet" href="{% static 'css/intro.css' %}">
@@ -40,9 +40,9 @@
     <div class="container">
       <nav class="nav-primary">
         <a class="brand" href="{% url 'backstage:index' %}">
-            <img src="{% static 'images/Logo_Backstage_branca.png' %}"
+            <img src="{% static 'images/Backstage.svg' %}"
                  alt="Backstage Logo"
-                 width="250">
+                 width="180">
         </a>
 
         <div class="nav-menu">
@@ -72,229 +72,15 @@
     </div>
   </header>
 
-<!-- Hero Section -->
-  <section class="hero">
-    <!-- Desktop backdrop with dual layers for smooth crossfade -->
-    <div class="hero-backdrop-desktop">
-      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
-      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
-      <div class="hero-gradient"></div>
-    </div>
-
-    <!-- Mobile backdrop with dual layers for smooth crossfade -->
-    <div class="hero-backdrop-mobile">
-      <img class="hero-backdrop-img hero-backdrop-img-1" src="" alt="" />
-      <img class="hero-backdrop-img hero-backdrop-img-2" src="" alt="" style="opacity: 0;" />
-      <div class="hero-gradient"></div>
-    </div>
-
-    <!-- Hero content -->
-    <div class="container hero-content">
-      <div class="hero-info">
-        <span class="hero-badge">Carregando...</span>
-        <h1 class="hero-title">Carregando os filmes em alta...</h1>
-        <div class="hero-meta">
-          <span class="hero-year">2024</span>
-          <span class="hero-duration">120 min</span>
-          <span class="hero-rating">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-            4.5
-          </span>
-        </div>
-        <div class="hero-actions">
-          <button class="btn btn-primary btn-large">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            Assistir Trailer
-          </button>
-          <button class="btn btn-secondary btn-large">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Adicionar à Lista
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Navigation indicators (will be populated by JS) -->
-    <div class="hero-indicators"></div>
-  </section>
+  {% include 'backstage/home/_hero.html' %}
 
   <main class="container">
-
-    <!-- GOATS (Greatest of All Time) -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-          GOATS
-        </h2>
-      </div>
-      <div class="carousel">
-        <button class="carousel-btn prev">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        <div class="carousel-track" id="goats-movies">
-          <!-- Filmes GOATS serão inseridos via JS -->
-        </div>
-        <button class="carousel-btn next">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </button>
-      </div>
-    </section>
-
-
-    <!-- Em Cartaz -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M7 4V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v2H2a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-1V2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2H7z"/>
-            <path d="M5 9h14M5 13h14M5 17h14"/>
-          </svg>
-          Em Cartaz
-        </h2>
-      </div>
-      <div class="carousel">
-        <button class="carousel-btn prev">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        <div class="carousel-track" id="em-cartaz-movies">
-          <!-- Filmes em cartaz serão inseridos via JS -->
-        </div>
-        <button class="carousel-btn next">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- Clássicos Imperdíveis -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M7 2h3l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-            <circle cx="12" cy="13" r="3"/>
-          </svg>
-          Clássicos Imperdíveis
-        </h2>
-      </div>
-      <div class="carousel">
-        <button class="carousel-btn prev">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        <div class="carousel-track" id="classicos-movies">
-          <!-- Filmes clássicos serão inseridos via JS -->
-        </div>
-        <button class="carousel-btn next">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- Recomendados para você -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-          </svg>
-          Recomendados para você
-        </h2>
-        <button class="refresh-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.64A9 9 0 0 0 20.49 15"/>
-          </svg>
-          Atualizar
-        </button>
-      </div>
-      <div class="carousel">
-        <button class="carousel-btn prev">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        </button>
-        <div class="carousel-track" id="recommended-movies">
-          <!-- Filmes serão inseridos via JS -->
-        </div>
-        <button class="carousel-btn next">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- Activity Feed -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          Atividade dos amigos
-        </h2>
-      </div>
-      <div class="activity-feed">
-        {% if user.is_authenticated %}
-          {% if atividades_amigos %}
-            {% for atividade in atividades_amigos %}
-            <div class="activity-item">
-              <img src="https://ui-avatars.com/api/?name={{ atividade.usuario.username }}&background=random&size=48" class="activity-avatar" alt="{{ atividade.usuario.username }}">
-              <div class="activity-content">
-                <p>
-                  <strong>{{ atividade.usuario.username }}</strong> avaliou 
-                  {% if atividade.tipo == 'filme' %}
-                    <a href="{% url 'backstage:detalhes_filme' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
-                  {% else %}
-                    <a href="{% url 'backstage:detalhes_serie' atividade.tmdb_id %}">{{ atividade.titulo }}</a>
-                  {% endif %}
-                  com
-                  <span class="rating-stars">{% for i in "12345" %}{% if forloop.counter <= atividade.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
-                </p>
-                <span class="activity-time">{{ atividade.data|timesince }} atrás</span>
-              </div>
-            </div>
-            {% endfor %}
-          {% else %}
-            <div class="activity-empty">
-              <p>Nenhuma atividade dos seus amigos ainda.</p>
-              <a href="{% url 'backstage:amigos' %}#buscar" class="btn-primary">Adicionar Amigos</a>
-            </div>
-          {% endif %}
-        {% else %}
-          <div class="activity-empty">
-            <p>Faça login para ver as atividades dos seus amigos!</p>
-            <a href="{% url 'backstage:login' %}" class="btn-primary">Fazer Login</a>
-          </div>
-        {% endif %}
-      </div>
-    </section>
+    {% include 'backstage/home/_carousels.html' %}
+    {% include 'backstage/home/_activity_feed.html' %}
   </main>
 
   <!-- Popup de Adicionar à Lista -->
-  <div class="list-popup-overlay" id="listPopupOverlay">
+  <div class="list-popup-overlay" id="listPopupOverlay" style="display:none">
     <div class="list-popup">
       <div class="popup-header">
         <h3 id="popupTitle">Adicionar à Lista</h3>
@@ -350,6 +136,20 @@
     <script src="{% static 'js/notificacoes.js' %}" defer></script>
     
     <script>
+    // Navbar scroll effect
+    (function() {
+      const header = document.querySelector('.site-header');
+      if (header) {
+        window.addEventListener('scroll', function() {
+          if (window.scrollY > 60) {
+            header.classList.add('scrolled');
+          } else {
+            header.classList.remove('scrolled');
+          }
+        }, { passive: true });
+      }
+    })();
+
     // Sistema de Lista no Hero
     document.addEventListener('DOMContentLoaded', function() {
       // Adicionar evento ao botão "Adicionar à Lista" no hero
@@ -363,7 +163,9 @@
             if (movieId) {
               window.currentHeroMovieId = movieId;
               loadUserLists();
-              document.getElementById('listPopupOverlay').classList.add('show');
+              const overlay = document.getElementById('listPopupOverlay');
+              overlay.style.display = 'flex';
+              overlay.classList.add('show');
               document.body.style.overflow = 'hidden';
             }
           }
@@ -432,7 +234,9 @@
     });
 
     function hideListPopup() {
-      document.getElementById('listPopupOverlay').classList.remove('show');
+      const overlay = document.getElementById('listPopupOverlay');
+      overlay.classList.remove('show');
+      overlay.style.display = 'none';
       document.body.style.overflow = '';
     }
 
@@ -644,11 +448,10 @@
                 </svg>
                 ${notaEscala5}
               </span>
+              <div class="movie-card-bottom">
+                <span class="movie-card-year">${movie.ano}</span>
+              </div>
             </div>
-          </div>
-          <div class="movie-card-info">
-            <h4 class="movie-card-title">${movie.titulo}</h4>
-            <span class="movie-card-year">${movie.ano}</span>
           </div>
         </div>
       `;

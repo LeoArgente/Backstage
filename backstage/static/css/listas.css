@@ -203,8 +203,6 @@
 .list-card:nth-child(9) { animation-delay: 0.45s; }
 
 .list-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   border-color: rgba(220, 38, 38, 0.4);
   background: #1f2537;
 }
@@ -309,7 +307,6 @@
   background: rgba(15, 23, 42, 0.95);
   border-color: rgba(220, 38, 38, 0.6);
   color: #dc2626;
-  transform: translateY(-2px);
 }
 
 .action-btn svg {
@@ -339,11 +336,9 @@
 }
 
 .load-more-btn svg {
-  transition: transform var(--transition-base);
 }
 
 .load-more-btn:not(:disabled):hover svg {
-  transform: translateX(2px);
 }
 
 .load-more-btn:disabled {
@@ -622,7 +617,6 @@
 
 .close-popup:hover {
   color: var(--red);
-  transform: scale(1.1);
 }
 
 .popup-content {
@@ -831,9 +825,7 @@
 }
 
 .carousel-item:hover {
-  transform: scale(1.05) translateY(-4px);
   border-color: var(--red);
-  box-shadow: var(--shadow-red);
   z-index: 10;
 }
 
@@ -901,7 +893,6 @@
   background: var(--red);
   border-color: var(--red);
   color: white;
-  transform: translateY(-50%) scale(1.1);
 }
 
 .carousel-prev {
@@ -958,7 +949,6 @@
 .movie-item:hover {
   background: rgba(30, 41, 59, 0.7);
   border-color: rgba(220, 38, 38, 0.4);
-  transform: translateX(4px);
 }
 
 .movie-info {
@@ -1008,14 +998,10 @@
 }
 
 .movie-actions .btn-primary:hover {
-  background: linear-gradient(135deg, #b91c1c, #991b1b);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-red);
+  background: #b91c1c;
 }
 
 .movie-actions .btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
 }
 
 /* Edit Modal Specific Styles */
@@ -1072,7 +1058,6 @@
 
 .delete-item-btn:hover {
   background: rgba(239, 68, 68, 0.1);
-  transform: scale(1.1);
 }
 
 .delete-item-btn svg {
@@ -1116,9 +1101,7 @@
 }
 
 .edit-modal-actions .btn-primary:hover {
-  background: linear-gradient(135deg, #b91c1c, #991b1b);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  background: #b91c1c;
 }
 
 .empty-message {
@@ -1222,8 +1205,6 @@
 
 .social-link:hover {
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .footer-bottom {

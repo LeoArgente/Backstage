@@ -1,0 +1,450 @@
+/* ================================================================
+   BACKSTAGE — Design Tokens
+   ================================================================
+   Single source of truth for the entire visual system.
+   Import this file BEFORE any other stylesheet.
+
+   Naming convention:
+     --{category}-{property}-{variant}
+     e.g. --color-bg-primary, --font-size-lg, --space-4
+
+   Scale logic:
+     Spacing:   4px base, geometric (4 → 6 → 8 → 12 → 16 → 24 → 32 → 48 → 64 → 96)
+     Type:      Major third scale (1.25 ratio) from 16px base
+     Radius:    Perceptual scale tied to component size
+     Shadows:   Elevation layers (1–5) with colored ambient option
+     Duration:  Human perception tiers (micro → macro)
+   ================================================================ */
+
+:root {
+
+  /* ——————————————————————————————————————————————
+     COLOR SYSTEM
+     Base: Deep navy (cinematic feel)
+     Accent: Red (passion/cinema) + Blue (trust/interactive)
+     All colors in the same hue family for harmony.
+     —————————————————————————————————————————————— */
+
+  /* Background layers — darkest to lightest */
+  --color-bg-deep:        #070b14;
+  --color-bg-primary:     #0b1120;
+  --color-bg-secondary:   #131c31;
+  --color-bg-tertiary:    #1a2540;
+
+  /* Surface layers — for cards, modals, dropdowns */
+  --color-surface:        #162032;
+  --color-surface-hover:  #1e2d47;
+  --color-surface-active: #27395a;
+  --color-surface-raised: #1c2a44;
+
+  /* Text — WCAG AA contrast guaranteed on bg-primary */
+  --color-text-primary:   #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted:     #64748b;
+  --color-text-disabled:  #475569;
+  --color-text-inverse:   #0b1120;
+
+  /* Brand — Red (primary action, cinema identity) */
+  --color-brand:          #ff3131;
+  --color-brand-hover:    #ff5a5a;
+  --color-brand-active:   #d42a2a;
+  --color-brand-muted:    rgba(255, 49, 49, 0.15);
+  --color-brand-subtle:   rgba(255, 49, 49, 0.08);
+
+  /* Accent — Blue (secondary actions, links, info) */
+  --color-accent:         #2563eb;
+  --color-accent-hover:   #3b82f6;
+  --color-accent-active:  #1d4ed8;
+  --color-accent-muted:   rgba(37, 99, 235, 0.15);
+  --color-accent-subtle:  rgba(37, 99, 235, 0.08);
+
+  /* Semantic — Feedback states */
+  --color-success:        #059669;
+  --color-success-light:  #10b981;
+  --color-success-muted:  rgba(5, 150, 105, 0.15);
+
+  --color-warning:        #d97706;
+  --color-warning-light:  #f59e0b;
+  --color-warning-muted:  rgba(217, 119, 6, 0.15);
+
+  --color-error:          #dc2626;
+  --color-error-light:    #ef4444;
+  --color-error-muted:    rgba(220, 38, 38, 0.15);
+
+  --color-info:           var(--color-accent);
+  --color-info-muted:     var(--color-accent-muted);
+
+  /* Star rating */
+  --color-star:           #fbbf24;
+  --color-star-empty:     #334155;
+
+  /* Borders & Dividers — opacity-based for layering */
+  --color-border:         rgba(255, 255, 255, 0.06);
+  --color-border-hover:   rgba(255, 255, 255, 0.10);
+  --color-border-active:  rgba(255, 255, 255, 0.16);
+  --color-border-brand:   rgba(255, 49, 49, 0.40);
+  --color-divider:        rgba(255, 255, 255, 0.04);
+
+  /* Overlays */
+  --color-overlay:        rgba(7, 11, 20, 0.70);
+  --color-overlay-heavy:  rgba(7, 11, 20, 0.85);
+  --color-scrim:          rgba(0, 0, 0, 0.50);
+
+  /* Gradients */
+  --gradient-brand:       linear-gradient(135deg, #ff3131 0%, #d42a2a 50%, #b22222 100%);
+  --gradient-accent:      linear-gradient(135deg, var(--color-accent) 0%, var(--color-brand) 100%);
+  --gradient-surface:     linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg-secondary) 100%);
+  --gradient-hero:        linear-gradient(180deg, transparent 0%, var(--color-bg-primary) 100%);
+  --gradient-card-shine:  linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+
+
+  /* ——————————————————————————————————————————————
+     TYPOGRAPHY
+     Font: Inter — geometric sans-serif, optimized for screens.
+     Scale: Major third (1.25) from 16px base.
+     Line-height decreases as size increases (tighter headings).
+     Letter-spacing tightens on headings, opens on small text.
+     —————————————————————————————————————————————— */
+
+  /* Font families */
+  --font-sans:            'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono:            'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+
+  /* Font sizes — major third scale (1.25 ratio) */
+  --font-size-2xs:        0.625rem;   /* 10px — captions, badges */
+  --font-size-xs:         0.75rem;    /* 12px — metadata, labels */
+  --font-size-sm:         0.875rem;   /* 14px — secondary text */
+  --font-size-base:       1rem;       /* 16px — body text */
+  --font-size-md:         1.125rem;   /* 18px — lead text */
+  --font-size-lg:         1.25rem;    /* 20px — section titles */
+  --font-size-xl:         1.5rem;     /* 24px — card headings */
+  --font-size-2xl:        1.875rem;   /* 30px — page headings */
+  --font-size-3xl:        2.25rem;    /* 36px — hero subheading */
+  --font-size-4xl:        3rem;       /* 48px — hero heading */
+  --font-size-5xl:        3.75rem;    /* 60px — display */
+
+  /* Font weights */
+  --font-weight-light:    300;
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+  --font-weight-black:    800;
+
+  /* Line heights — tighter on headings, relaxed on body */
+  --line-height-tight:    1.15;       /* display / hero text */
+  --line-height-snug:     1.30;       /* headings */
+  --line-height-base:     1.55;       /* body text */
+  --line-height-relaxed:  1.70;       /* long-form / small text */
+
+  /* Letter spacing — tighter on large, wider on small */
+  --tracking-tighter:    -0.03em;     /* display headings */
+  --tracking-tight:      -0.015em;    /* headings */
+  --tracking-normal:      0;          /* body */
+  --tracking-wide:        0.025em;    /* labels, metadata */
+  --tracking-wider:       0.05em;     /* all-caps text */
+  --tracking-widest:      0.1em;      /* badge / tag text */
+
+  /* Paragraph max-width for readability (45-75 chars) */
+  --prose-width:          65ch;
+
+
+  /* ——————————————————————————————————————————————
+     SPACING
+     4px base unit. Scale loosely follows 4→8→12→16→20→24→32→40→48→64→80→96→128
+     Use for margin, padding, gap.
+     Rule: prefer multiples of 4 for visual rhythm.
+     —————————————————————————————————————————————— */
+
+  --space-0:    0;
+  --space-px:   1px;
+  --space-0-5:  0.125rem;  /*  2px */
+  --space-1:    0.25rem;   /*  4px */
+  --space-1-5:  0.375rem;  /*  6px */
+  --space-2:    0.5rem;    /*  8px */
+  --space-3:    0.75rem;   /* 12px */
+  --space-4:    1rem;      /* 16px */
+  --space-5:    1.25rem;   /* 20px */
+  --space-6:    1.5rem;    /* 24px */
+  --space-8:    2rem;      /* 32px */
+  --space-10:   2.5rem;    /* 40px */
+  --space-12:   3rem;      /* 48px */
+  --space-16:   4rem;      /* 64px */
+  --space-20:   5rem;      /* 80px */
+  --space-24:   6rem;      /* 96px */
+  --space-32:   8rem;      /* 128px */
+
+  /* Semantic spacing aliases */
+  --space-section:        var(--space-16);   /* between page sections */
+  --space-block:          var(--space-8);    /* between content blocks */
+  --space-element:        var(--space-4);    /* between related elements */
+  --space-inline:         var(--space-2);    /* between inline items */
+
+
+  /* ——————————————————————————————————————————————
+     LAYOUT & GRID
+     Responsive container with consistent padding.
+     —————————————————————————————————————————————— */
+
+  /* Container */
+  --container-xs:         480px;
+  --container-sm:         640px;
+  --container-md:         768px;
+  --container-lg:         1024px;
+  --container-xl:         1280px;
+  --container-2xl:        1440px;
+  --container-padding:    var(--space-6);
+
+  /* Grid */
+  --grid-columns:         12;
+  --grid-gap:             var(--space-6);
+  --grid-gap-sm:          var(--space-4);
+  --grid-gap-lg:          var(--space-8);
+
+  /* Movie/Series poster grid — responsive minmax */
+  --poster-grid-min:      160px;
+  --poster-grid-max:      1fr;
+  --poster-aspect:        2 / 3;
+
+  /* Card grid */
+  --card-grid-min:        280px;
+  --card-grid-max:        1fr;
+
+  /* Breakpoints (reference only — use in @media) */
+  /* sm:  640px  | md: 768px  | lg: 1024px | xl: 1280px | 2xl: 1440px */
+
+
+  /* ——————————————————————————————————————————————
+     BORDERS & RADIUS
+     Radius scale tied to component size.
+     Rule: small components = subtle, large = rounder.
+     —————————————————————————————————————————————— */
+
+  --radius-xs:     4px;    /* badges, tags, chips */
+  --radius-sm:     6px;    /* buttons, inputs */
+  --radius-md:     10px;   /* cards, dropdowns */
+  --radius-lg:     14px;   /* modals, panels */
+  --radius-xl:     20px;   /* large cards, hero areas */
+  --radius-2xl:    28px;   /* floating elements */
+  --radius-full:   9999px; /* pills, avatars */
+
+  --border-width:          1px;
+  --border-width-thick:    2px;
+
+
+  /* ——————————————————————————————————————————————
+     SHADOWS & ELEVATION
+     5-level elevation system.
+     Each level adds depth + spread.
+     Colored variants for brand elements.
+     —————————————————————————————————————————————— */
+
+  /* Neutral elevation */
+  --shadow-1:    0 1px 2px rgba(0, 0, 0, 0.20),
+                 0 1px 3px rgba(0, 0, 0, 0.10);
+
+  --shadow-2:    0 2px 4px rgba(0, 0, 0, 0.20),
+                 0 4px 8px rgba(0, 0, 0, 0.12);
+
+  --shadow-3:    0 4px 8px rgba(0, 0, 0, 0.20),
+                 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  --shadow-4:    0 8px 16px rgba(0, 0, 0, 0.24),
+                 0 16px 48px rgba(0, 0, 0, 0.20);
+
+  --shadow-5:    0 12px 24px rgba(0, 0, 0, 0.28),
+                 0 24px 64px rgba(0, 0, 0, 0.24);
+
+  /* Brand glow — for CTAs, featured cards */
+  --shadow-brand:     0 4px 16px rgba(255, 49, 49, 0.25),
+                      0 8px 32px rgba(255, 49, 49, 0.15);
+
+  --shadow-brand-lg:  0 8px 24px rgba(255, 49, 49, 0.30),
+                      0 16px 48px rgba(255, 49, 49, 0.18);
+
+  /* Accent glow */
+  --shadow-accent:    0 4px 16px rgba(37, 99, 235, 0.25),
+                      0 8px 32px rgba(37, 99, 235, 0.15);
+
+  /* Inner shadow for depth (inputs, inset elements) */
+  --shadow-inner:     inset 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-inner-lg:  inset 0 2px 6px rgba(0, 0, 0, 0.40);
+
+
+  /* ——————————————————————————————————————————————
+     MOTION & TRANSITIONS
+     Duration tied to interaction context.
+     Easing: custom cubic-bezier for natural feel.
+     Rule: entrances = ease-out, exits = ease-in,
+           state changes = ease-in-out
+     —————————————————————————————————————————————— */
+
+  /* Durations */
+  --duration-instant:    75ms;    /* hover color, opacity */
+  --duration-fast:       150ms;   /* buttons, toggles */
+  --duration-base:       250ms;   /* most interactions */
+  --duration-moderate:   350ms;   /* dropdowns, panels */
+  --duration-slow:       500ms;   /* modals, page transitions */
+  --duration-slower:     700ms;   /* hero animations */
+
+  /* Easing curves */
+  --ease-default:    cubic-bezier(0.25, 0.1, 0.25, 1.0);   /* general purpose */
+  --ease-in:         cubic-bezier(0.55, 0.0, 1.0, 0.45);   /* exits */
+  --ease-out:        cubic-bezier(0.0, 0.0, 0.2, 1.0);     /* entrances */
+  --ease-in-out:     cubic-bezier(0.45, 0.0, 0.15, 1.0);   /* state changes */
+  --ease-bounce:     cubic-bezier(0.34, 1.56, 0.64, 1.0);  /* playful overshoot */
+  --ease-smooth:     cubic-bezier(0.16, 1.0, 0.3, 1.0);    /* smooth deceleration */
+
+  /* Common transitions */
+  --transition-color:      color var(--duration-instant) var(--ease-default),
+                           background-color var(--duration-instant) var(--ease-default),
+                           border-color var(--duration-instant) var(--ease-default);
+
+  --transition-transform:  transform var(--duration-fast) var(--ease-out);
+
+  --transition-opacity:    opacity var(--duration-fast) var(--ease-default);
+
+  --transition-shadow:     box-shadow var(--duration-base) var(--ease-default);
+
+  --transition-all:        all var(--duration-base) var(--ease-default);
+
+
+  /* ——————————————————————————————————————————————
+     Z-INDEX LAYERS
+     Organized scale to prevent z-index wars.
+     —————————————————————————————————————————————— */
+
+  --z-below:       -1;
+  --z-base:         0;
+  --z-raised:       1;
+  --z-dropdown:     100;
+  --z-sticky:       200;
+  --z-header:       300;
+  --z-overlay:      400;
+  --z-modal:        500;
+  --z-popover:      600;
+  --z-toast:        700;
+  --z-tooltip:      800;
+  --z-max:          999;
+
+
+  /* ——————————————————————————————————————————————
+     COMPONENT TOKENS
+     Semantic aliases for specific UI elements.
+     These reference the primitives above.
+     —————————————————————————————————————————————— */
+
+  /* Buttons */
+  --btn-height-sm:     32px;
+  --btn-height-md:     40px;
+  --btn-height-lg:     48px;
+  --btn-padding-x:     var(--space-5);
+  --btn-font-size:     var(--font-size-sm);
+  --btn-font-weight:   var(--font-weight-semibold);
+  --btn-radius:        var(--radius-sm);
+
+  /* Inputs */
+  --input-height:      var(--btn-height-md);
+  --input-padding-x:   var(--space-4);
+  --input-font-size:   var(--font-size-sm);
+  --input-radius:      var(--radius-sm);
+  --input-bg:          var(--color-bg-tertiary);
+  --input-border:      var(--color-border);
+  --input-focus-ring:  0 0 0 2px var(--color-accent-muted), 0 0 0 4px var(--color-accent);
+
+  /* Cards */
+  --card-bg:           var(--color-surface);
+  --card-border:       var(--color-border);
+  --card-radius:       var(--radius-md);
+  --card-padding:      var(--space-5);
+  --card-shadow:       var(--shadow-2);
+  --card-shadow-hover: var(--shadow-3);
+
+  /* Navbar */
+  --navbar-height:     64px;
+  --navbar-bg:         rgba(11, 17, 32, 0.85);
+  --navbar-blur:       12px;
+
+  /* Poster cards */
+  --poster-radius:     var(--radius-md);
+  --poster-shadow:     var(--shadow-2);
+  --poster-hover-lift: -6px;
+
+  /* Modal */
+  --modal-bg:          var(--color-surface-raised);
+  --modal-radius:      var(--radius-lg);
+  --modal-shadow:      var(--shadow-5);
+  --modal-padding:     var(--space-8);
+  --modal-max-width:   560px;
+
+  /* Toast / Notifications */
+  --toast-bg:          var(--color-surface-raised);
+  --toast-radius:      var(--radius-md);
+  --toast-shadow:      var(--shadow-4);
+
+  /* Badges */
+  --badge-padding:     var(--space-1) var(--space-2);
+  --badge-font-size:   var(--font-size-2xs);
+  --badge-radius:      var(--radius-xs);
+  --badge-font-weight: var(--font-weight-semibold);
+
+  /* Avatar */
+  --avatar-sm:         32px;
+  --avatar-md:         40px;
+  --avatar-lg:         64px;
+  --avatar-xl:         96px;
+  --avatar-radius:     var(--radius-full);
+
+  /* Scrollbar */
+  --scrollbar-width:   6px;
+  --scrollbar-track:   transparent;
+  --scrollbar-thumb:   var(--color-bg-tertiary);
+  --scrollbar-hover:   var(--color-surface-active);
+}
+
+
+/* ——————————————————————————————————————————————
+   REDUCED MOTION
+   Respect user preference for less animation.
+   —————————————————————————————————————————————— */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant:   0ms;
+    --duration-fast:      0ms;
+    --duration-base:      0ms;
+    --duration-moderate:  0ms;
+    --duration-slow:      0ms;
+    --duration-slower:    0ms;
+  }
+}
+
+
+/* ——————————————————————————————————————————————
+   CUSTOM SCROLLBAR
+   Thin, subtle scrollbar matching the dark theme.
+   —————————————————————————————————————————————— */
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}

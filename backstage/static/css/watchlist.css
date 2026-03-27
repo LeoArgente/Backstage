@@ -18,8 +18,6 @@
 
     .list-card:hover {
       border-color: var(--border-hover);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
     }
 
     .list-card-featured {
@@ -29,7 +27,6 @@
 
     .list-card-featured:hover {
       border-color: var(--blue);
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
     }
 
     .list-card-header {

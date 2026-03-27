@@ -52,7 +52,6 @@
 
 .advanced-search-form:hover {
   border-color: var(--blue-light);
-  box-shadow: var(--shadow-lg);
 }
 
 .search-input-group {
@@ -177,12 +176,9 @@
   background: var(--blue);
   border-color: var(--blue);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .genero-dropdown-item:active {
-  transform: translateY(0);
 }
 
 /* Section Headers */
@@ -240,9 +236,7 @@
 }
 
 .pessoa-card:hover {
-  transform: translateY(-4px);
   border-color: var(--blue-light);
-  box-shadow: var(--shadow-lg);
 }
 
 .pessoa-card img {
@@ -301,7 +295,6 @@
 }
 
 .search-results-page .movie-card:hover {
-  transform: translateY(-8px);
 }
 
 .search-results-page .movie-card a {
@@ -322,18 +315,15 @@
 }
 
 .search-results-page .movie-card:hover .movie-card-poster {
-  box-shadow: var(--shadow-xl);
 }
 
 .search-results-page .movie-card-poster img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-slow);
 }
 
 .search-results-page .movie-card:hover .movie-card-poster img {
-  transform: scale(1.05);
 }
 
 .search-results-page .movie-card-placeholder {
@@ -477,8 +467,6 @@
   background: var(--surface-hover);
   border-color: var(--blue-light);
   color: var(--blue-light);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 /* Suggestions Section */
@@ -532,11 +520,9 @@
 }
 
 .genero-tag:hover {
-  background: var(--btn-gradient);
+  background: #dc2626;
   border-color: transparent;
   color: white;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-red);
 }
 
 /* Responsive */

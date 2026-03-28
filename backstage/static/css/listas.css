@@ -10,7 +10,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 22px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   background: var(--color-brand);
   color: #fff;
@@ -84,7 +84,7 @@
   position: relative;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: none;
   padding: 24px;
   padding-bottom: 64px;
   height: 220px;
@@ -96,7 +96,6 @@
 
 .list-card:hover {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* Badge */
@@ -108,16 +107,30 @@
   color: rgba(255, 255, 255, 0.4);
   padding: 4px 10px;
   border-radius: 100px;
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.list-badge-private {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.list-badge-private img {
+  opacity: 0.35;
+  filter: invert(1);
+}
+
 /* Title */
 .list-title {
-  font-size: 1.1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   margin-bottom: 8px;
   color: #fff;
@@ -133,7 +146,7 @@
 /* Description */
 .list-description {
   color: rgba(255, 255, 255, 0.35);
-  font-size: 13px;
+  font-size: var(--font-size-xs);
   line-height: 1.5;
   margin-bottom: 12px;
   display: -webkit-box;
@@ -148,7 +161,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: rgba(255, 255, 255, 0.25);
 }
 
@@ -172,28 +185,24 @@
 }
 
 .action-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 
 .action-btn.delete-btn:hover {
-  border-color: rgba(220, 38, 38, 0.4);
   color: var(--color-brand);
 }
 
@@ -212,311 +221,13 @@
   text-align: center;
   padding: 60px 20px;
   color: rgba(255, 255, 255, 0.3);
-  font-size: 15px;
+  font-size: var(--font-size-sm);
 }
 
-/* ===== Modal Styles ===== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 20px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.modal-overlay.active {
-  display: flex;
-  opacity: 1;
-}
-
-.modal {
-  background: rgba(20, 28, 45, 0.95);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transform: translateY(-20px);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.modal-overlay.active .modal {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.modal-large {
-  max-width: 800px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 28px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.modal-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #fff;
-  flex: 1;
-}
-
-.modal-close {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.modal-close:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.modal-close svg {
-  width: 18px;
-  height: 18px;
-}
-
-.modal-form {
-  padding: 24px 28px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 14px;
-  transition: border-color 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-.edit-form-group {
-  margin-bottom: 20px;
-}
-
-.edit-form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.edit-form-group input,
-.edit-form-group textarea {
-  width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 14px;
-  transition: border-color 0.2s ease;
-}
-
-.edit-form-group input:focus,
-.edit-form-group textarea:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.checkbox-label {
-  display: flex !important;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  margin-bottom: 0;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.checkbox-label input[type="checkbox"] {
-  display: none;
-}
-
-.checkbox-custom {
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
-  position: relative;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
-  background: var(--color-brand);
-  border-color: var(--color-brand);
-}
-
-.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 5px;
-  height: 9px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.form-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.btn-modal-primary {
-  padding: 10px 24px;
-  background: var(--color-brand);
-  color: #fff;
-  border: none;
-  border-radius: 100px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.btn-modal-primary:hover {
-  background: var(--color-brand-active);
-}
-
-.btn-modal-secondary {
-  padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-modal-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.edit-modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
-/* ===== View/Edit Modal ===== */
-.popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 28px;
-  gap: 24px;
-}
-
-/* Movie cards inside modals - smaller */
-.modal .movies-grid {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 14px;
-}
-
-.close-popup {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 28px;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-  line-height: 1;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.close-popup:hover {
-  color: #fff;
-}
-
-.popup-content {
-  padding: 0 28px 28px;
-  max-height: calc(90vh - 120px);
-  overflow-y: auto;
-}
-
-.popup-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.popup-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.popup-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
+/* ===== Modal styles moved to modals.css ===== */
 
 .list-view-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: #fff;
   margin: 0;
@@ -527,7 +238,7 @@
 .list-view-description {
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.6;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   margin: 0 0 16px 0;
 }
 
@@ -536,7 +247,7 @@
   gap: 16px;
   flex-wrap: wrap;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--font-size-xs);
   color: rgba(255, 255, 255, 0.3);
   margin-bottom: 28px;
 }
@@ -571,7 +282,7 @@
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.4);
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: color 0.2s ease;

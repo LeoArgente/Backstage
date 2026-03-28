@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modals.css' %}">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
@@ -130,26 +133,13 @@
   {% include 'backstage/partials/_mobile_scripts.html' %}
 
     <script src="{% static 'js/intro.js' %}"></script>
+    <script src="{% static 'js/toast.js' %}"></script>
     <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
     <script src="{% static 'js/perfil-menu.js' %}" defer></script>
     <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>
     <script src="{% static 'js/notificacoes.js' %}" defer></script>
     
     <script>
-    // Navbar scroll effect
-    (function() {
-      const header = document.querySelector('.site-header');
-      if (header) {
-        window.addEventListener('scroll', function() {
-          if (window.scrollY > 60) {
-            header.classList.add('scrolled');
-          } else {
-            header.classList.remove('scrolled');
-          }
-        }, { passive: true });
-      }
-    })();
-
     // Sistema de Lista no Hero
     document.addEventListener('DOMContentLoaded', function() {
       // Adicionar evento ao botão "Adicionar à Lista" no hero
@@ -449,7 +439,7 @@
                 ${notaEscala5}
               </span>
               <div class="movie-card-bottom">
-                <span class="movie-card-year">${movie.ano}</span>
+                <span class="movie-card-year">${movie.ano || movie.ano_lancamento || ''}</span>
               </div>
             </div>
           </div>

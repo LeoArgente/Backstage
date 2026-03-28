@@ -427,9 +427,8 @@ class CommunityChat {
    * Show error message
    */
   showError(message) {
-    // You can implement a toast notification here
     console.error(message);
-    alert(message);
+    toast.error(message);
   }
 
   /**
@@ -621,11 +620,11 @@ class CommunityChat {
         this.showEmptyState();
         this.lastMessageId = null;
       } else {
-        alert(data.error || 'Erro ao limpar chat');
+        toast.error(data.error || 'Erro ao limpar chat');
       }
     } catch (error) {
       console.error('Error clearing chat:', error);
-      alert('Erro ao limpar chat');
+      toast.error('Erro ao limpar chat');
     }
   }
 

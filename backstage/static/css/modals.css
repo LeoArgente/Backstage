@@ -1,0 +1,1311 @@
+/* ================================================================
+   BACKSTAGE — Modal System
+   ================================================================
+   Single source of truth for ALL modal/popup styles.
+   Replaces modal-related CSS from:
+     - listas.css
+     - comunidade.css
+     - filme-detalhes.css
+     - diario.css
+     - comunidade-chat.css
+     - comunidade-detalhes.css
+
+   Import AFTER tokens.css and BEFORE page-specific stylesheets.
+
+   Sections:
+     1. Animation
+     2. Overlay
+     3. Modal Container
+     4. Header
+     5. Body / Content
+     6. Scrollbar
+     7. Form Elements
+     8. Checkbox
+     9. Actions / Footer
+    10. List Popup
+    11. List Items
+    12. Watched Popup
+    13. Review Modal
+    14. Favorite Modal
+    15. Responsive
+   ================================================================ */
+
+
+/* ================================================================
+   1. ANIMATION
+   ================================================================ */
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-30px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+
+/* ================================================================
+   2. OVERLAY
+   ================================================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+  padding: var(--space-5);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease-default),
+              visibility var(--duration-slow) var(--ease-default);
+}
+
+.modal-overlay.active {
+  visibility: visible;
+  opacity: 1;
+}
+
+.list-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-overlay-heavy);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: var(--space-20) var(--space-5) var(--space-5) var(--space-5);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-default);
+}
+
+.list-popup-overlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+
+/* ================================================================
+   3. MODAL CONTAINER
+   ================================================================ */
+
+.modal {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  border: none;
+  box-shadow: var(--shadow-5);
+  transform: translateY(-30px) scale(0.95);
+  opacity: 0;
+  transition: all var(--duration-slow) cubic-bezier(0.4, 0, 0.2, 1);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-overlay.active .modal {
+  animation: modalSlideIn var(--duration-slow) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.modal-large,
+.large-modal {
+  max-width: 800px;
+}
+
+
+/* ================================================================
+   4. HEADER
+   ================================================================ */
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: none;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.modal-header h2,
+.modal-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-snug);
+  margin: 0;
+  flex: 1;
+  text-align: left;
+}
+
+/* Close button — NO box, NO border, NO background */
+.modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast) var(--ease-default);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Alternative header (popup pattern) */
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  gap: var(--space-6);
+  flex-shrink: 0;
+}
+
+.popup-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  flex: 1;
+  line-height: var(--line-height-snug);
+}
+
+/* Close popup — NO box, NO border, NO background */
+.close-popup {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast) var(--ease-default);
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.close-popup:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+
+/* ================================================================
+   5. BODY / CONTENT
+   ================================================================ */
+
+.modal-content {
+  padding: var(--space-6) var(--space-8);
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.modal-form {
+  padding: var(--space-5) var(--space-6);
+  max-height: calc(85vh - 100px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.popup-content {
+  padding: 0 var(--space-6) var(--space-6);
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Movie cards inside modals — smaller grid */
+.modal .movies-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+}
+
+
+/* ================================================================
+   6. SCROLLBAR (inside modals)
+   ================================================================ */
+
+.modal-content::-webkit-scrollbar,
+.modal-form::-webkit-scrollbar,
+.popup-content::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.modal-content::-webkit-scrollbar-track,
+.modal-form::-webkit-scrollbar-track,
+.popup-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.modal-form::-webkit-scrollbar-thumb,
+.popup-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.modal-form::-webkit-scrollbar-thumb:hover,
+.popup-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* ================================================================
+   7. FORM ELEMENTS (inside modals)
+   ================================================================ */
+
+.form-group {
+  margin-bottom: var(--space-5);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.6);
+  text-align: left;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  transition: border-color var(--duration-fast) var(--ease-default),
+              background var(--duration-fast) var(--ease-default);
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+
+/* ================================================================
+   8. CHECKBOX
+   ================================================================ */
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  margin-bottom: 0;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-xs);
+  position: relative;
+  transition: all var(--duration-fast) var(--ease-default);
+  flex-shrink: 0;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+
+/* ================================================================
+   9. ACTIONS / FOOTER
+   ================================================================ */
+
+.form-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: var(--space-6);
+  padding-top: 0;
+  border-top: none;
+  width: 100%;
+}
+
+.form-actions button {
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: background var(--duration-fast) var(--ease-default),
+              color var(--duration-fast) var(--ease-default);
+  font-family: inherit;
+}
+
+/* Primary action — brand color, pill, NO shadow, NO gradient */
+.form-actions button[type="submit"],
+.btn-modal-primary {
+  background: var(--color-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.form-actions button[type="submit"]:hover,
+.btn-modal-primary:hover {
+  background: var(--color-brand-active);
+}
+
+/* Secondary / Cancel — transparent, pill */
+.form-actions button[type="button"],
+.btn-modal-secondary {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default),
+              color var(--duration-fast) var(--ease-default);
+}
+
+.form-actions button[type="button"]:hover,
+.btn-modal-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Edit modal actions — same pattern */
+.edit-modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-6);
+}
+
+
+/* ================================================================
+   10. LIST POPUP
+   ================================================================ */
+
+.list-popup {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-5);
+  border: none;
+  animation: modalSlideIn var(--duration-base) var(--ease-out);
+  margin: auto;
+}
+
+.popup-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+  margin-bottom: 0;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.popup-option:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.popup-option .icon,
+.popup-option.create-list .icon {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.popup-option svg {
+  color: var(--color-text-muted);
+  stroke: currentColor;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.popup-option span:last-child {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+
+/* ================================================================
+   11. LIST ITEMS
+   ================================================================ */
+
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.list-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.list-item.added {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.list-item-featured {
+  background: transparent;
+  border: none;
+  margin-bottom: 0;
+  padding: var(--space-3) var(--space-4);
+}
+
+.list-item-featured:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.list-item-featured .list-item-name {
+  font-size: var(--font-size-base);
+}
+
+.list-item-icon {
+  font-size: var(--font-size-xl);
+  margin-right: var(--space-3);
+}
+
+.list-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-item-name {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
+}
+
+.list-item-meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Add button */
+.list-item-add {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-default);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.list-item-add:hover {
+  color: #fff;
+}
+
+/* Checkbox indicator */
+.list-item-check {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast) var(--ease-default),
+              border-color var(--duration-fast) var(--ease-default);
+  flex-shrink: 0;
+}
+
+.list-item.added .list-item-check {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.list-item-check::after {
+  content: '\2713';
+  color: #fff;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-default);
+}
+
+.list-item.added .list-item-check::after {
+  opacity: 1;
+}
+
+/* Lists container scrollbar */
+#listsContainer {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: var(--space-4);
+}
+
+#listsContainer::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+#listsContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#listsContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+}
+
+#listsContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#loadingLists,
+#noLists {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+
+/* ================================================================
+   12. WATCHED POPUP
+   ================================================================ */
+
+.watched-popup {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  border: none;
+  max-height: 95vh;
+  box-shadow: var(--shadow-5);
+}
+
+/* Position overlay higher */
+#watchedPopupOverlay {
+  padding-top: var(--space-5);
+}
+
+.watched-popup .popup-header {
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6) var(--space-4) var(--space-6);
+}
+
+.watched-popup .popup-header h3.popup-title {
+  display: block;
+  flex: 1;
+  color: #fff;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.watched-popup .popup-content {
+  padding: var(--space-5) var(--space-6) var(--space-6) var(--space-6);
+  overflow-y: auto;
+}
+
+.watched-movie-card {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+  border: none;
+}
+
+.watched-poster {
+  width: 56px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+}
+
+.watched-movie-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.watched-movie-info h4 {
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  line-height: var(--line-height-snug);
+}
+
+.watched-movie-info p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+/* Star rating for watched modal */
+.star-rating-watched {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+}
+
+.star-watched {
+  background: none;
+  border: none;
+  font-size: var(--font-size-3xl);
+  cursor: pointer;
+  transition: color var(--duration-instant) var(--ease-default);
+  color: var(--color-star-empty);
+  padding: 0;
+  line-height: 1;
+}
+
+.star-watched:hover,
+.star-watched.active {
+  color: var(--color-star);
+}
+
+.star-watched.active ~ .star-watched {
+  color: var(--color-star);
+}
+
+/* Watched popup form overrides */
+.watched-popup .form-group {
+  margin-bottom: var(--space-3);
+}
+
+.watched-popup .form-group label {
+  display: block;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.watched-popup .form-group label .required {
+  color: var(--color-error-light);
+  margin-left: var(--space-0-5);
+}
+
+.watched-popup .form-group input[type="date"],
+.watched-popup .form-group input[type="text"],
+.watched-popup .form-group textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.04);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  transition: border-color var(--duration-fast) var(--ease-default),
+              background var(--duration-fast) var(--ease-default);
+  font-family: inherit;
+}
+
+.watched-popup .form-group textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.watched-popup .form-group input[type="date"]:focus,
+.watched-popup .form-group input[type="text"]:focus,
+.watched-popup .form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.watched-popup .form-group input::placeholder,
+.watched-popup .form-group textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.watched-popup .form-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: 0;
+}
+
+.watched-popup .form-actions button {
+  flex: 1;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default),
+              color var(--duration-fast) var(--ease-default),
+              border-color var(--duration-fast) var(--ease-default);
+  border: none;
+  font-size: var(--font-size-sm);
+}
+
+.watched-popup .btn-cancel {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: var(--border-width) solid rgba(255, 255, 255, 0.1);
+}
+
+.watched-popup .btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.watched-popup .btn-save {
+  background: var(--color-brand);
+  color: #fff;
+  font-weight: var(--font-weight-semibold);
+}
+
+.watched-popup .btn-save:hover {
+  background: var(--color-brand-active);
+}
+
+
+/* ================================================================
+   13. REVIEW MODAL
+   ================================================================ */
+
+.review-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-overlay-heavy);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: var(--space-5);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-default);
+}
+
+.review-modal-overlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+.review-modal {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-5);
+  border: none;
+  animation: modalSlideIn var(--duration-base) var(--ease-out);
+}
+
+.review-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-4) 0 var(--space-4);
+  flex-shrink: 0;
+}
+
+.review-modal-header h3 {
+  display: none;
+}
+
+/* Close button — NO box, NO border, NO background */
+.close-review-modal {
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-default);
+  padding: 0;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.close-review-modal:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.close-review-modal svg {
+  color: inherit;
+}
+
+.review-modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-movie-title {
+  text-align: center;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-6);
+  line-height: var(--line-height-snug);
+  padding: 0 var(--space-4);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.modal-star-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-2) 0 var(--space-6) 0;
+}
+
+.modal-rating-label {
+  display: none;
+}
+
+/* Larger stars in modal */
+.modal-star-rating .star {
+  font-size: 32px;
+  padding: 6px;
+}
+
+.modal-textarea-wrapper {
+  margin-bottom: var(--space-5);
+}
+
+.modal-review-text {
+  width: 100%;
+  min-height: 300px;
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.04);
+  border: var(--border-width) solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  resize: vertical;
+  transition: border-color var(--duration-fast) var(--ease-default);
+  font-family: inherit;
+}
+
+.modal-review-text:focus {
+  outline: none;
+  border-color: var(--color-brand);
+}
+
+.modal-review-text::placeholder {
+  color: var(--color-text-muted);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0 0 0;
+}
+
+.modal-spoiler-checkbox {
+  flex: 1;
+}
+
+.modal-submit-btn {
+  background: var(--color-brand);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+  white-space: nowrap;
+}
+
+.modal-submit-btn:hover {
+  background: var(--color-brand-active);
+}
+
+.modal-submit-btn:active {
+  opacity: 0.9;
+}
+
+.modal-submit-btn svg {
+  display: none;
+}
+
+
+/* ================================================================
+   14. FAVORITE MODAL
+   ================================================================ */
+
+div.favorite-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: var(--space-5);
+}
+
+div.favorite-modal-overlay.active {
+  display: flex;
+}
+
+.favorite-modal {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-5);
+  border: none;
+  animation: modalSlideIn var(--duration-base) var(--ease-out);
+}
+
+.favorite-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: none;
+}
+
+.favorite-modal-header h3 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+/* Close button — NO box, NO border, NO background */
+.close-favorite-modal {
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-default);
+  padding: 0;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.close-favorite-modal:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.close-favorite-modal svg {
+  color: inherit;
+}
+
+.favorite-modal-body {
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.favorite-modal-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+
+.favorite-star-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.favorite-star {
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  transition: color var(--duration-instant) var(--ease-default),
+              transform var(--duration-fast) var(--ease-out);
+  color: var(--color-star-empty);
+  padding: var(--space-1);
+  line-height: 1;
+}
+
+.favorite-star:hover,
+.favorite-star.active {
+  color: var(--color-star);
+}
+
+.favorite-selected-rating {
+  text-align: center;
+  margin-top: var(--space-2);
+  color: var(--color-star);
+  font-weight: var(--font-weight-semibold);
+}
+
+.favorite-modal-footer {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-top: var(--space-6);
+}
+
+.favorite-cancel-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default),
+              color var(--duration-fast) var(--ease-default);
+}
+
+.favorite-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.favorite-submit-btn {
+  background: var(--color-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.favorite-submit-btn:hover {
+  background: var(--color-brand-active);
+}
+
+.favorite-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* ================================================================
+   15. RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 768px) {
+  .review-modal {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .review-modal-header,
+  .review-modal-body {
+    padding: var(--space-4);
+  }
+
+  .modal-star-rating {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .modal-star-rating .star-rating {
+    justify-content: center;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    max-width: calc(100% - 20px);
+    margin: 10px;
+  }
+
+  .modal-header {
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+
+  .modal-header h2,
+  .modal-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+  }
+
+  .modal-content,
+  .modal-form {
+    padding: var(--space-4);
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions button,
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .list-popup {
+    max-width: 95%;
+  }
+
+  .popup-header h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  .popup-option {
+    padding: var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+}

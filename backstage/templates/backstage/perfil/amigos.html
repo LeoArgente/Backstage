@@ -11,6 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
   <link rel="stylesheet" href="{% static 'css/amigos.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
@@ -263,6 +265,7 @@
   {% include 'backstage/partials/_mobile_bottom_nav.html' %}
   {% include 'backstage/partials/_mobile_scripts.html' %}
 
+  <script src="{% static 'js/toast.js' %}"></script>
   <script src="{% static 'js/perfil-menu.js' %}"></script>
   <script src="{% static 'js/busca-sugestoes.js' %}"></script>
   <script src="{% static 'js/amigos.js' %}"></script>

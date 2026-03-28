@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modals.css' %}">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
   <link rel="stylesheet" href="{% static 'css/listas.css' %}?v=2.0">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
@@ -18,7 +21,7 @@
 </head>
 <body>
   {% include 'backstage/partials/_mobile_header.html' %}
-  <header class="site-header scrolled">
+  <header class="site-header">
     <div class="container">
       <nav class="nav-primary">
         <a class="brand" href="{% url 'backstage:index' %}">
@@ -85,7 +88,7 @@
         <div class="lists-section" data-section="my-lists">
           {% for lista in minhas_listas %}
             <div class="list-card" data-list-id="{{ lista.id }}">
-              <span class="list-badge">{% if lista.publica %}Pública{% else %}Privada{% endif %}</span>
+              {% if not lista.publica %}<span class="list-badge list-badge-private"><img src="{% static 'icons/lock-alt-svgrepo-com.svg' %}" width="16" height="16" alt="Privada"></span>{% endif %}
               <h3 class="list-title">{{ lista.nome }}</h3>
               <p class="list-description">{{ lista.descricao|default:"Sem descrição" }}</p>
               <div class="list-meta">
@@ -257,6 +260,7 @@
   {% include 'backstage/partials/_mobile_bottom_nav.html' %}
   {% include 'backstage/partials/_mobile_scripts.html' %}
 
+  <script src="{% static 'js/toast.js' %}"></script>
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/listas.js' %}?v=2.7" defer></script>
   <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>

@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modals.css' %}">
   <link rel="stylesheet" href="{% static 'css/comunidade.css' %}?v=1.2">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}?v=1.0">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}?v=1.0">
@@ -186,7 +189,7 @@
           <button class="btn-join" data-slug="{{ comunidade.slug }}">Entrar</button>
         </div>
         {% empty %}
-        <p style="color: #888; text-align: center; width: 100%; padding: 2rem;">Nenhuma comunidade pública disponível no momento.</p>
+        <p class="no-posts" style="grid-column: 1 / -1;">Nenhuma comunidade pública disponível no momento.</p>
         {% endfor %}
 
       </div>
@@ -196,6 +199,7 @@
           <!-- Posts will be populated by JavaScript -->
         </div>
 
+        {% if comunidades_publicas %}
         <div class="load-more-section">
           <button class="btn btn-secondary btn-large load-more-btn" id="load-more">
             Carregar mais comunidades
@@ -204,9 +208,7 @@
             </svg>
           </button>
         </div>
-      </div>
-
-    </div>
+        {% endif %}
   </main>
 
   <!-- Create Post Modal -->
@@ -395,8 +397,8 @@
     }
 
     .photo-preview:hover {
-      border-color: #dc2626;
-      background: rgba(220, 38, 38, 0.05);
+      border-color: var(--color-brand);
+      background: var(--color-brand-subtle);
     }
 
     .photo-preview svg {
@@ -420,7 +422,7 @@
       position: relative;
       display: block;
       border-radius: 10px;
-      border: 2px solid #dc2626;
+      border: 2px solid var(--color-brand);
     }
 
     .photo-preview.has-image svg,
@@ -459,6 +461,7 @@
     });
   </script>
 
+  <script src="{% static 'js/toast.js' %}"></script>
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/comunidade.js' %}?v=1.1" defer></script>
   <script src="{% static 'js/filter-popup.js' %}" defer></script>

@@ -42,14 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (file) {
         // Validar tipo de arquivo
         if (!file.type.startsWith('image/')) {
-          alert('Por favor, selecione apenas arquivos de imagem.');
+          toast.error('Por favor, selecione apenas arquivos de imagem.');
           fotoInput.value = '';
           return;
         }
 
         // Validar tamanho (5MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert('A imagem deve ter no máximo 5MB.');
+          toast.error('A imagem deve ter no máximo 5MB.');
           fotoInput.value = '';
           return;
         }
@@ -186,13 +186,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!username) {
           e.preventDefault();
-          alert('Nome de usuário é obrigatório.');
+          toast.error('Nome de usuário é obrigatório.');
           return;
         }
 
         if (!email) {
           e.preventDefault();
-          alert('Email é obrigatório.');
+          toast.error('Email é obrigatório.');
           return;
         }
 
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           e.preventDefault();
-          alert('Por favor, insira um email válido.');
+          toast.error('Por favor, insira um email válido.');
           return;
         }
       }
@@ -214,13 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (instagram && !urlRegex.test(instagram)) {
           e.preventDefault();
-          alert('Por favor, insira uma URL válida para o Instagram (deve começar com http:// ou https://).');
+          toast.error('Por favor, insira uma URL válida para o Instagram (deve começar com http:// ou https://).');
           return;
         }
 
         if (twitter && !urlRegex.test(twitter)) {
           e.preventDefault();
-          alert('Por favor, insira uma URL válida para o Twitter (deve começar com http:// ou https://).');
+          toast.error('Por favor, insira uma URL válida para o Twitter (deve começar com http:// ou https://).');
           return;
         }
       }
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!codigo) {
           e.preventDefault();
-          alert('Por favor, insira um código.');
+          toast.error('Por favor, insira um código.');
           return;
         }
 
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const codigoRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
         if (!codigoRegex.test(codigo)) {
           e.preventDefault();
-          alert('O código deve estar no formato XXXX-XXXX-XXXX.');
+          toast.error('O código deve estar no formato XXXX-XXXX-XXXX.');
           return;
         }
       }

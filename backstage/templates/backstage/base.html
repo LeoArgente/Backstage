@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modals.css' %}">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
   {% block extra_css %}{% endblock %}
@@ -20,7 +23,7 @@
 
   {% include 'backstage/partials/_mobile_header.html' %}
 
-  <header class="site-header scrolled" id="siteHeader">
+  <header class="site-header" id="siteHeader">
     <div class="container">
       <nav class="nav-primary">
         <a class="brand" href="{% url 'backstage:index' %}">
@@ -169,6 +172,7 @@
   {% include 'backstage/partials/_mobile_bottom_nav.html' %}
   {% include 'backstage/partials/_mobile_scripts.html' %}
 
+  <script src="{% static 'js/toast.js' %}"></script>
   <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
   <script src="{% static 'js/perfil-menu.js' %}" defer></script>
   <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>

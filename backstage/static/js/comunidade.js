@@ -1,28 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Função para mostrar notificações
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto remover após 5 segundos
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 5000);
-        
-        // Remover ao clicar no X
-        notification.querySelector('.notification-close').onclick = () => {
-            notification.remove();
-        };
-    }
-
     // Função para obter CSRF token
     function getCsrfToken() {
         const token = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -359,102 +335,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Tornar showNotification global para uso em outros scripts
-    window.showNotification = showNotification;
-
     // Tornar getCsrfToken global para uso em outros scripts
     window.getCsrfToken = getCsrfToken;
 });
 
-// Estilos CSS para as notificações (inseridos dinamicamente)
-const style = document.createElement('style');
-style.textContent = `
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(30, 41, 59, 0.98);
-        border-radius: 8px;
-        padding: 16px 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-width: 300px;
-        max-width: 450px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-left: 4px solid #3b82f6;
-        color: #ffffff;
-        font-size: 0.9375rem;
-        font-weight: 500;
-    }
-
-    .notification.success {
-        border-left-color: #10b981;
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        color: #10b981;
-    }
-
-    .notification.error {
-        border-left-color: #ef4444;
-        background: rgba(239, 68, 68, 0.15);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #ef4444;
-    }
-
-    .notification.warning {
-        border-left-color: #f59e0b;
-        background: rgba(245, 158, 11, 0.15);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        color: #f59e0b;
-    }
-
-    .notification.info {
-        border-left-color: #3b82f6;
-        background: rgba(59, 130, 246, 0.15);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        color: #3b82f6;
-    }
-
-    .notification span {
-        color: inherit;
-        flex: 1;
-    }
-
-    .notification-close {
-        background: none;
-        border: none;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-left: 12px;
-        color: inherit;
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
-        padding: 0;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-
-    .notification-close:hover {
-        opacity: 1;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);
 
 // ===== Popup de Criar Comunidade =====
 document.addEventListener('DOMContentLoaded', function() {

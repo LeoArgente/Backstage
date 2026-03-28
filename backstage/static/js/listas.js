@@ -104,15 +104,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!data) return;
 
                 if (data.success) {
-                    alert('Lista atualizada com sucesso!');
+                    toast.success('Lista atualizada com sucesso!');
                     closeEditModal();
                     location.reload();
                 } else {
-                    alert('Erro: ' + data.message);
+                    toast.error(data.message || 'Erro ao atualizar lista');
                 }
             })
             .catch(error => {
-                alert('Erro ao editar lista');
+                toast.error('Erro ao editar lista');
             });
         });
     }
@@ -188,14 +188,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data) return; // Se redirecionou, não processar
 
             if (data.success) {
-                alert('Lista criada com sucesso!');
+                toast.success('Lista criada com sucesso!');
                 location.reload(); // Recarrega para mostrar a nova lista
             } else {
-                alert('Erro: ' + data.message);
+                toast.error(data.message || 'Erro ao criar lista');
             }
         })
         .catch(error => {
-            alert('Erro ao criar lista');
+            toast.error('Erro ao criar lista');
         });
     });
 
@@ -231,15 +231,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data) return; // Se redirecionou, não processar
 
             if (data.success) {
-                alert('Lista atualizada com sucesso!');
+                toast.success('Lista atualizada com sucesso!');
                 closeEditModal();
                 location.reload(); // Recarrega para mostrar as alterações
             } else {
-                alert('Erro: ' + data.message);
+                toast.error(data.message || 'Erro ao atualizar lista');
             }
         })
         .catch(error => {
-            alert('Erro ao editar lista');
+            toast.error('Erro ao editar lista');
         });
     });
 
@@ -352,11 +352,11 @@ window.editList = function(listId) {
 
             document.getElementById('edit-list-modal').classList.add('active');
         } else {
-            alert('Erro ao carregar dados da lista: ' + data.message);
+            toast.error(data.message || 'Erro ao carregar dados da lista');
         }
     })
     .catch(error => {
-        alert('Erro ao carregar lista para edição');
+        toast.error('Erro ao carregar lista para edição');
     });
 }
 
@@ -380,18 +380,18 @@ window.deleteList = function(listId, listName) {
             if (!data) return; // Se redirecionou, não processar
 
             if (data.success) {
-                alert(data.message);
+                toast.info(data.message);
                 // Remove the list card from the page
                 const listCard = document.querySelector(`[data-list-id="${listId}"]`);
                 if (listCard) {
                     listCard.remove();
                 }
             } else {
-                alert('Erro: ' + data.message);
+                toast.error(data.message || 'Erro ao deletar lista');
             }
         })
         .catch(error => {
-            alert('Erro ao deletar lista');
+            toast.error('Erro ao deletar lista');
         });
     }
 }
@@ -455,11 +455,11 @@ window.viewList = function(listId) {
 
             document.getElementById('view-list-modal').classList.add('active');
         } else {
-            alert('Erro ao carregar lista: ' + data.message);
+            toast.error(data.message || 'Erro ao carregar lista');
         }
     })
     .catch(error => {
-        alert('Erro ao visualizar lista');
+        toast.error('Erro ao visualizar lista');
     });
 }
 
@@ -525,11 +525,11 @@ window.removeItemFromList = function(listId, tmdbId, tipo) {
                 // Reload the edit modal to show updated list
                 editList(listId);
             } else {
-                alert('Erro ao remover item: ' + data.message);
+                toast.error(data.message || 'Erro ao remover item');
             }
         })
         .catch(error => {
-            alert('Erro ao remover item da lista');
+            toast.error('Erro ao remover item da lista');
         });
     }
 }
@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('[LOAD MORE LISTS] Erro ao carregar listas:', error);
-                alert('Erro ao carregar mais listas. Tente novamente.');
+                toast.error('Erro ao carregar mais listas. Tente novamente.');
                 currentPage--; // Revert page increment
 
                 // Reset button

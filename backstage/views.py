@@ -1807,6 +1807,32 @@ def detalhes_filme(request, tmdb_id):
 
     dados_filme = obter_detalhes_com_cache(tmdb_id)
 
+    # Filtrar plataformas: deduplicar por nome base e limpar variantes
+    if dados_filme and dados_filme.get('plataformas'):
+        import re
+        # Sufixos a remover para extrair nome base
+        _SUFFIXES = re.compile(
+            r'\s+('
+            r'with\s+ads|standard|basic|premium|'
+            r'amazon\s+channel|apple\s+tv\s+channel|'
+            r'roku\s+premium\s+channel|channel'
+            r').*$',
+            re.IGNORECASE
+        )
+
+        nomes_vistos = set()
+        plataformas_filtradas = []
+        for p in dados_filme['plataformas']:
+            nome = p.get('nome', '')
+            nome_base = _SUFFIXES.sub('', nome).strip()
+            # Normalizar variações de "+" vs "Plus"
+            chave = nome_base.lower().replace('+', ' plus').replace('  ', ' ')
+            if chave not in nomes_vistos:
+                nomes_vistos.add(chave)
+                p['nome'] = nome_base
+                plataformas_filtradas.append(p)
+        dados_filme['plataformas'] = plataformas_filtradas
+
     # Formatar data de lançamento para formato brasileiro
     if dados_filme.get('data_lancamento'):
         from datetime import datetime
@@ -1896,6 +1922,21 @@ def detalhes_filme(request, tmdb_id):
     if elenco_principal:
         logger.debug(f"[DEBUG] Exemplo de membro do elenco: {elenco_principal[0]}")
 
+    # Verificar se o filme está nos cinemas
+    from datetime import datetime, timedelta
+    em_cartaz = False
+    tem_streaming = any(
+        p.get('tipo') == 'flatrate' for p in dados_filme.get('plataformas', [])
+    )
+    if dados_filme.get('data_lancamento') and dados_filme.get('status') == 'Released':
+        try:
+            data_lancamento = datetime.strptime(dados_filme['data_lancamento'], '%Y-%m-%d')
+            dias_desde_lancamento = (datetime.now() - data_lancamento).days
+            if 0 <= dias_desde_lancamento <= 90 and not tem_streaming:
+                em_cartaz = True
+        except (ValueError, TypeError):
+            pass
+
     context = {
         'filme': dados_filme,
         'filme_local': filme_local,
@@ -1905,7 +1946,9 @@ def detalhes_filme(request, tmdb_id):
         'tmdb_image_base': settings.TMDB_IMAGE_BASE_URL,
         'crew_data_json': json.dumps(equipe),
         'cast_data_json': json.dumps(elenco_principal),
-        'ratings_omdb': ratings_omdb
+        'ratings_omdb': ratings_omdb,
+        'em_cartaz': em_cartaz,
+        'tem_streaming': tem_streaming,
     }
     return render(request, "backstage/filmes/detalhes/movie_details.html", context)
 
@@ -3323,9 +3366,11 @@ def diary(request):
 
 @api_login_required
 def diario_entradas(request):
-    """API para buscar entradas do diário"""
+    """API para buscar entradas do diário (filmes + séries)"""
     from datetime import datetime
-    
+    from .models import DiarioSerie
+    from .services.tmdb import buscar_detalhes_serie
+
     usuario = request.user
     ano = request.GET.get('ano')
     mes = request.GET.get('mes')
@@ -3387,9 +3432,49 @@ def diario_entradas(request):
             'nota': entrada.nota,
             'assistido_com': entrada.assistido_com or '',
             'generos': filme.categoria or '',
+            'tipo': 'filme',
         })
-    
-    logger.debug(f"Retornando {len(entradas_data)} entradas")
+
+    # Buscar entradas de séries também
+    entradas_series = DiarioSerie.objects.filter(usuario=usuario).select_related('serie')
+
+    if ano and mes:
+        entradas_series = entradas_series.filter(
+            data_assistido__year=int(ano),
+            data_assistido__month=int(mes)
+        )
+
+    for entrada in entradas_series:
+        serie = entrada.serie
+
+        # Se a série não tem título ou poster, buscar do TMDb
+        if (not serie.titulo or not serie.poster) and serie.tmdb_id:
+            try:
+                detalhes = buscar_detalhes_serie(serie.tmdb_id)
+                if detalhes and isinstance(detalhes, dict):
+                    if not serie.titulo:
+                        serie.titulo = detalhes.get('titulo') or detalhes.get('name') or 'Sem título'
+                    if not serie.poster and detalhes.get('poster_path'):
+                        serie.poster = f"https://image.tmdb.org/t/p/w500{detalhes.get('poster_path')}"
+                    serie.save()
+            except Exception as e:
+                logger.error(f"Erro ao buscar detalhes da série: {e}")
+
+        entradas_data.append({
+            'id': entrada.id,
+            'filme_id': serie.tmdb_id or serie.id,
+            'titulo': serie.titulo or 'Sem título',
+            'poster': serie.poster or '',
+            'ano': entrada.data_assistido.year,
+            'mes': entrada.data_assistido.month,
+            'dia': entrada.data_assistido.day,
+            'nota': entrada.nota,
+            'assistido_com': entrada.assistido_com or '',
+            'generos': getattr(serie, 'categoria', '') or '',
+            'tipo': 'serie',
+        })
+
+    logger.debug(f"Retornando {len(entradas_data)} entradas (filmes + séries)")
     return JsonResponse({'success': True, 'entradas': entradas_data})
 
 
@@ -3585,21 +3670,28 @@ def diario_adicionar(request):
 @api_login_required
 @require_http_methods(['DELETE', 'POST'])
 def diario_remover(request, entrada_id):
-    """API para remover entrada do diário"""
+    """API para remover entrada do diário (filme ou série)"""
     try:
-        entrada = get_object_or_404(
-            DiarioFilme,
-            id=entrada_id,
-            usuario=request.user
-        )
-        
+        # Tentar encontrar como filme primeiro
+        entrada = DiarioFilme.objects.filter(id=entrada_id, usuario=request.user).first()
+        if not entrada:
+            # Tentar como série
+            from .models import DiarioSerie
+            entrada = DiarioSerie.objects.filter(id=entrada_id, usuario=request.user).first()
+
+        if not entrada:
+            return JsonResponse({
+                'success': False,
+                'message': 'Entrada não encontrada'
+            })
+
         entrada.delete()
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Entrada removida do diário'
         })
-    
+
     except Exception as e:
         return JsonResponse({
             'success': False,

@@ -70,7 +70,9 @@ def buscar_filmes_populares(page=1):
         'poster_path': filme.get('poster_path'),
         'backdrop_path': filme.get('backdrop_path'),
         'ano_lancamento': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
-        'nota_tmdb': filme.get('vote_average')
+        'ano': filme.get('release_date', '')[:4] if filme.get('release_date') else '',
+        'nota_tmdb': filme.get('vote_average'),
+        'nota': filme.get('vote_average', 0),
     } for filme in filmes]
 
 def buscar_filmes_em_cartaz(page=1):
@@ -317,15 +319,51 @@ def montar_payload_agregado(id_tmdb: int, region: str = None):
 
     plataformas = []
     if provs:
+        # Serviços prioritários (nome base → mostrar primeiro)
+        _PRIORITY = [
+            "Netflix", "Amazon Prime Video", "Disney Plus", "HBO Max", "Max",
+            "Apple TV Plus", "Paramount Plus", "Globoplay", "Star Plus",
+            "Crunchyroll", "Mubi", "Spotify", "YouTube Premium",
+        ]
+
+        nomes_vistos = set()  # evita duplicatas por nome base
+
         for tipo in ("flatrate", "rent", "buy", "ads", "free"):
             items = provs.get(tipo, [])
-            if items:
-                for p in items:
-                    plataformas.append({
-                        "nome": p.get("provider_name"),
-                        "logo_path": p.get("logo_path"),
-                        "tipo": tipo
-                    })
+            if not items:
+                continue
+            for p in items:
+                nome = p.get("provider_name", "")
+                # Extrair nome base removendo sufixos de variantes
+                import re
+                nome_base = re.sub(
+                    r'\s+(with\s+ads|standard|basic|premium|'
+                    r'amazon\s+channel|apple\s+tv\s+channel|'
+                    r'roku\s+premium\s+channel|channel).*$',
+                    '', nome, flags=re.IGNORECASE
+                ).strip()
+                # Normalizar "+" vs "Plus" para deduplicação
+                chave = nome_base.lower().replace('+', ' plus').replace('  ', ' ')
+
+                if chave in nomes_vistos:
+                    continue
+                nomes_vistos.add(chave)
+
+                plataformas.append({
+                    "nome": nome_base,
+                    "logo_path": p.get("logo_path"),
+                    "tipo": tipo
+                })
+
+        # Ordenar: prioritários primeiro, depois alfabético
+        def _sort_key(p):
+            nome_lower = p["nome"].lower()
+            for i, prio in enumerate(_PRIORITY):
+                if prio.lower() in nome_lower or nome_lower in prio.lower():
+                    return (0, i)
+            return (1, p["nome"])
+
+        plataformas.sort(key=_sort_key)
 
     # Retorna com campos padronizados - garantir que listas sejam sempre listas vazias, nunca None
     return {

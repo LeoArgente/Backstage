@@ -11,6 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modals.css' %}">
+  <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
   <link rel="stylesheet" href="{% static 'css/diario.css' %}?v=2.1">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}" />
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
@@ -55,193 +59,113 @@
 
   <div class="diary-container">
     <div class="container">
-      <!-- Page Header with Statistics -->
-      <div class="diary-page-header">
-        <div>
-          <h1 class="diary-title">Meu Diário</h1>
-          <p class="diary-subtitle">Acompanhe todos os filmes e séries que você assistiu</p>
+      <div class="diary-header">
+        <h1 class="diary-title">Meu Diário</h1>
+        <button class="diary-add-btn" onclick="openAddMovieModalWithDatePicker()">Adicionar ao Diário</button>
+      </div>
+
+      <p class="diary-stats">
+        <strong>{{ total_filmes }}</strong> filmes &middot;
+        <strong>{{ filmes_mes }}</strong> este mês
+        {% if genero_favorito %}&middot; Gênero favorito: <strong>{{ genero_favorito }}</strong>{% endif %}
+      </p>
+
+      <div class="diary-filters">
+        <div class="diary-filter-group">
+          <button class="diary-filter-btn active" data-filter="genre" data-value="">Todos</button>
+          {% for genre, count in genre_counts.items %}
+          <button class="diary-filter-btn" data-filter="genre" data-value="{{ genre }}">{{ genre }}</button>
+          {% endfor %}
         </div>
-        <!-- Statistics Cards -->
-        <div class="diary-stats">
-          <div class="stat-card">
-            <div class="stat-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                <path d="M2 7h20M7 3v4M17 3v4" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </div>
-            <h3>Total Assistido</h3>
-            <p class="stat-number">{{ total_filmes }}</p>
+        <div class="diary-filter-group">
+          <div class="diary-star-filter">
+            <button class="diary-star-btn" data-rating="1">★</button>
+            <button class="diary-star-btn" data-rating="2">★</button>
+            <button class="diary-star-btn" data-rating="3">★</button>
+            <button class="diary-star-btn" data-rating="4">★</button>
+            <button class="diary-star-btn" data-rating="5">★</button>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <path d="M12 6v6l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <h3>Este Mês</h3>
-            <p class="stat-number">{{ filmes_mes }}</p>
-          </div>
+          <button class="diary-filter-clear" id="clearRatingFilter">Limpar</button>
         </div>
       </div>
 
-      <button class="btn-add-movie" onclick="openAddMovieModalWithDatePicker()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Adicionar Filme ou Série ao Diário
-        </button>
-
-      <!-- Main Content: Calendar and Filters -->
-      <div class="diary-main">
-        <!-- Calendar Section -->
-        <div class="calendar-section">
-          <div class="calendar-header">
-            <button class="calendar-nav-btn" id="prevMonth">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <h2 class="calendar-title" id="currentMonth">{{ mes_atual }}</h2>
-            <button class="calendar-nav-btn" id="nextMonth">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </div>
-
-          <div class="calendar-grid">
-            <div class="calendar-header-row">
-              <div class="calendar-day-header">Data</div>
-              <div class="calendar-day-header">Filme/Série</div>
-              <div class="calendar-day-header">Avaliação</div>
-              <div class="calendar-day-header">Assistido com</div>
-              <div class="calendar-day-header">Ações</div>
-            </div>
-
-            <div id="calendarDays">
-              <!-- Days will be populated by JavaScript -->
-            </div>
-          </div>
+      <div class="calendar-section">
+        <div class="calendar-nav">
+          <button class="calendar-nav-btn" id="prevMonth">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <h2 class="calendar-month-title" id="currentMonth"></h2>
+          <button class="calendar-nav-btn" id="nextMonth">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
         </div>
-
-        <!-- Filters Sidebar -->
-        <aside class="filters-sidebar">
-          {% if genero_favorito %}
-          <div class="favorite-genre-card">
-            <div class="favorite-genre-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="favorite-genre-content">
-              <span class="favorite-genre-label">Seu gênero favorito é</span>
-              <span class="favorite-genre-name">{{ genero_favorito }}</span>
-            </div>
-          </div>
-          {% endif %}
-
-          <div class="filters-header">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <h3>Filtros</h3>
-          </div>
-
-          <div class="filter-group">
-            <h4>Gênero</h4>
-            <button class="filter-option" data-filter="genre" data-value="">Todos</button>
-            <div class="filter-list">
-              <button class="filter-option" data-filter="genre" data-value="Action">Action <span class="filter-count">{{ genre_counts.Action|default:0 }}</span></button>
-              <button class="filter-option" data-filter="genre" data-value="Crime">Crime <span class="filter-count">{{ genre_counts.Crime|default:0 }}</span></button>
-              <button class="filter-option" data-filter="genre" data-value="Drama">Drama <span class="filter-count">{{ genre_counts.Drama|default:0 }}</span></button>
-              <button class="filter-option" data-filter="genre" data-value="Sci-Fi">Sci-Fi <span class="filter-count">{{ genre_counts.SciFi|default:0 }}</span></button>
-              <button class="filter-option" data-filter="genre" data-value="Thriller">Thriller <span class="filter-count">{{ genre_counts.Thriller|default:0 }}</span></button>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <h4>Avaliação</h4>
-            <div class="star-rating-filter">
-              <button type="button" class="star-filter" data-rating="1">★</button>
-              <button type="button" class="star-filter" data-rating="2">★</button>
-              <button type="button" class="star-filter" data-rating="3">★</button>
-              <button type="button" class="star-filter" data-rating="4">★</button>
-              <button type="button" class="star-filter" data-rating="5">★</button>
-            </div>
-            <button class="filter-option clear-rating-filter" style="margin-top: 0.5rem; font-size: 0.875rem;">
-              Limpar filtro
-            </button>
-          </div>
-        </aside>
+        <div class="diary-timeline" id="calendarDays"></div>
       </div>
     </div>
   </div>
 
   <!-- Modal para adicionar filme -->
-  <div class="modal" id="addMovieModal">
-    <div class="modal-content">
+  <div class="modal-overlay" id="addMovieModal">
+    <div class="modal">
       <div class="modal-header">
-        <h2>Adicionar ao Diário <span id="selectedDate"></span></h2>
+        <h2>Adicionar ao Diário</h2>
         <button class="modal-close" onclick="closeAddMovieModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
-      <div class="modal-body">
-        <form id="addMovieForm">
-          <div class="form-group" id="datePickerGroup">
-            <label for="movieDate">Data em que assistiu</label>
-            <input type="date" id="movieDate" class="form-input">
-          </div>
 
-          <div class="form-group">
-            <label for="movieSearch">Buscar Filme ou Série</label>
-            <input type="text" id="movieSearch" placeholder="Digite o nome do filme ou série..." autocomplete="off">
-            <div id="movieSearchResults" class="search-results"></div>
-          </div>
+      <form class="modal-form" id="addMovieForm">
+        <div class="form-group" id="datePickerGroup">
+          <label for="movieDate">Data em que assistiu</label>
+          <input type="date" id="movieDate">
+        </div>
 
-          <div class="form-group" id="selectedMovieInfo" style="display: none;">
-            <div class="selected-movie-card">
-              <img id="selectedMoviePoster" src="" alt="Poster">
-              <div class="selected-movie-details">
-                <h3 id="selectedMovieTitle"></h3>
-                <p id="selectedMovieYear"></p>
-              </div>
+        <div class="form-group" style="position: relative;">
+          <label for="movieSearch">Buscar Filme ou Série</label>
+          <input type="text" id="movieSearch" placeholder="Digite o nome do filme ou série..." autocomplete="off">
+          <div id="movieSearchResults" class="search-results"></div>
+        </div>
+
+        <div class="form-group" id="selectedMovieInfo" style="display: none;">
+          <div class="selected-movie-card">
+            <img id="selectedMoviePoster" src="" alt="Poster">
+            <div class="selected-movie-details">
+              <h3 id="selectedMovieTitle"></h3>
+              <p id="selectedMovieYear"></p>
             </div>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label>Avaliação</label>
-            <div class="star-rating" role="radiogroup" aria-label="Avaliação">
-              <input type="radio" name="rating" value="5" id="star5"><label for="star5">★</label>
-              <input type="radio" name="rating" value="4" id="star4"><label for="star4">★</label>
-              <input type="radio" name="rating" value="3" id="star3"><label for="star3">★</label>
-              <input type="radio" name="rating" value="2" id="star2"><label for="star2">★</label>
-              <input type="radio" name="rating" value="1" id="star1"><label for="star1">★</label>
-            </div>
+        <div class="form-group">
+          <label>Avaliação</label>
+          <div class="star-rating" role="radiogroup" aria-label="Avaliação">
+            <input type="radio" name="rating" value="5" id="star5"><label for="star5">★</label>
+            <input type="radio" name="rating" value="4" id="star4"><label for="star4">★</label>
+            <input type="radio" name="rating" value="3" id="star3"><label for="star3">★</label>
+            <input type="radio" name="rating" value="2" id="star2"><label for="star2">★</label>
+            <input type="radio" name="rating" value="1" id="star1"><label for="star1">★</label>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="watchedWith">Assistido com (opcional)</label>
-            <input type="text" id="watchedWith" placeholder="Buscar amigos..." autocomplete="off">
-            <div id="friendsSearchResults" class="search-results"></div>
-            <input type="hidden" id="selectedFriendId">
-          </div>
+        <div class="form-group" style="position: relative;">
+          <label for="watchedWith">Assistido com (opcional)</label>
+          <input type="text" id="watchedWith" placeholder="Buscar amigos..." autocomplete="off">
+          <div id="friendsSearchResults" class="search-results"></div>
+          <input type="hidden" id="selectedFriendId">
+        </div>
 
-          <input type="hidden" id="selectedMovieId">
-          <input type="hidden" id="selectedDay">
+        <input type="hidden" id="selectedMovieId">
+        <input type="hidden" id="selectedDay">
+        <span id="selectedDate" style="display:none;"></span>
 
-          <div class="modal-actions">
-            <button type="button" class="btn-secondary" onclick="closeAddMovieModal()">Cancelar</button>
-            <button type="submit" class="btn-primary">Adicionar</button>
-          </div>
-        </form>
-      </div>
+        <div class="form-actions">
+          <button type="button" onclick="closeAddMovieModal()">Cancelar</button>
+          <button type="submit">Adicionar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -249,6 +173,7 @@
   {% include 'backstage/partials/_mobile_bottom_nav.html' %}
   {% include 'backstage/partials/_mobile_scripts.html' %}
 
+  <script src="{% static 'js/toast.js' %}"></script>
   <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
   <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>
   <script src="{% static 'js/perfil-menu.js' %}" defer></script>

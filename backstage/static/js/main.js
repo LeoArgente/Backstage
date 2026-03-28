@@ -1,3 +1,17 @@
+// ===== Navbar Scroll Effect (Global) =====
+(function() {
+  const header = document.querySelector('.site-header');
+  if (header) {
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 60) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    }, { passive: true });
+  }
+})();
+
 // ===== Movie Data will be fetched from API =====
 // Data now comes from /api/filmes-home/ endpoint with real TMDb data
 let moviesData = []; // Will be populated from API
@@ -582,7 +596,7 @@ function createMovieCard(movie) {
             ${notaEscala5}
           </span>
           <div class="movie-card-bottom">
-            <span class="movie-card-year">${movie.ano}</span>
+            <span class="movie-card-year">${movie.ano || movie.ano_lancamento || ''}</span>
           </div>
         </div>
       </div>

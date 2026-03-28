@@ -5,59 +5,121 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // ========================================
-    // TAB SWITCHING
+    // TABS
     // ========================================
 
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    const tabs = document.querySelectorAll('.profile-tab');
+    const tabContents = document.querySelectorAll('.profile-tab-content');
 
-    if (tabButtons.length > 0) {
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            var target = this.dataset.tab;
 
-                // Remove active class from all buttons
-                tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            tabContents.forEach(function(c) { c.classList.remove('active'); });
 
-                // Add active class to clicked button
+            this.classList.add('active');
+            var content = document.getElementById('tab-' + target);
+            if (content) content.classList.add('active');
+
+            // Load favorites when tab is first clicked
+            if (target === 'favoritos' && favContainer && !favoritesLoaded) {
+                carregarFavoritos('filmes');
+                favoritesLoaded = true;
+            }
+        }.bind(tab));
+    });
+
+    var favoritesLoaded = false;
+
+    // ========================================
+    // FAVORITES: LOADING & RENDERING
+    // ========================================
+
+    const favContainer = document.getElementById('favorites-container');
+    const favToggles = document.querySelectorAll('.fav-toggle');
+    let currentFavTipo = 'filmes';
+
+    function carregarFavoritos(tipo) {
+        currentFavTipo = tipo;
+        const username = window.profileUsername;
+        if (!username || !favContainer) return;
+
+        favContainer.innerHTML = '<p class="profile-empty">Carregando favoritos...</p>';
+
+        const endpoint = tipo === 'filmes'
+            ? `/api/favoritos/${username}/`
+            : `/api/series-favoritas/${username}/`;
+
+        fetch(endpoint)
+            .then(response => response.json())
+            .then(data => {
+                const favoritos = data.success
+                    ? (data.favoritos || data.series_favoritas || [])
+                    : [];
+                renderizarFavoritos(favoritos, tipo);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar favoritos:', error);
+                favContainer.innerHTML = '<p class="profile-empty" style="color:#dc2626;">Erro ao carregar favoritos</p>';
+            });
+    }
+
+    function renderizarFavoritos(favoritos, tipo) {
+        if (!favContainer) return;
+        favContainer.innerHTML = '';
+
+        if (favoritos.length === 0) {
+            favContainer.innerHTML = '<p class="profile-empty">Nenhum favorito ainda</p>';
+            return;
+        }
+
+        const urlBase = tipo === 'filmes' ? '/filmes/' : '/series/';
+
+        favoritos.forEach((fav, index) => {
+            const link = document.createElement('a');
+            link.href = `${urlBase}${fav.tmdb_id}/`;
+            link.className = 'profile-fav-item';
+
+            if (fav.poster) {
+                const img = document.createElement('img');
+                img.src = `https://image.tmdb.org/t/p/w300${fav.poster}`;
+                img.className = 'profile-fav-poster';
+                img.alt = fav.titulo;
+                img.loading = 'lazy';
+                link.appendChild(img);
+            } else {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'profile-fav-poster profile-fav-poster--placeholder';
+                placeholder.textContent = fav.titulo || '?';
+                link.appendChild(placeholder);
+            }
+
+            const rank = document.createElement('span');
+            rank.className = 'profile-fav-rank';
+            rank.textContent = `#${index + 1}`;
+            link.appendChild(rank);
+
+            favContainer.appendChild(link);
+        });
+    }
+
+    // Toggle handlers
+    if (favToggles.length > 0) {
+        favToggles.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tipo = this.dataset.tipo;
+                if (tipo === currentFavTipo) return;
+
+                favToggles.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
 
-                // Hide all tab contents
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                // Show selected tab content
-                const selectedTab = document.getElementById(`tab-${tabId}`);
-                if (selectedTab) {
-                    selectedTab.classList.add('active');
-                }
-
+                carregarFavoritos(tipo);
             });
         });
     }
 
-    // ========================================
-    // REVIEW CARDS INTERACTIONS
-    // ========================================
-
-    const reviewCards = document.querySelectorAll('.review-card');
-
-    reviewCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Pode adicionar funcionalidade de modal para review completa
-        });
-    });
-
-    // ========================================
-    // LIST CARDS INTERACTIONS
-    // ========================================
-
-    const listCards = document.querySelectorAll('.list-card');
-
-    listCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Pode adicionar navegação para detalhes da lista
-        });
-    });
+    // Favorites load on tab click, not on page load
 
     // ========================================
     // SMOOTH SCROLL PARA LINKS INTERNOS
@@ -104,116 +166,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
-    // TOOLTIP PARA BADGES
-    // ========================================
-
-    const badges = document.querySelectorAll('.list-badge, .spoiler-badge');
-
-    badges.forEach(badge => {
-        badge.addEventListener('mouseenter', function() {
-            // Pode adicionar tooltip customizado
-        });
-    });
-
-    // ========================================
     // KEYBOARD NAVIGATION
     // ========================================
 
     document.addEventListener('keydown', function(e) {
-        // ESC para fechar modals (se implementar)
+        // ESC para fechar modals
         if (e.key === 'Escape') {
             const activeModal = document.querySelector('.modal.active');
             if (activeModal) {
                 activeModal.classList.remove('active');
             }
         }
-
-        // Setas para navegar entre tabs
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            const activeTab = document.querySelector('.tab-btn.active');
-            if (activeTab) {
-                const allTabs = Array.from(tabButtons);
-                const currentIndex = allTabs.indexOf(activeTab);
-
-                let nextIndex;
-                if (e.key === 'ArrowLeft') {
-                    nextIndex = currentIndex > 0 ? currentIndex - 1 : allTabs.length - 1;
-                } else {
-                    nextIndex = currentIndex < allTabs.length - 1 ? currentIndex + 1 : 0;
-                }
-
-                allTabs[nextIndex].click();
-            }
-        }
     });
-
-    // ========================================
-    // ANIMATION ON SCROLL
-    // ========================================
-
-    const observeElements = document.querySelectorAll('.review-card, .list-card');
-
-    if ('IntersectionObserver' in window) {
-        const animationObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '0';
-                    entry.target.style.transform = 'translateY(20px)';
-
-                    setTimeout(() => {
-                        entry.target.style.transition = 'all 0.5s ease';
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }, 100);
-
-                    animationObserver.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.1
-        });
-
-        observeElements.forEach(el => animationObserver.observe(el));
-    }
-
-    // ========================================
-    // STATISTICS COUNTER ANIMATION
-    // ========================================
-
-    const statNumbers = document.querySelectorAll('.stat-number');
-
-    function animateCounter(element, target, duration = 1000) {
-        const start = 0;
-        const increment = target / (duration / 16); // 60 FPS
-        let current = start;
-
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                element.textContent = target;
-                clearInterval(timer);
-            } else {
-                element.textContent = Math.floor(current);
-            }
-        }, 16);
-    }
-
-    // Animar contadores quando a página carregar
-    if ('IntersectionObserver' in window) {
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const target = parseInt(entry.target.textContent);
-                    if (!isNaN(target)) {
-                        animateCounter(entry.target, target);
-                    }
-                    statsObserver.unobserve(entry.target);
-                }
-            });
-        });
-
-        statNumbers.forEach(stat => statsObserver.observe(stat));
-    }
 
     // ========================================
     // COPY PROFILE URL
@@ -222,16 +186,34 @@ document.addEventListener('DOMContentLoaded', function() {
     function copyProfileURL() {
         const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            // Pode mostrar toast notification
+            // toast notification placeholder
         }).catch(err => {
+            // fallback silencioso
         });
     }
 
-    // Disponibilizar função globalmente se necessário
     window.copyProfileURL = copyProfileURL;
 
     // ========================================
-    // LOADING STATE
+    // SHARE PROFILE
+    // ========================================
+
+    function shareProfile() {
+        if (navigator.share) {
+            navigator.share({
+                title: document.title,
+                text: 'Confira meu perfil no Backstage!',
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            copyProfileURL();
+        }
+    }
+
+    window.shareProfile = shareProfile;
+
+    // ========================================
+    // LOADING STATE HELPERS
     // ========================================
 
     function showLoading() {
@@ -253,48 +235,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Disponibilizar funções globalmente
     window.showLoading = showLoading;
     window.hideLoading = hideLoading;
 
     // ========================================
-    // FILTER & SEARCH (para implementação futura)
+    // CSRF HELPER (needed by inline clear functions)
     // ========================================
 
-    function filterReviews(criteria) {
-        // Implementar filtro de reviews
-    }
-
-    function searchContent(query) {
-        // Implementar busca no perfil
-    }
-
-    // ========================================
-    // EXPORT DATA (para implementação futura)
-    // ========================================
-
-    function exportProfileData() {
-        // Implementar exportação de dados do perfil
-    }
-
-    // ========================================
-    // SHARE PROFILE
-    // ========================================
-
-    function shareProfile() {
-        if (navigator.share) {
-            navigator.share({
-                title: document.title,
-                text: 'Confira meu perfil no Backstage!',
-                url: window.location.href
-            }).then(() => {
-            }).catch(err => {
-            });
-        } else {
-            copyProfileURL();
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
         }
+        return cookieValue;
     }
 
-    window.shareProfile = shareProfile;
+    window.getCookie = getCookie;
 
 });

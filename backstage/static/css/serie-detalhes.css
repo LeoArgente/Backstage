@@ -1,74 +1,75 @@
 /* ===== Series Details Page Styles ===== */
-/* Importa os estilos base do movie_details e adiciona customiza��es para s�ries */
-
-/* Reaproveita todos os estilos de movie_details.css */
-/* filme-detalhes.css is loaded directly via HTML link tag */
-
-/* ===== Estilos espec�ficos para S�ries ===== */
 
 .series-seasons,
 .series-episodes {
-  color: var(--text-primary);
-  font-weight: 500;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 .series-status {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-success-muted);
+  color: var(--color-success-light);
 }
 
-.series-status:contains("Finalizada") {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.series-status.status-ended {
+  background: var(--color-error-muted);
+  color: var(--color-error-light);
 }
 
-.series-status:contains("Em exibi��o") {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+.series-status.status-returning {
+  background: var(--color-success-muted);
+  color: var(--color-success-light);
 }
 
-.series-status:contains("Cancelada") {
+.series-status.status-canceled {
   background: rgba(156, 163, 175, 0.1);
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 /* ===== Tab de Temporadas ===== */
 
 .temporadas-section {
-  padding: 2rem 0;
+  padding: var(--space-10) 0;
 }
 
 .season-count {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .seasons-list {
-  margin-top: 2rem;
+  margin-top: var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-5);
 }
 
 /* Season Card */
 .season-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: all var(--transition-base);
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  overflow: visible;
+  transition: border-color var(--duration-fast) var(--ease-default),
+              box-shadow var(--duration-base) var(--ease-default);
 }
 
 .season-card:hover {
-  border-color: rgba(220, 38, 38, 0.3);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.season-card.expanded {
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
 .season-header {
-  padding: 1.5rem;
+  padding: var(--space-5) 0;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -77,38 +78,55 @@
 }
 
 .season-header:hover {
-  background: var(--surface-hover);
+  background: none;
 }
 
 .season-info h3 {
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--line-height-snug);
+  margin-bottom: var(--space-1);
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.season-header:hover .season-info h3 {
+  color: var(--color-text-primary);
 }
 
 .season-meta {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-weight: var(--font-weight-medium);
 }
 
 .season-toggle {
   background: none;
   border: none;
-  color: #dc2626;
-  font-size: 1.5rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xl);
   cursor: pointer;
-  transition: transform 0.3s ease;
-  width: 32px;
-  height: 32px;
+  transition: transform var(--duration-slow) var(--ease-smooth),
+              background-color var(--duration-fast) var(--ease-default),
+              color var(--duration-fast) var(--ease-default);
+  width: var(--space-8);
+  height: var(--space-8);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 .season-toggle:hover {
-  background: rgba(220, 38, 38, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+}
+
+.season-card:hover .season-toggle {
+  color: var(--color-brand);
 }
 
 .season-card.expanded .season-toggle {
@@ -119,7 +137,7 @@
 .episodes-list {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease;
+  transition: max-height var(--duration-slow) var(--ease-out);
 }
 
 .season-card.expanded .episodes-list {
@@ -127,23 +145,23 @@
 }
 
 .episode-item {
-  padding: 1.25rem 1.5rem;
-  border-top: 1px solid var(--border);
+  padding: var(--space-4) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   display: flex;
-  gap: 1.5rem;
-  transition: background var(--transition-base);
+  gap: var(--space-6);
+  transition: background-color var(--duration-fast) var(--ease-default);
 }
 
 .episode-item:hover {
-  background: var(--surface-hover);
+  background: none;
 }
 
 .episode-thumb {
-  width: 160px;
-  height: 90px;
-  border-radius: 8px;
+  width: 175px;
+  height: 98px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
-  background: var(--surface-hover);
+  background: var(--color-surface-hover);
   flex-shrink: 0;
 }
 
@@ -153,26 +171,26 @@
 }
 
 .episode-number {
-  color: #dc2626;
-  font-weight: 600;
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
+  color: var(--color-brand);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
   display: block;
 }
 
 .episode-title {
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-2);
   display: block;
 }
 
 .episode-overview {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-3);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -182,57 +200,49 @@
 
 .episode-meta {
   display: flex;
-  gap: 1.5rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  gap: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--tracking-wide);
   flex-wrap: wrap;
 }
 
 .episode-rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .episode-rating svg {
-  color: #fbbf24;
+  color: var(--color-star);
   width: 14px;
   height: 14px;
 }
 
 /* Loading state */
 .season-loading {
-  padding: 2rem;
+  padding: var(--space-8);
   text-align: center;
-  color: var(--text-secondary);
-}
-
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(220, 38, 38, 0.3);
-  border-radius: 50%;
-  border-top-color: #dc2626;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  color: var(--color-text-secondary);
 }
 
 /* Empty state */
 .no-episodes {
-  padding: 3rem;
+  padding: var(--space-12);
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .episode-item {
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .episode-item:hover {
+    background: transparent;
   }
 
   .episode-thumb {
@@ -242,22 +252,20 @@
   }
 
   .season-header {
-    padding: 1rem;
-  }
-
-  .episode-item {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 }
 
 /* ===== Sistema de Likes ===== */
 .like-btn {
-  transition: all 0.3s ease;
+  transition: color var(--duration-fast) var(--ease-default),
+              background-color var(--duration-fast) var(--ease-default),
+              border-color var(--duration-fast) var(--ease-default);
 }
 
 .like-btn.liked {
-  color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-accent-hover);
+  background: var(--color-accent-muted);
   border-color: rgba(59, 130, 246, 0.3);
 }
 
@@ -266,5 +274,5 @@
 }
 
 .like-count {
-  margin-left: 4px;
+  margin-left: var(--space-1);
 }

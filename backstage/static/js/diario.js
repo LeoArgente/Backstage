@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Filter options
-  document.querySelectorAll('.filter-option').forEach(button => {
+  document.querySelectorAll('.diary-filter-btn[data-filter="genre"]').forEach(button => {
     button.addEventListener('click', function() {
       const filterType = this.dataset.filter;
       const filterValue = this.dataset.value;
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Star rating filter
-  const starFilters = document.querySelectorAll('.star-filter');
+  const starFilters = document.querySelectorAll('.diary-star-btn');
   let selectedRating = null;
 
   starFilters.forEach((star) => {
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Clear rating filter button
-  document.querySelector('.clear-rating-filter')?.addEventListener('click', function() {
+  document.querySelector('#clearRatingFilter')?.addEventListener('click', function() {
     selectedRating = null;
     starFilters.forEach(s => {
       s.classList.remove('active');
@@ -205,77 +205,91 @@ function renderCalendar() {
   const calendarDays = document.getElementById('calendarDays');
   calendarDays.innerHTML = '';
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(currentYear, currentMonth, day);
-    const dayOfWeek = dayNames[date.getDay()];
-    const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const entries = diaryEntries[dateKey]; // Array de filmes do dia
+  // Day-of-week headers
+  var headerHTML = '';
+  for (var h = 0; h < 7; h++) {
+    headerHTML += '<div class="cal-header">' + dayNames[h] + '</div>';
+  }
+  calendarDays.innerHTML = headerHTML;
 
-    if (entries && entries.length > 0) {
-      // Criar um único card para o dia
-      const dayRow = document.createElement('div');
-      dayRow.className = 'calendar-day-row';
+  // First day of month offset
+  var firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
 
-      const starIcon = '<span style="color: #fbbf24; font-size: 18px; margin: 0 2px;">★</span>';
+  // Empty cells before day 1
+  for (var e = 0; e < firstDayOfWeek; e++) {
+    var emptyEl = document.createElement('div');
+    emptyEl.className = 'cal-cell cal-empty';
+    calendarDays.appendChild(emptyEl);
+  }
 
-      // Gerar HTML dos filmes
-      const moviesHTML = entries.map(entry => {
-        const posterSrc = entry.poster || getPlaceholderPoster();
-        const ratingStars = starIcon.repeat(entry.nota);
-        return `
-          <div class="calendar-movie-item" data-genres="${entry.generos || ''}">
-            <div class="calendar-movie-main">
-              <div class="calendar-poster">
-                <a href="/filmes/${entry.filme_id}/">
-                  <img src="${posterSrc}" alt="${entry.titulo}">
-                </a>
-              </div>
-              <div class="calendar-movie-title">
-                <a href="/filmes/${entry.filme_id}/" style="color: inherit; text-decoration: none;">${entry.titulo}</a>
-              </div>
-            </div>
-            <div class="calendar-rating">${ratingStars}</div>
-            <div class="calendar-watched-with">${entry.assistido_com || '-'}</div>
-            <div class="calendar-actions">
-              <button class="delete-diary-btn" onclick="deleteDiaryEntry(${entry.id}, '${entry.titulo}')" title="Remover do diário">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
+  // Render each day
+  for (var day = 1; day <= daysInMonth; day++) {
+    var dateKey = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var entries = diaryEntries[dateKey] || [];
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    if (entries.length > 0) cell.className += ' cal-has-entry';
 
-      dayRow.innerHTML = `
-        <div class="calendar-date">
-          <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
-          <span class="calendar-day-number">${day}</span>
-          <span class="calendar-day-name">${dayOfWeek}</span>
-        </div>
-        <div class="calendar-movies-list">
-          ${moviesHTML}
-        </div>
-      `;
+    var inner = '<span class="cal-day-number">' + day + '</span>';
 
-      calendarDays.appendChild(dayRow);
-    } else {
-      // Dia sem filmes
-      const dayRow = document.createElement('div');
-      dayRow.className = 'calendar-day-row empty';
-      dayRow.innerHTML = `
-        <div class="calendar-date">
-          <span class="calendar-month">${monthNames[currentMonth].substring(0, 3)}</span>
-          <span class="calendar-day-number">${day}</span>
-          <span class="calendar-day-name">${dayOfWeek}</span>
-        </div>
-        <div class="calendar-movies-list empty"></div>
-      `;
-      calendarDays.appendChild(dayRow);
+    if (entries.length > 0) {
+      var entry = entries[0]; // show first entry poster
+      var posterSrc = entry.poster || '';
+      var urlPrefix = entry.tipo === 'serie' ? '/series/' : '/filmes/';
+      var filled = '';
+      var empty = '';
+      for (var s = 0; s < entry.nota; s++) filled += '★';
+      for (var s = 0; s < 5 - entry.nota; s++) empty += '☆';
+      var safeTitle = (entry.titulo || '').replace(/'/g, "\\'");
+
+      if (posterSrc) {
+        inner += '<a href="' + urlPrefix + entry.filme_id + '/" class="cal-poster-link"><img class="cal-poster" src="' + posterSrc + '" alt="' + (entry.titulo || '') + '" loading="lazy"></a>';
+      } else {
+        inner += '<a href="' + urlPrefix + entry.filme_id + '/" class="cal-poster-link"><span class="cal-poster-placeholder">' + (entry.titulo || '').substring(0, 3) + '</span></a>';
+      }
+      inner += '<span class="cal-stars">' + filled + empty + '</span>';
+      if (entry.assistido_com) {
+        inner += '<span class="cal-watched-with">' + entry.assistido_com + '</span>';
+      }
+
+      // Menu 3 pontos
+      inner += '<div class="cal-menu">' +
+        '<button class="cal-menu-btn" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle(\'active\')">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
+        '</button>' +
+        '<div class="cal-menu-dropdown">' +
+          '<button onclick="event.stopPropagation(); editDiaryEntry(' + entry.id + ', ' + entry.nota + ', \'' + safeTitle + '\')" title="Editar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+          '<button onclick="event.stopPropagation(); deleteDiaryEntry(' + entry.id + ', \'' + safeTitle + '\')" title="Excluir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+        '</div>' +
+      '</div>';
+
+      if (entries.length > 1) {
+        inner += '<span class="cal-more">+' + (entries.length - 1) + '</span>';
+      }
+
+      // Hidden data for filters
+      var allGenres = entries.map(function(e) { return e.generos || ''; }).join(',');
+      cell.setAttribute('data-genres', allGenres);
+      cell.setAttribute('data-rating', entry.nota);
     }
+
+    cell.innerHTML = inner;
+
+    // Click empty cell to add movie on that day
+    if (entries.length === 0) {
+      cell.setAttribute('data-day', day);
+      cell.setAttribute('data-month', currentMonth + 1);
+      cell.setAttribute('data-year', currentYear);
+      cell.addEventListener('click', function() {
+        openAddMovieModal(
+          parseInt(this.getAttribute('data-day')),
+          parseInt(this.getAttribute('data-month')),
+          parseInt(this.getAttribute('data-year'))
+        );
+      });
+    }
+
+    calendarDays.appendChild(cell);
   }
 }
 
@@ -526,6 +540,13 @@ function saveMovieToDiary() {
     if (data.success) {
       showNotification('Filme adicionado ao diário!', 'success');
       closeAddMovieModal();
+      // Navigate to the month of the added entry
+      var addedDate = document.getElementById('movieDate').value;
+      if (addedDate) {
+        var parts = addedDate.split('-');
+        currentYear = parseInt(parts[0]);
+        currentMonth = parseInt(parts[1]) - 1;
+      }
       loadDiaryEntries();
     } else {
       showNotification(data.message || 'Erro ao adicionar filme', 'error');
@@ -536,102 +557,31 @@ function saveMovieToDiary() {
   });
 }
 
-// Filter diary entries
+// Filter diary entries by genre
 function filterDiaryEntries(filterType, filterValue) {
-  const calendarRows = document.querySelectorAll('.calendar-day-row');
+  var cells = document.querySelectorAll('.cal-cell:not(.cal-empty):not(.cal-header)');
 
-  if (!filterValue || filterValue === '') {
-    // Show all entries
-    calendarRows.forEach(row => {
-      row.style.display = '';
-      const movieItems = row.querySelectorAll('.calendar-movie-item');
-      movieItems.forEach(item => {
-        item.style.display = '';
-      });
-    });
-    return;
-  }
-
-  if (filterType === 'genre') {
-    calendarRows.forEach(row => {
-      const movieItems = row.querySelectorAll('.calendar-movie-item');
-
-      if (movieItems.length === 0) {
-        row.style.display = 'none';
-        return;
-      }
-
-      let hasMatchingMovie = false;
-
-      movieItems.forEach(item => {
-        const genres = item.getAttribute('data-genres') || '';
-
-        // Check if the genre is in the comma-separated list
-        const genresList = genres.split(',').map(g => g.trim());
-
-        if (genresList.includes(filterValue)) {
-          item.style.display = '';
-          hasMatchingMovie = true;
-        } else {
-          item.style.display = 'none';
-        }
-      });
-
-      // Show row only if at least one movie matches
-      row.style.display = hasMatchingMovie ? '' : 'none';
-    });
-  }
+  cells.forEach(function(cell) {
+    if (!filterValue || filterValue === '') {
+      cell.style.opacity = '';
+      return;
+    }
+    var genres = (cell.getAttribute('data-genres') || '').split(',').map(function(g) { return g.trim(); });
+    cell.style.opacity = genres.includes(filterValue) ? '' : '0.15';
+  });
 }
 
 // Filter diary by rating
 function filterDiaryByRating(rating) {
-  const calendarRows = document.querySelectorAll('.calendar-day-row');
+  var cells = document.querySelectorAll('.cal-cell:not(.cal-empty):not(.cal-header)');
 
-  if (!rating) {
-    // Show all entries and all movie items
-    calendarRows.forEach(row => {
-      row.style.display = '';
-      const movieItems = row.querySelectorAll('.calendar-movie-item');
-      movieItems.forEach(item => {
-        item.style.display = '';
-      });
-    });
-    return;
-  }
-
-  calendarRows.forEach(row => {
-    // Get all movie items in this day
-    const movieItems = row.querySelectorAll('.calendar-movie-item');
-
-    if (movieItems.length === 0) {
-      // Empty day - hide it when filtering
-      row.style.display = 'none';
+  cells.forEach(function(cell) {
+    if (!rating) {
+      cell.style.opacity = '';
       return;
     }
-
-    let hasMatchingMovie = false;
-
-    // Check each movie item
-    movieItems.forEach(item => {
-      const ratingElement = item.querySelector('.calendar-rating');
-      if (ratingElement) {
-        const stars = ratingElement.querySelectorAll('span');
-        const entryRating = stars.length;
-
-        // Show or hide individual movie item
-        if (entryRating === rating) {
-          item.style.display = '';
-          hasMatchingMovie = true;
-        } else {
-          item.style.display = 'none';
-        }
-      } else {
-        item.style.display = 'none';
-      }
-    });
-
-    // Show row only if at least one movie matches
-    row.style.display = hasMatchingMovie ? '' : 'none';
+    var cellRating = parseInt(cell.getAttribute('data-rating') || '0');
+    cell.style.opacity = cellRating === rating ? '' : '0.15';
   });
 }
 
@@ -650,6 +600,34 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+
+// Edit diary entry (reopen modal with pre-filled rating)
+function editDiaryEntry(entryId, currentRating, movieTitle) {
+  // Close any open menus
+  document.querySelectorAll('.cal-menu-dropdown.active').forEach(function(m) { m.classList.remove('active'); });
+
+  // Open the add modal
+  openAddMovieModalWithDatePicker();
+
+  // Pre-select the rating
+  var ratingInput = document.querySelector('input[name="rating"][value="' + currentRating + '"]');
+  if (ratingInput) ratingInput.checked = true;
+
+  // Store the entry ID so save can update instead of create
+  window._editingEntryId = entryId;
+}
+
+// Close menus when clicking elsewhere
+document.addEventListener('click', function() {
+  document.querySelectorAll('.cal-menu-dropdown.active').forEach(function(m) { m.classList.remove('active'); });
+});
+
+// Close menus when mouse leaves the cell
+document.addEventListener('mouseover', function(e) {
+  if (!e.target.closest('.cal-has-entry')) {
+    document.querySelectorAll('.cal-menu-dropdown.active').forEach(function(m) { m.classList.remove('active'); });
+  }
+});
 
 // Delete diary entry
 async function deleteDiaryEntry(entryId, movieTitle) {
@@ -678,28 +656,3 @@ async function deleteDiaryEntry(entryId, movieTitle) {
   }
 }
 
-// Show Notification
-function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 2rem;
-    right: 2rem;
-    padding: 1rem 2rem;
-    background: ${type === 'success' ? '#00d9ff' : '#ff3b5c'};
-    color: ${type === 'success' ? '#0a0e27' : 'white'};
-    border-radius: 0.5rem;
-    font-weight: 600;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    z-index: 10000;
-    animation: slideIn 0.3s ease;
-  `;
-  notification.textContent = message;
-
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}

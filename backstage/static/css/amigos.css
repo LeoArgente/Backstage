@@ -16,7 +16,7 @@
 }
 
 .page-header h1 {
-  font-size: 3rem;
+  font-size: var(--font-size-4xl);
   font-weight: 800;
   color: #e50914 !important;
   text-align: center !important
@@ -25,13 +25,13 @@
 
 .page-header .page-description {
   color: #d1d5db !important;
-  font-size: 1.1rem !important;
+  font-size: var(--font-size-base) !important;
   text-align: center !important;
   margin-top: 10px;
 }
 
 .page-description {
-  font-size: 1.125rem;
+  font-size: var(--font-size-md);
   color: var(--text-muted);
 }
 
@@ -53,7 +53,7 @@
   border: none;
   border-bottom: 3px solid transparent;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -85,7 +85,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -163,7 +163,7 @@
 }
 
 .friend-name {
-  font-size: 1.25rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
@@ -171,7 +171,7 @@
 
 .friend-stats,
 .friend-date {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
@@ -192,7 +192,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -281,7 +281,7 @@
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   margin-top: 0.5rem;
 }
@@ -293,7 +293,7 @@
 
 /* Section Title */
 .section-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
@@ -320,14 +320,14 @@
 }
 
 .empty-state h3 {
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin-bottom: 2rem;
 }
@@ -338,7 +338,7 @@
   border: none;
   border-radius: var(--radius-md);
   color: #ffffff;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -362,7 +362,7 @@
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   transition: all 0.3s ease;
 }
 
@@ -381,7 +381,7 @@
   border: none;
   border-radius: var(--radius-md);
   color: #ffffff;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -414,7 +414,7 @@
   }
 
   .page-header h1 {
-    font-size: 2rem;
+    font-size: var(--font-size-2xl);
   }
 
   .friends-tabs {
@@ -423,7 +423,7 @@
 
   .friends-tab {
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
   }
 
   .friends-grid {
@@ -476,7 +476,7 @@
   border: 2px solid var(--border);
   border-radius: 12px;
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   transition: all 0.3s ease;
 }
 
@@ -592,7 +592,7 @@
 
 .result-avatar i {
   color: white;
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
 }
 
 .result-details {
@@ -602,13 +602,13 @@
 }
 
 .result-name {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .result-username {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
@@ -625,7 +625,7 @@
   padding: 0.625rem 1.25rem;
   border: none;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -674,7 +674,7 @@
 }
 
 .btn-result i {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
 }
 
 /* Estados vazios e erros */
@@ -690,7 +690,7 @@
 
 .no-results i,
 .search-error i {
-  font-size: 3rem;
+  font-size: var(--font-size-4xl);
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
@@ -698,7 +698,7 @@
 .no-results p,
 .search-error p {
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
 }
 
 .search-error {
@@ -717,7 +717,7 @@
   margin-top: 1rem;
   padding: 0 0.5rem;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .search-helper-text svg {
@@ -738,7 +738,7 @@
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   z-index: 1000;
   opacity: 0;
@@ -758,7 +758,7 @@
 
 .toast-success i {
   color: #10b981;
-  font-size: 1.25rem;
+  font-size: var(--font-size-lg);
 }
 
 .toast-error {
@@ -767,7 +767,7 @@
 
 .toast-error i {
   color: #ef4444;
-  font-size: 1.25rem;
+  font-size: var(--font-size-lg);
 }
 
 /* Responsive para busca em tempo real */
@@ -790,20 +790,20 @@
   }
 
   .result-avatar i {
-    font-size: 1.25rem;
+    font-size: var(--font-size-lg);
   }
 
   .result-name {
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
   }
 
   .result-username {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
   }
 
   .btn-result {
     padding: 0.5rem 1rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
   }
 
   .toast-notification {

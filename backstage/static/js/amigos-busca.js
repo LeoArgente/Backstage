@@ -294,24 +294,7 @@ class FriendsRealtimeSearch {
     }
     
     showNotification(message, type = 'success') {
-        // Criar notificação toast
-        const toast = document.createElement('div');
-        toast.className = `toast-notification toast-${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            <span>${this.escapeHtml(message)}</span>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Mostrar com animação
-        setTimeout(() => toast.classList.add('show'), 100);
-        
-        // Remover após 3 segundos
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        window.toast.show(message, type);
     }
     
     getCookie(name) {

@@ -335,33 +335,34 @@ class CommunityChat {
     messageItem.dataset.messageId = message.id;
     messageItem.dataset.username = message.usuario.username;
 
-    // Check if own message
     const isOwnMessage = message.usuario.username === this.currentUser;
     if (isOwnMessage) {
       messageItem.classList.add('own-message');
     }
 
-    // Build HTML
+    if (isFirstInGroup) {
+      messageItem.classList.add('group-start');
+    }
+
+    const timestamp = this.formatTimestamp(message.criado_em);
     let html = '';
 
-    // Avatar (only on first message in group)
+    // Avatar on group-start, spacer on continuation
     if (isFirstInGroup) {
       if (message.usuario.foto_perfil) {
-        html += `<img src="${this.escapeHtml(message.usuario.foto_perfil)}"
-                      alt="${this.escapeHtml(message.usuario.username)}"
-                      class="message-avatar">`;
+        html += `<img src="${this.escapeHtml(message.usuario.foto_perfil)}" alt="${this.escapeHtml(message.usuario.username)}" class="message-avatar">`;
       } else {
         const initial = message.usuario.username.charAt(0).toUpperCase();
         html += `<div class="message-avatar-placeholder">${initial}</div>`;
       }
     } else {
-      html += '<div class="message-avatar-spacer"></div>';
+      // Hover timestamp appears in spacer area on continuation messages
+      html += `<div class="message-avatar-spacer"><span class="hover-timestamp">${timestamp}</span></div>`;
     }
 
-    // Content wrapper
     html += '<div class="message-content-wrapper">';
 
-    // Meta (username + badge) - only on first message in group
+    // Meta line: username + badge + timestamp (only on group-start)
     if (isFirstInGroup) {
       html += '<div class="message-meta">';
       html += `<a href="/perfil/${this.escapeHtml(message.usuario.username)}/" class="message-username">${this.escapeHtml(message.usuario.username)}</a>`;
@@ -372,20 +373,21 @@ class CommunityChat {
         html += '<span class="message-role-badge role-mod">Mod</span>';
       }
 
+      html += `<span class="message-meta-timestamp">${timestamp}</span>`;
       html += '</div>';
     }
 
-    // Movie recommendation card (appears BEFORE text message)
+    // Movie recommendation card
     if (message.tipo_mensagem === 'recomendacao' && message.filme_tmdb_id) {
       html += this.createMovieCard(message);
     }
 
-    // Message bubble (text content with timestamp inside)
+    // Message text (no bubble wrapping, no inner timestamp)
     if (message.conteudo) {
-      html += `<div class="message-bubble">${this.escapeHtml(message.conteudo)}<span class="message-timestamp">${this.formatTimestamp(message.criado_em)}</span></div>`;
+      html += `<div class="message-bubble">${this.escapeHtml(message.conteudo)}</div>`;
     }
 
-    html += '</div>'; // Close content wrapper
+    html += '</div>';
 
     messageItem.innerHTML = html;
     return messageItem;

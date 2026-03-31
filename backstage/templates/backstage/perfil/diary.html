@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
   <link rel="stylesheet" href="{% static 'css/modals.css' %}">
   <link rel="stylesheet" href="{% static 'css/filmes.css' %}">
-  <link rel="stylesheet" href="{% static 'css/diario.css' %}?v=2.1">
+  <link rel="stylesheet" href="{% static 'css/diario.css' %}?v=3.0">
   <link rel="stylesheet" href="{% static 'css/dropdown.css' %}" />
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
 </head>
@@ -34,7 +34,7 @@
           <a href="{% url 'backstage:index' %}" class="nav-link">Início</a>
           <a href="{% url 'backstage:movies' %}" class="nav-link">Filmes</a>
           <a href="{% url 'backstage:series' %}" class="nav-link">Séries</a>
-          <a href="{% url 'backstage:lists' %}" class="nav-link">Listas</a>
+          <a href="{% url 'backstage:diary' %}" class="nav-link">Diário</a>
           <a href="{% url 'backstage:comunidade' %}" class="nav-link">Comunidade</a>
         </div>
 
@@ -177,7 +177,7 @@
   <script src="{% static 'js/main.js' %}?v=3.0" defer></script>
   <script src="{% static 'js/busca-sugestoes.js' %}" defer></script>
   <script src="{% static 'js/perfil-menu.js' %}" defer></script>
-  <script src="{% static 'js/diario.js' %}?v=2.0" defer></script>
+  <script src="{% static 'js/diario.js' %}?v=3.0" defer></script>
   <script src="{% static 'js/notificacoes.js' %}" defer></script>
 
 {% include 'backstage/partials/footer_default.html' %}

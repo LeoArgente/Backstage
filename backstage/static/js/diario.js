@@ -198,9 +198,9 @@ function renderCalendar() {
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  
+
   document.getElementById('currentMonth').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-  
+
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const calendarDays = document.getElementById('calendarDays');
   calendarDays.innerHTML = '';
@@ -226,51 +226,74 @@ function renderCalendar() {
   for (var day = 1; day <= daysInMonth; day++) {
     var dateKey = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
     var entries = diaryEntries[dateKey] || [];
+    // Determine which column this day falls in (0=Dom, 6=Sáb)
+    var colIndex = (firstDayOfWeek + day - 1) % 7;
     var cell = document.createElement('div');
     cell.className = 'cal-cell';
     if (entries.length > 0) cell.className += ' cal-has-entry';
+    if (entries.length > 1) cell.className += ' cal-has-stack';
+    // Mark expansion direction: last 2 columns expand left
+    if (colIndex >= 5) {
+      cell.classList.add('cal-expand-left');
+    }
 
     var inner = '<span class="cal-day-number">' + day + '</span>';
 
     if (entries.length > 0) {
-      var entry = entries[0]; // show first entry poster
-      var posterSrc = entry.poster || '';
-      var urlPrefix = entry.tipo === 'serie' ? '/series/' : '/filmes/';
-      var filled = '';
-      var empty = '';
-      for (var s = 0; s < entry.nota; s++) filled += '★';
-      for (var s = 0; s < 5 - entry.nota; s++) empty += '☆';
-      var safeTitle = (entry.titulo || '').replace(/'/g, "\\'");
+      // Build the stack container
+      inner += '<div class="cal-stack" data-count="' + entries.length + '">';
 
-      if (posterSrc) {
-        inner += '<a href="' + urlPrefix + entry.filme_id + '/" class="cal-poster-link"><img class="cal-poster" src="' + posterSrc + '" alt="' + (entry.titulo || '') + '" loading="lazy"></a>';
-      } else {
-        inner += '<a href="' + urlPrefix + entry.filme_id + '/" class="cal-poster-link"><span class="cal-poster-placeholder">' + (entry.titulo || '').substring(0, 3) + '</span></a>';
+      // Render each entry as a stack card
+      for (var idx = 0; idx < entries.length; idx++) {
+        var entry = entries[idx];
+        var posterSrc = entry.poster || '';
+        var urlPrefix = entry.tipo === 'serie' ? '/series/' : '/filmes/';
+        var filled = '';
+        var empty = '';
+        for (var s = 0; s < entry.nota; s++) filled += '★';
+        for (var s = 0; s < 5 - entry.nota; s++) empty += '☆';
+        var safeTitle = (entry.titulo || '').replace(/'/g, "\\'");
+
+        inner += '<div class="cal-stack-card" data-index="' + idx + '">';
+
+        if (posterSrc) {
+          inner += '<a href="' + urlPrefix + entry.filme_id + '/" class="cal-poster-link" onclick="event.stopPropagation()"><img class="cal-poster" src="' + posterSrc + '" alt="' + (entry.titulo || '') + '" loading="lazy"></a>';
+        } else {
+          inner += '<a href="' + urlPrefix + entry.filme_id + '/" class="cal-poster-link" onclick="event.stopPropagation()"><span class="cal-poster-placeholder">' + (entry.titulo || '').substring(0, 3) + '</span></a>';
+        }
+        inner += '<span class="cal-stars">' + filled + empty + '</span>';
+
+        // Menu 3 pontos per card
+        inner += '<div class="cal-menu">' +
+          '<button class="cal-menu-btn" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle(\'active\')">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
+          '</button>' +
+          '<div class="cal-menu-dropdown">' +
+            '<button onclick="event.stopPropagation(); editDiaryEntry(' + entry.id + ', ' + entry.nota + ', \'' + safeTitle + '\')" title="Editar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+            '<button onclick="event.stopPropagation(); deleteDiaryEntry(' + entry.id + ', \'' + safeTitle + '\')" title="Excluir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+          '</div>' +
+        '</div>';
+
+        inner += '</div>'; // .cal-stack-card
       }
-      inner += '<span class="cal-stars">' + filled + empty + '</span>';
-      if (entry.assistido_com) {
-        inner += '<span class="cal-watched-with">' + entry.assistido_com + '</span>';
-      }
 
-      // Menu 3 pontos
-      inner += '<div class="cal-menu">' +
-        '<button class="cal-menu-btn" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle(\'active\')">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
-        '</button>' +
-        '<div class="cal-menu-dropdown">' +
-          '<button onclick="event.stopPropagation(); editDiaryEntry(' + entry.id + ', ' + entry.nota + ', \'' + safeTitle + '\')" title="Editar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
-          '<button onclick="event.stopPropagation(); deleteDiaryEntry(' + entry.id + ', \'' + safeTitle + '\')" title="Excluir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
-        '</div>' +
-      '</div>';
+      inner += '</div>'; // .cal-stack
 
+      // Badge showing count
       if (entries.length > 1) {
-        inner += '<span class="cal-more">+' + (entries.length - 1) + '</span>';
+        inner += '<span class="cal-more">' + entries.length + '</span>';
       }
 
-      // Hidden data for filters
+      // Add button for days that already have entries
+      inner += '<button class="cal-add-btn" onclick="event.stopPropagation(); openAddMovieModal(' + day + ', ' + (currentMonth + 1) + ', ' + currentYear + ')" title="Adicionar mais">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      '</button>';
+
+      // Hidden data for filters — consider ALL entries
       var allGenres = entries.map(function(e) { return e.generos || ''; }).join(',');
+      var allRatings = entries.map(function(e) { return e.nota; }).join(',');
       cell.setAttribute('data-genres', allGenres);
-      cell.setAttribute('data-rating', entry.nota);
+      cell.setAttribute('data-ratings', allRatings);
     }
 
     cell.innerHTML = inner;
@@ -291,6 +314,9 @@ function renderCalendar() {
 
     calendarDays.appendChild(cell);
   }
+
+  // Setup stack expand/collapse for touch and click
+  setupStackInteractions();
 }
 
 // Open add movie modal (from calendar day)
@@ -557,7 +583,7 @@ function saveMovieToDiary() {
   });
 }
 
-// Filter diary entries by genre
+// Filter diary entries by genre — checks ALL entries in a day
 function filterDiaryEntries(filterType, filterValue) {
   var cells = document.querySelectorAll('.cal-cell:not(.cal-empty):not(.cal-header)');
 
@@ -571,7 +597,7 @@ function filterDiaryEntries(filterType, filterValue) {
   });
 }
 
-// Filter diary by rating
+// Filter diary by rating — matches if ANY entry in the day has the rating
 function filterDiaryByRating(rating) {
   var cells = document.querySelectorAll('.cal-cell:not(.cal-empty):not(.cal-header)');
 
@@ -580,10 +606,43 @@ function filterDiaryByRating(rating) {
       cell.style.opacity = '';
       return;
     }
-    var cellRating = parseInt(cell.getAttribute('data-rating') || '0');
-    cell.style.opacity = cellRating === rating ? '' : '0.15';
+    var ratings = (cell.getAttribute('data-ratings') || '').split(',').map(function(r) { return parseInt(r); });
+    cell.style.opacity = ratings.includes(rating) ? '' : '0.15';
   });
 }
+
+// Setup stack expand/collapse interactions (touch + click)
+function setupStackInteractions() {
+  var stackCells = document.querySelectorAll('.cal-has-stack');
+
+  stackCells.forEach(function(cell) {
+    cell.addEventListener('click', function(e) {
+      // Don't toggle if clicking a link, button, or menu
+      if (e.target.closest('a, button, .cal-menu, .cal-menu-dropdown')) return;
+
+      var wasExpanded = cell.classList.contains('cal-stack-expanded');
+
+      // Close all other expanded stacks
+      document.querySelectorAll('.cal-stack-expanded').forEach(function(c) {
+        c.classList.remove('cal-stack-expanded');
+      });
+
+      // Toggle this one
+      if (!wasExpanded) {
+        cell.classList.add('cal-stack-expanded');
+      }
+    });
+  });
+}
+
+// Global listener for closing expanded stacks (only added once)
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.cal-has-stack')) {
+    document.querySelectorAll('.cal-stack-expanded').forEach(function(c) {
+      c.classList.remove('cal-stack-expanded');
+    });
+  }
+});
 
 // Get CSRF Token
 function getCookie(name) {
